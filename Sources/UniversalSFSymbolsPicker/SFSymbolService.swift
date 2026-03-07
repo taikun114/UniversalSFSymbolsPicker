@@ -9,15 +9,14 @@ public struct SFSymbolCategory: Identifiable, Hashable, Sendable {
 }
 
 /// A service that provides access to SF Symbols metadata, availability, categories, and search keywords.
-@MainActor
-public final class SFSymbolService {
+public final class SFSymbolService: Sendable {
     public static let shared = SFSymbolService()
     
     /// All unique symbol identifiers (canonical names).
     public let allSymbols: [String]
     
-    /// All available categories.
-    public let categories: [SFSymbolCategory]
+    /// All available system categories.
+    public let systemCategories: [SFSymbolCategory]
     
     /// Internal map: Symbol Name -> Introduction Year
     private let symbolToYear: [String: String]
@@ -28,30 +27,15 @@ public final class SFSymbolService {
     /// Internal map: Symbol Name -> List of Keywords
     private let symbolToKeywords: [String: [String]]
     
+    /// Internal map: Symbol Name -> Restriction Reason
+    private let restrictedSymbols: [String: String]
+    
     /// Internal map: Old Name -> New Name
     private let aliases: [String: String]
     
     /// Internal map: New Name -> [Old Names]
     private let reverseAliases: [String: [String]]
-
-    /// Returns the current OS identifier string used in metadata.
-    private var currentOS: String {
-        #if os(iOS)
-        let osName = "iOS"
-        #elseif os(macOS)
-        let osName = "macOS"
-        #elseif os(tvOS)
-        let osName = "tvOS"
-        #elseif os(watchOS)
-        let osName = "watchOS"
-        #elseif os(visionOS)
-        let osName = "visionOS"
-        #else
-        let osName = ""
-        #endif
-        return osName
-    }
-
+    
     private init() {
         var allNames = [String]()
         var lookupYear = [String: String]()
@@ -65,17 +49,20 @@ public final class SFSymbolService {
         
         self.symbolToYear = lookupYear
         self.aliases = SFSymbolData.aliases
+        self.restrictedSymbols = SFSymbolData.restrictedSymbols
         
+        // Build reverse aliases for fallback lookup
         var rev = [String: [String]]()
         for (old, new) in SFSymbolData.aliases {
             rev[new, default: []].append(old)
         }
         self.reverseAliases = rev
         
+        // Canonical symbols are those that are NOT an old alias for something else
         let oldAliasSet = Set(SFSymbolData.aliases.keys)
         self.allSymbols = allNames.filter { !oldAliasSet.contains($0) }.sorted()
         
-        self.categories = SFSymbolData.categories.map { dict in
+        self.systemCategories = SFSymbolData.categories.map { dict in
             SFSymbolCategory(
                 id: dict["id"] ?? "",
                 label: dict["label"] ?? "",
@@ -87,110 +74,132 @@ public final class SFSymbolService {
         self.symbolToKeywords = SFSymbolData.searchKeywords
     }
     
-    /// Finds the best (newest supported) symbol name for the current OS version.
-    public func bestName(for name: String) -> String? {
-        let cluster = findSymbolCluster(name)
-        let sortedCluster = cluster.sorted { nameA, nameB in
-            let yearA = symbolToYear[nameA] ?? "0"
-            let yearB = symbolToYear[nameB] ?? "0"
-            return yearA > yearB
+    // MARK: - Dynamic Naming
+    
+    public func effectiveName(for name: String) -> String? {
+        let cluster = findSymbolCluster(startingWith: name)
+        let sortedNames = cluster.sorted { a, b in
+            let yearA = symbolToYear[a] ?? "0"
+            let yearB = symbolToYear[b] ?? "0"
+            return yearA.compare(yearB, options: .numeric) == .orderedDescending
         }
-        return sortedCluster.first(where: { isAvailable($0) })
+        return sortedNames.first { isAvailable($0) }
     }
     
-    private func findSymbolCluster(_ name: String) -> Set<String> {
+    private func findSymbolCluster(startingWith name: String) -> Set<String> {
         var cluster = Set<String>([name])
         var queue = [name]
-        var index = 0
-        while index < queue.count {
-            let current = queue[index]; index += 1
+        while !queue.isEmpty {
+            let current = queue.removeFirst()
             if let new = aliases[current], !cluster.contains(new) {
-                cluster.insert(new); queue.append(new)
+                cluster.insert(new)
+                queue.append(new)
             }
             if let olds = reverseAliases[current] {
                 for old in olds where !cluster.contains(old) {
-                    cluster.insert(old); queue.append(old)
+                    cluster.insert(old)
+                    queue.append(old)
                 }
             }
         }
         return cluster
     }
-
-    /// Checks if a specific symbol name is available on the current platform and OS version.
-    public func isAvailable(_ symbol: String) -> Bool {
+    
+    // MARK: - Availability
+    
+    public func isAvailable(_ symbol: String, limitVersion: Double? = nil) -> Bool {
         guard let year = symbolToYear[symbol] else { return false }
+        if let limit = limitVersion, let limitYear = SFSymbolData.versionToYear[limit] {
+            if year.compare(limitYear, options: .numeric) == .orderedDescending { return false }
+        }
         guard let versions = SFSymbolData.yearToVersion[year] else { return false }
         
-        let os = currentOS
-        if os.isEmpty { return false }
+        var currentOS: String? = nil
+        #if os(iOS)
+        currentOS = "iOS"
+        #elseif os(macOS)
+        currentOS = "macOS"
+        #elseif os(tvOS)
+        currentOS = "tvOS"
+        #elseif os(watchOS)
+        currentOS = "watchOS"
+        #elseif os(visionOS)
+        currentOS = "visionOS"
+        #endif
         
-        guard let requiredVersionString = versions[os] else { return false }
+        guard let osKey = currentOS, let requiredVersionString = versions[osKey] else { return false }
         let requiredVersion = OperatingSystemVersion(versionString: requiredVersionString)
         return ProcessInfo.processInfo.isOperatingSystemAtLeast(requiredVersion)
     }
     
-    /// Searches symbols by name or keywords with advanced filtering.
+    // MARK: - Filtering & Search
+    
+    public func symbols(
+        for categoryID: String,
+        customCategories: [CustomCategory] = [],
+        includedIDs: [String]? = nil,
+        excludedIDs: [String]? = nil,
+        excludeRestricted: Bool = false,
+        limitVersion: Double? = nil
+    ) -> [String] {
+        var baseSymbols: Set<String>
+        
+        if categoryID == "all" {
+            baseSymbols = Set(allSymbols)
+        } else if let custom = customCategories.first(where: { $0.id.uuidString == categoryID }) {
+            baseSymbols = Set(custom.symbols)
+            for sysID in custom.systemCategories {
+                baseSymbols.formUnion(symbolsInSystemCategory(sysID))
+            }
+        } else {
+            baseSymbols = symbolsInSystemCategory(categoryID)
+        }
+        
+        if let included = includedIDs {
+            let allowed = Set(included.flatMap { symbolsInSystemCategory($0) })
+            baseSymbols.formIntersection(allowed)
+        }
+        if let excluded = excludedIDs {
+            let forbidden = Set(excluded.flatMap { symbolsInSystemCategory($0) })
+            baseSymbols.subtract(forbidden)
+        }
+        
+        if excludeRestricted {
+            let explicitlyIncludedByCustom = Set(customCategories.flatMap { $0.symbols })
+            let restrictedSet = Set(restrictedSymbols.keys)
+            let restrictedToExclude = restrictedSet.subtracting(explicitlyIncludedByCustom)
+            baseSymbols.subtract(restrictedToExclude)
+        }
+        
+        return baseSymbols
+            .filter { isAvailable($0, limitVersion: limitVersion) }
+            .sorted()
+    }
+    
+    private func symbolsInSystemCategory(_ id: String) -> Set<String> {
+        if id == "all" { return Set(allSymbols) }
+        var result = Set<String>()
+        for (symbol, cats) in symbolToCategories {
+            if cats.contains(id) { result.insert(symbol) }
+        }
+        return result
+    }
+    
     public func search(
         query: String,
-        categoryId: String? = nil,
-        sfSymbolsVersion: Double? = nil,
-        includedCategories: [String]? = nil,
-        excludedCategories: [String]? = nil,
+        in symbols: [String],
         customKeywords: [String: [String]] = [:]
     ) -> [String] {
-        var results = allSymbols
-        
-        // 1. Filter by SF Symbols Version (Marketing version)
-        if let maxVersion = sfSymbolsVersion, let maxYear = SFSymbolData.versionToYear[maxVersion] {
-            results = results.filter { symbol in
-                guard let introYear = symbolToYear[symbol] else { return false }
-                return introYear <= maxYear
-            }
+        guard !query.isEmpty else { return symbols }
+        let lowQuery = query.lowercased()
+        return symbols.filter { symbol in
+            if symbol.lowercased().contains(lowQuery) { return true }
+            if let keywords = symbolToKeywords[symbol], keywords.contains(where: { $0.lowercased().contains(lowQuery) }) { return true }
+            if let custom = customKeywords[symbol], custom.contains(where: { $0.lowercased().contains(lowQuery) }) { return true }
+            let cluster = findSymbolCluster(startingWith: symbol)
+            if cluster.contains(where: { $0.lowercased().contains(lowQuery) }) { return true }
+            return false
         }
-        
-        // 2. Filter by global inclusion/exclusion categories
-        if let included = includedCategories {
-            results = results.filter { symbol in
-                let symCats = symbolToCategories[symbol] ?? []
-                return !Set(symCats).isDisjoint(with: Set(included))
-            }
-        }
-        
-        if let excluded = excludedCategories {
-            results = results.filter { symbol in
-                let symCats = symbolToCategories[symbol] ?? []
-                return Set(symCats).isDisjoint(with: Set(excluded))
-            }
-        }
-        
-        // 3. Filter by specific category selection
-        if let categoryId = categoryId, categoryId != "all" {
-            results = results.filter { symbol in
-                symbolToCategories[symbol]?.contains(categoryId) == true
-            }
-        }
-        
-        // 4. Resolve best name for current OS and filter out unavailable ones
-        results = results.compactMap { bestName(for: $0) }
-        
-        // 5. Filter by query (name or keywords)
-        if !query.isEmpty {
-            let lowerQuery = query.lowercased()
-            results = results.filter { symbol in
-                if symbol.lowercased().contains(lowerQuery) { return true }
-                if let keywords = symbolToKeywords[symbol],
-                   keywords.contains(where: { $0.lowercased().contains(lowerQuery) }) {
-                    return true
-                }
-                if let customKws = customKeywords[symbol],
-                   customKws.contains(where: { $0.lowercased().contains(lowerQuery) }) {
-                    return true
-                }
-                return false
-            }
-        }
-        
-        return results
     }
 }
 
