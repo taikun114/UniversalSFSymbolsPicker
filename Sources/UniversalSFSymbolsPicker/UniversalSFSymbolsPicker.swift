@@ -24,6 +24,7 @@ public struct SFSymbolPicker: View {
     
     let prompt: String
     let showCategoryPicker: Bool
+    let showIconName: Bool
     let defaultCategory: String
     let includedCategories: [String]?
     let excludedCategories: [String]?
@@ -73,6 +74,7 @@ public struct SFSymbolPicker: View {
         showSearchBar: Bool = true, // Only effective in Popover mode
         prompt: String = "Search Icons...",
         showCategoryPicker: Bool = true,
+        showIconName: Bool = true,
         defaultCategory: String = "all",
         includedCategories: [String]? = nil,
         excludedCategories: [String]? = nil,
@@ -92,6 +94,7 @@ public struct SFSymbolPicker: View {
         self.showSearchBar = showSearchBar
         self.prompt = prompt
         self.showCategoryPicker = showCategoryPicker
+        self.showIconName = showIconName
         self.defaultCategory = defaultCategory
         self.includedCategories = includedCategories
         self.excludedCategories = excludedCategories
@@ -199,11 +202,16 @@ public struct SFSymbolPicker: View {
                 }
         }
         #if os(macOS)
-        .frame(width: 400, height: 550)
+        .frame(width: 400, height: 550) // macOS 専用の固定サイズ指定
         #else
         .frame(minWidth: 350, minHeight: 450)
         #endif
+        .onDisappear {
+            // ポップオーバーが閉じられた際に選択を確定
+            selection = temporarySelection
+        }
     }
+
     
     // MARK: - Components
     
@@ -231,34 +239,40 @@ public struct SFSymbolPicker: View {
     
     private func symbolButton(for name: String) -> some View {
         let effectiveName = service.effectiveName(for: name) ?? name
+        let isSelected = temporarySelection == effectiveName
+        
         return Button {
             temporarySelection = effectiveName
         } label: {
             VStack(spacing: 8) {
                 Image(systemName: effectiveName, variableValue: variableValue)
                     .font(.system(size: 28))
-                    .symbolRenderingMode(renderingMode)
-                    .foregroundStyle(primaryColor, secondaryColor ?? primaryColor, tertiaryColor ?? primaryColor)
-                
-                Text(effectiveName)
-                    .font(.caption2)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-                    .foregroundStyle(.secondary)
-            }
+                    .symbolRenderingMode(isSelected ? .monochrome : renderingMode)
+                    .foregroundStyle(isSelected ? AnyShapeStyle(Color.white) : AnyShapeStyle(primaryColor))
+
+                if showIconName {
+                    // ドットの位置で折り返しやすくするためにゼロ幅スペースを挿入
+                    let displayLabel = effectiveName.replacingOccurrences(of: ".", with: ".\u{200B}")
+                    
+                    Text(displayLabel)
+                        .font(.caption2)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.center)
+                        .minimumScaleFactor(0.8)
+                        .foregroundStyle(isSelected ? Color.white : .secondary)
+                        .frame(height: 32, alignment: .center)
+                }
+                }
+
             .frame(maxWidth: .infinity)
             .padding(.vertical, 8)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .background {
-            if temporarySelection == effectiveName {
+            if isSelected {
                 RoundedRectangle(cornerRadius: 10)
-                    .fill(Color.accentColor.opacity(0.15))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .strokeBorder(Color.accentColor.opacity(0.3), lineWidth: 1)
-                    )
+                    .fill(Color.accentColor) // 不透明なアクセントカラー
             }
         }
     }
@@ -449,7 +463,7 @@ private extension View {
 
 #Preview("Sheet Mode") {
     NavigationStack {
-        SFSymbolPicker(isPresented: .constant(true), selection: .constant("star.fill"), showAs: .sheet)
+        SFSymbolPicker(isPresented: .constant(true), selection: .constant("star.fill"), showAs: .sheet, showIconName: true)
     }
     #if os(macOS)
     .frame(width: 600, height: 500)
@@ -457,14 +471,14 @@ private extension View {
 }
 
 #Preview("Popover Mode (Bottom)") {
-    SFSymbolPicker(isPresented: .constant(true), selection: .constant("heart.fill"), showAs: .popover, searchBarPosition: .bottom)
+    SFSymbolPicker(isPresented: .constant(true), selection: .constant("heart.fill"), showAs: .popover, searchBarPosition: .bottom, showIconName: true)
     #if os(macOS)
     .frame(width: 400, height: 500)
     #endif
 }
 
 #Preview("Popover Mode (Top)") {
-    SFSymbolPicker(isPresented: .constant(true), selection: .constant("gearshape.fill"), showAs: .popover, searchBarPosition: .top)
+    SFSymbolPicker(isPresented: .constant(true), selection: .constant("gearshape.fill"), showAs: .popover, searchBarPosition: .top, showIconName: true)
     #if os(macOS)
     .frame(width: 400, height: 500)
     #endif

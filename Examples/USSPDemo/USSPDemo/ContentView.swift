@@ -26,6 +26,7 @@ struct ContentView: View {
     
     @State private var isSheetPresented = false
     @State private var isPopoverPresented = false
+    @State private var showIconName = true
     
     // デモ用の設定
     @State private var variableValue: Double? = 1.0
@@ -93,6 +94,8 @@ struct ContentView: View {
                     if pickerMode == .sheet {
                         Toggle("Show Search Bar", isOn: $showSearchBarSheet)
                     }
+                    
+                    Toggle("Show Icon Name", isOn: $showIconName)
                     
                     if pickerMode == .popover {
                         Toggle("Show Search Bar", isOn: $showSearchBarPopover)
@@ -169,6 +172,7 @@ struct ContentView: View {
                         isPresented: $isSheetPresented,
                         selection: $selectedIcon,
                         showAs: .sheet,
+                        showIconName: showIconName,
                         renderingMode: renderingModeOption.mode,
                         primaryColor: primaryColor,
                         secondaryColor: useSecondaryColor ? secondaryColor : nil,
@@ -185,6 +189,7 @@ struct ContentView: View {
                     showAs: .popover,
                     searchBarPosition: searchBarPosition,
                     showSearchBar: showSearchBarPopover,
+                    showIconName: showIconName,
                     renderingMode: renderingModeOption.mode,
                     primaryColor: primaryColor,
                     secondaryColor: useSecondaryColor ? secondaryColor : nil,
