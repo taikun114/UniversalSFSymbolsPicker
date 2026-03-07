@@ -183,8 +183,20 @@ public final class SFSymbolService: Sendable {
             let restrictedToExclude = restrictedSet.subtracting(explicitlyIncludedByCustom)
             baseSymbols.subtract(restrictedToExclude)
         }
+        // 2文字だがロケールではなく意味のある単語（ホワイトリスト）
+        let nonLocaleTwoLetterWords: Set<String> = [
+            "up", "on", "go", "tv", "pc", "3d", "ex", "of", "to", "in", "by", "at", "as",
+            "ac", "dc", "lc", "or", "no", "re", "pi"
+        ]
         
         return baseSymbols
+            .filter { name in
+                let components = name.lowercased().components(separatedBy: ".")
+                return !components.contains { component in
+                    // 2文字の要素があり、かつそれがホワイトリストに含まれていない場合はロケールと判断
+                    component.count == 2 && !nonLocaleTwoLetterWords.contains(component)
+                }
+            }
             .filter { isAvailable($0, limitVersion: limitVersion) }
             .sorted()
     }
