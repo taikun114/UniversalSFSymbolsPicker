@@ -1,0 +1,2 @@
+# Mark large auto-generated file as generated and suppress local diffs
+Sources/UniversalSFSymbolsPicker/SFSymbolData.swift linguist-generated=true -diff
