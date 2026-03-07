@@ -14,10 +14,13 @@ public enum SFSymbolPickerSearchBarPosition: Sendable {
 
 public struct SFSymbolPicker: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.presentationMode) private var presentationMode
     
+    @Binding var isPresented: Bool
     @Binding var selection: String?
     let showAs: SFSymbolPickerDisplayMode
     let searchBarPosition: SFSymbolPickerSearchBarPosition
+    let showSearchBar: Bool
     
     let prompt: String
     let showCategoryPicker: Bool
@@ -38,12 +41,36 @@ public struct SFSymbolPicker: View {
     // Internal State
     @State private var searchText = ""
     @State private var selectedCategoryID: String
+    @State private var temporarySelection: String?
     private let service = SFSymbolService.shared
     
+    /// Helper to dismiss the picker reliably across platforms
+    private func close(save: Bool = false) {
+        if save {
+            selection = temporarySelection
+        }
+        isPresented = false
+        dismiss()
+        presentationMode.wrappedValue.dismiss()
+    }
+    
+    /// Returns the icon for the currently selected category
+    private var currentCategoryIcon: String {
+        if selectedCategoryID == "all" {
+            return "square.grid.2x2"
+        }
+        if let custom = customCategories.first(where: { $0.id.uuidString == selectedCategoryID }) {
+            return custom.icon
+        }
+        return service.systemCategories.first(where: { $0.id == selectedCategoryID })?.icon ?? "square.grid.2x2"
+    }
+    
     public init(
+        isPresented: Binding<Bool>,
         selection: Binding<String?>,
         showAs: SFSymbolPickerDisplayMode,
         searchBarPosition: SFSymbolPickerSearchBarPosition = .bottom,
+        showSearchBar: Bool = true, // Only effective in Popover mode
         prompt: String = "Search Icons...",
         showCategoryPicker: Bool = true,
         defaultCategory: String = "all",
@@ -58,9 +85,11 @@ public struct SFSymbolPicker: View {
         tertiaryColor: Color? = nil,
         variableValue: Binding<Double?> = .constant(nil)
     ) {
+        self._isPresented = isPresented
         self._selection = selection
         self.showAs = showAs
         self.searchBarPosition = searchBarPosition
+        self.showSearchBar = showSearchBar
         self.prompt = prompt
         self.showCategoryPicker = showCategoryPicker
         self.defaultCategory = defaultCategory
@@ -75,7 +104,9 @@ public struct SFSymbolPicker: View {
         self.tertiaryColor = tertiaryColor
         self._variableValue = variableValue
         self._selectedCategoryID = State(initialValue: defaultCategory)
+        self._temporarySelection = State(initialValue: selection.wrappedValue)
     }
+
     
     public var body: some View {
         Group {
@@ -90,37 +121,70 @@ public struct SFSymbolPicker: View {
     // MARK: - Sheet View
     
     private var sheetView: some View {
-        symbolGrid
-            .navigationTitle("Select an Icon")
-#if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-#endif
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
+        VStack(spacing: 0) {
+            symbolGrid
+            
+            #if os(macOS)
+            // macOS 専用の下部ボタンエリア
+            Divider()
+            HStack {
+                Button(role: .cancel) {
+                    close(save: false)
+                } label: {
+                    Text("Cancel")
                 }
+                .keyboardShortcut(.cancelAction)
+                .controlSize(.large)
+                
+                Spacer()
                 
                 if showCategoryPicker {
-                    ToolbarItem(placement: .primaryAction) {
-                        categoryMenuPicker
-                            .buttonStyle(.bordered)
-                            .controlSize(.large)
-                    }
-                }
-                
-                ToolbarItem(placement: .confirmationAction) {
-                    doneButton
-                        .buttonStyle(.borderedProminent)
+                    sheetCategoryPicker
                         .controlSize(.large)
                 }
+                
+                doneButton
+                    .keyboardShortcut(.defaultAction)
+                    .controlSize(.large)
             }
+            .padding()
+            #endif
+        }
+        .navigationTitle("Select an Icon")
 #if os(iOS)
-            .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: Text(prompt))
-#else
-            .searchable(text: $searchText, prompt: Text(prompt))
+        .navigationBarTitleDisplayMode(.inline)
 #endif
+        .toolbar {
+            #if !os(macOS)
+            ToolbarItem(placement: .cancellationAction) {
+                if #available(iOS 26.0, macOS 26.0, tvOS 26.0, watchOS 26.0, visionOS 26.0, *) {
+                    Button(role: .cancel) {
+                        close(save: false)
+                    }
+                    .keyboardShortcut(.cancelAction)
+                } else {
+                    Button(role: .cancel) {
+                        close(save: false)
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.body.weight(.semibold))
+                    }
+                    .keyboardShortcut(.cancelAction)
+                }
+            }
+            
+            if showCategoryPicker {
+                ToolbarItem(placement: .primaryAction) {
+                    sheetCategoryPicker
+                }
+            }
+            
+            ToolbarItem(placement: .confirmationAction) {
+                doneButton
+                    .keyboardShortcut(.defaultAction)
+            }
+            #endif
+        }
     }
     
     // MARK: - Popover View
@@ -129,10 +193,16 @@ public struct SFSymbolPicker: View {
         VStack(spacing: 0) {
             symbolGrid
                 .adaptiveSafeAreaBar(edge: searchBarPosition == .top ? .top : .bottom) {
-                    searchBox.padding()
+                    if showSearchBar {
+                        searchBox
+                    }
                 }
         }
+        #if os(macOS)
+        .frame(width: 400, height: 550)
+        #else
         .frame(minWidth: 350, minHeight: 450)
+        #endif
     }
     
     // MARK: - Components
@@ -162,7 +232,7 @@ public struct SFSymbolPicker: View {
     private func symbolButton(for name: String) -> some View {
         let effectiveName = service.effectiveName(for: name) ?? name
         return Button {
-            selection = effectiveName
+            temporarySelection = effectiveName
         } label: {
             VStack(spacing: 8) {
                 Image(systemName: effectiveName, variableValue: variableValue)
@@ -182,7 +252,7 @@ public struct SFSymbolPicker: View {
         }
         .buttonStyle(.plain)
         .background {
-            if selection == effectiveName {
+            if temporarySelection == effectiveName {
                 RoundedRectangle(cornerRadius: 10)
                     .fill(Color.accentColor.opacity(0.15))
                     .overlay(
@@ -193,104 +263,155 @@ public struct SFSymbolPicker: View {
         }
     }
     
-    private var categoryMenuPicker: some View {
+    private var sheetCategoryPicker: some View {
         Menu {
-            Picker("Category", selection: $selectedCategoryID) {
-                Label("All", systemImage: "square.grid.2x2").tag("all")
-                
-                Divider()
-                
-                ForEach(service.systemCategories) { cat in
-                    if cat.id != "all" {
-                        Label(cat.label, systemImage: cat.icon).tag(cat.id)
-                    }
+            categoryMenuItems
+        } label: {
+            Label("Category", systemImage: currentCategoryIcon)
+        }
+    }
+    
+    private var popoverCategoryPicker: some View {
+        Menu {
+            categoryMenuItems
+        } label: {
+            ZStack {
+                if #available(iOS 26.0, macOS 26.0, tvOS 26.0, watchOS 26.0, visionOS 26.0, *) {
+                    Image(systemName: currentCategoryIcon)
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(.primary)
+                        .frame(width: 40, height: 40)
+                        #if !os(visionOS)
+                        .glassEffect(.regular.interactive())
+                        #endif
+                } else {
+                    Image(systemName: currentCategoryIcon)
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(.primary)
+                        .frame(width: 40, height: 40)
+                        .background {
+                            #if os(macOS)
+                            VisualEffectView(material: .headerView, blendingMode: .withinWindow)
+                                .clipShape(Circle())
+                            #elseif os(visionOS)
+                            Color.clear.background(.ultraThinMaterial, in: Circle())
+                            #else
+                            Circle().fill(.thinMaterial)
+                            #endif
+                        }
                 }
-                
-                if !customCategories.isEmpty {
-                    Divider()
-                    ForEach(customCategories) { cat in
-                        Label(cat.label, systemImage: cat.icon).tag(cat.id.uuidString)
-                    }
+            }
+            .overlay(
+                Circle()
+                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+            )
+            .contentShape(Circle())
+        }
+    }
+    
+    @ViewBuilder
+    private var categoryMenuItems: some View {
+        Picker("All Symbols", selection: $selectedCategoryID) {
+            Label("All", systemImage: "square.grid.2x2").tag("all")
+        }
+        .pickerStyle(.inline)
+        
+        Picker("System Categories", selection: $selectedCategoryID) {
+            ForEach(service.systemCategories) { cat in
+                if cat.id != "all" {
+                    Label(cat.label, systemImage: cat.icon).tag(cat.id)
+                }
+            }
+        }
+        .pickerStyle(.inline)
+        
+        if !customCategories.isEmpty {
+            Picker("Custom Categories", selection: $selectedCategoryID) {
+                ForEach(customCategories) { cat in
+                    Label(cat.label, systemImage: cat.icon).tag(cat.id.uuidString)
                 }
             }
             .pickerStyle(.inline)
-        } label: {
-            Image(systemName: "square.grid.2x2")
         }
     }
-    
     private var doneButton: some View {
         Group {
-            if #available(iOS 19.0, macOS 16.0, tvOS 19.0, watchOS 12.0, visionOS 3.0, *) {
+            if #available(iOS 26.0, macOS 26.0, tvOS 26.0, watchOS 26.0, visionOS 26.0, *) {
                 Button(role: .confirm) {
-                    dismiss()
-                } label: {
-                    EmptyView()
+                    close(save: true)
                 }
             } else {
                 Button {
-                    dismiss()
+                    close(save: true)
                 } label: {
                     Image(systemName: "checkmark")
-                        .fontWeight(.bold)
+                        .font(.body.weight(.bold))
                 }
             }
         }
     }
+
     
     private var searchBox: some View {
         HStack(spacing: 12) {
-            HStack(spacing: 10) {
-                Image(systemName: "magnifyingglass")
-                    .foregroundStyle(.secondary)
-                    .font(.body.weight(.semibold))
-                
-                TextField(prompt, text: $searchText)
-                    .textFieldStyle(.plain)
-                
-                if !searchText.isEmpty {
-                    Button {
-                        searchText = ""
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(.secondary)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            
-            if showCategoryPicker {
-                categoryMenuPicker
-                    .buttonStyle(.bordered)
-                    .controlSize(.large)
-            }
-        }
-        .padding(.leading, 4)
-        .padding(.trailing, 8)
-        .padding(.vertical, 8)
-        .background {
+            // Island 1: Search Input (Capsule)
             ZStack {
-                #if os(macOS)
-                VisualEffectView(material: .headerView, blendingMode: .withinWindow)
-                #elseif os(visionOS)
-                Color.clear.background(.ultraThinMaterial)
-                #else
-                if #available(iOS 26.0, macOS 26.0, tvOS 26.0, watchOS 26.0, *) {
-                    Color.clear.adaptiveLiquidGlass(in: .rect(cornerRadius: 22))
+                if #available(iOS 26.0, macOS 26.0, tvOS 26.0, watchOS 26.0, visionOS 26.0, *) {
+                    Color.clear
+                        #if !os(visionOS)
+                        .adaptiveLiquidGlass(in: Capsule())
+                        #endif
                 } else {
-                    VisualEffectView(material: .systemUltraThinMaterial)
+                    Group {
+                        #if os(macOS)
+                        VisualEffectView(material: .headerView, blendingMode: .withinWindow)
+                        #elseif os(visionOS)
+                        Color.clear.background(.ultraThinMaterial)
+                        #else
+                        VisualEffectView(material: .systemThinMaterial)
+                        #endif
+                    }
+                    .clipShape(Capsule())
                 }
-                #endif
+                
+                HStack(spacing: 8) {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundStyle(.secondary)
+                        .font(.body.weight(.semibold))
+                    
+                    TextField(prompt, text: $searchText)
+                        .textFieldStyle(.plain)
+                        .background(Color.clear)
+                    
+                    if !searchText.isEmpty {
+                        Button {
+                            searchText = ""
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundStyle(.secondary)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
             }
-            .clipShape(RoundedRectangle(cornerRadius: 22))
+            .frame(height: 40)
             .overlay(
-                RoundedRectangle(cornerRadius: 22)
-                    .stroke(Color.primary.opacity(0.1), lineWidth: 0.5)
+                Capsule()
+                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
             )
-            .shadow(color: .black.opacity(0.1), radius: 10, y: 5)
+            .layoutPriority(1)
+            
+            // Island 2: Category Picker (Circle Button)
+            if showCategoryPicker {
+                popoverCategoryPicker
+                    .buttonStyle(.plain)
+                    .layoutPriority(0)
+            }
         }
+        .padding()
+        .fixedSize(horizontal: false, vertical: true)
     }
 }
 
@@ -328,7 +449,7 @@ private extension View {
 
 #Preview("Sheet Mode") {
     NavigationStack {
-        SFSymbolPicker(selection: .constant("star.fill"), showAs: .sheet)
+        SFSymbolPicker(isPresented: .constant(true), selection: .constant("star.fill"), showAs: .sheet)
     }
     #if os(macOS)
     .frame(width: 600, height: 500)
@@ -336,14 +457,14 @@ private extension View {
 }
 
 #Preview("Popover Mode (Bottom)") {
-    SFSymbolPicker(selection: .constant("heart.fill"), showAs: .popover, searchBarPosition: .bottom)
+    SFSymbolPicker(isPresented: .constant(true), selection: .constant("heart.fill"), showAs: .popover, searchBarPosition: .bottom)
     #if os(macOS)
     .frame(width: 400, height: 500)
     #endif
 }
 
 #Preview("Popover Mode (Top)") {
-    SFSymbolPicker(selection: .constant("gearshape.fill"), showAs: .popover, searchBarPosition: .top)
+    SFSymbolPicker(isPresented: .constant(true), selection: .constant("gearshape.fill"), showAs: .popover, searchBarPosition: .top)
     #if os(macOS)
     .frame(width: 400, height: 500)
     #endif

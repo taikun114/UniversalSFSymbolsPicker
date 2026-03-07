@@ -20,30 +20,44 @@ struct ContentView: View {
     @State private var selectedIcon: String? = "star.fill"
     @State private var pickerMode: SFSymbolPickerDisplayMode = .sheet
     @State private var searchBarPosition: SFSymbolPickerSearchBarPosition = .bottom
+    @State private var showSearchBarPopover = true
+    @State private var showSearchBarSheet = true
+    @State private var searchTextSheet = ""
     
-    @State private var isPickerPresented = false
+    @State private var isSheetPresented = false
+    @State private var isPopoverPresented = false
     
     // デモ用の設定
-    @State private var variableValue: Double? = 0.5
+    @State private var variableValue: Double? = 1.0
     @State private var renderingModeOption: RenderingModeOption = .monochrome
     @State private var primaryColor: Color = .blue
+    @State private var secondaryColor: Color = .red
+    @State private var tertiaryColor: Color = .green
+    @State private var useSecondaryColor = false
+    @State private var useTertiaryColor = false
     
     var body: some View {
         NavigationStack {
-            List {
+            Form {
                 Section {
                     Button {
-                        isPickerPresented = true
+                        if pickerMode == .sheet {
+                            isSheetPresented = true
+                        } else {
+                            isPopoverPresented = true
+                        }
                     } label: {
                         HStack(spacing: 16) {
                             if let icon = selectedIcon {
                                 Image(systemName: icon, variableValue: variableValue)
                                     .font(.title)
                                     .symbolRenderingMode(renderingModeOption.mode)
-                                    .foregroundStyle(primaryColor)
+                                    .foregroundStyle(
+                                        primaryColor,
+                                        useSecondaryColor ? secondaryColor : primaryColor,
+                                        useTertiaryColor ? tertiaryColor : primaryColor
+                                    )
                                     .frame(width: 44, height: 44)
-                                    .background(Color.accentColor.opacity(0.1))
-                                    .cornerRadius(8)
                                 
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text("Selected Icon")
@@ -62,6 +76,7 @@ struct ContentView: View {
                                 .font(.caption.weight(.bold))
                                 .foregroundStyle(.tertiary)
                         }
+                        .contentShape(Rectangle()) // 全体をタップ可能にする
                     }
                     .buttonStyle(.plain)
                 } header: {
@@ -75,7 +90,13 @@ struct ContentView: View {
                     }
                     .pickerStyle(.segmented)
                     
+                    if pickerMode == .sheet {
+                        Toggle("Show Search Bar", isOn: $showSearchBarSheet)
+                    }
+                    
                     if pickerMode == .popover {
+                        Toggle("Show Search Bar", isOn: $showSearchBarPopover)
+                        
                         Picker("Search Bar Position", selection: $searchBarPosition) {
                             Text("Top").tag(SFSymbolPickerSearchBarPosition.top)
                             Text("Bottom").tag(SFSymbolPickerSearchBarPosition.bottom)
@@ -84,13 +105,22 @@ struct ContentView: View {
                 }
                 
                 Section("Dynamic Rendering Demo") {
-                    VStack(alignment: .leading) {
+                    #if os(macOS)
+                    Slider(value: Binding(
+                        get: { variableValue ?? 0 },
+                        set: { variableValue = $0 }
+                    ), in: 0...1) {
+                        Text("Variable Value: \(variableValue ?? 0, specifier: "%.2f")")
+                    }
+                    #else
+                    VStack(alignment: .leading, spacing: 8) {
                         Text("Variable Value: \(variableValue ?? 0, specifier: "%.2f")")
                         Slider(value: Binding(
                             get: { variableValue ?? 0 },
                             set: { variableValue = $0 }
                         ), in: 0...1)
                     }
+                    #endif
                     
                     Picker("Rendering Mode", selection: $renderingModeOption) {
                         ForEach(RenderingModeOption.allCases) { option in
@@ -98,31 +128,67 @@ struct ContentView: View {
                         }
                     }
                     
-                    ColorPicker("Primary Color", selection: $primaryColor)
+                    Group {
+                        ColorPicker("Primary Color", selection: $primaryColor)
+                        
+                        Toggle(isOn: $useSecondaryColor) {
+                            HStack {
+                                Text("Secondary Color")
+                                if useSecondaryColor {
+                                    Spacer()
+                                    ColorPicker("", selection: $secondaryColor)
+                                        .labelsHidden()
+                                        .fixedSize()
+                                }
+                            }
+                        }
+                        
+                        Toggle(isOn: $useTertiaryColor) {
+                            HStack {
+                                Text("Tertiary Color")
+                                if useTertiaryColor {
+                                    Spacer()
+                                    ColorPicker("", selection: $tertiaryColor)
+                                        .labelsHidden()
+                                        .fixedSize()
+                                }
+                            }
+                        }
+                    }
                 }
             }
-            .navigationTitle("USSP Demo")
-            // ピッカーの起動（モードに応じて分岐）
-            .sheet(isPresented: Binding(
-                get: { isPickerPresented && pickerMode == .sheet },
-                set: { if !$0 { isPickerPresented = false } }
-            )) {
+            .navigationTitle("Picker Demo")
+            .formStyle(.grouped)
+            #if os(macOS)
+            .frame(width: 400, height: 500)
+            #endif
+            // ピッカーの起動（フラグを分離）
+            .sheet(isPresented: $isSheetPresented) {
                 NavigationStack {
                     SFSymbolPicker(
+                        isPresented: $isSheetPresented,
                         selection: $selectedIcon,
                         showAs: .sheet,
+                        renderingMode: renderingModeOption.mode,
+                        primaryColor: primaryColor,
+                        secondaryColor: useSecondaryColor ? secondaryColor : nil,
+                        tertiaryColor: useTertiaryColor ? tertiaryColor : nil,
                         variableValue: $variableValue
                     )
+                    .conditionalSearchable(show: showSearchBarSheet, text: $searchTextSheet)
                 }
             }
-            .popover(isPresented: Binding(
-                get: { isPickerPresented && pickerMode == .popover },
-                set: { if !$0 { isPickerPresented = false } }
-            )) {
+            .popover(isPresented: $isPopoverPresented) {
                 SFSymbolPicker(
+                    isPresented: $isPopoverPresented,
                     selection: $selectedIcon,
                     showAs: .popover,
                     searchBarPosition: searchBarPosition,
+                    showSearchBar: showSearchBarPopover,
+                    renderingMode: renderingModeOption.mode,
+                    primaryColor: primaryColor,
+                    secondaryColor: useSecondaryColor ? secondaryColor : nil,
+                    tertiaryColor: useTertiaryColor ? tertiaryColor : nil,
                     variableValue: $variableValue
                 )
             }
@@ -132,4 +198,17 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
+}
+
+// MARK: - Helper Extension
+
+private extension View {
+    @ViewBuilder
+    func conditionalSearchable(show: Bool, text: Binding<String>) -> some View {
+        if show {
+            self.searchable(text: text, prompt: "Search icons in sheet...")
+        } else {
+            self
+        }
+    }
 }
