@@ -1,10 +1,9 @@
 // swift-tools-version: 6.2
-// The swift-tools-version declares the minimum version of Swift required to build this package.
-
 import PackageDescription
 
 let package = Package(
     name: "UniversalSFSymbolsPicker",
+    defaultLocalization: "en",
     platforms: [
         .iOS(.v17),
         .macOS(.v14),
@@ -20,7 +19,10 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "UniversalSFSymbolsPicker"
+            name: "UniversalSFSymbolsPicker",
+            resources: [
+                .process("Resources")
+            ]
         ),
         .testTarget(
             name: "UniversalSFSymbolsPickerTests",

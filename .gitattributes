@@ -1,2 +1,2 @@
-# Mark large auto-generated file as generated and suppress local diffs
-Sources/UniversalSFSymbolsPicker/SFSymbolData.swift linguist-generated=true -diff
+# 自動生成された巨大なデータファイルを diff から除外する
+Sources/UniversalSFSymbolsPicker/Resources/SFSymbolData.json linguist-generated=true

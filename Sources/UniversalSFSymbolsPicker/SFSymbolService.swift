@@ -8,6 +8,20 @@ public struct SFSymbolCategory: Identifiable, Hashable, Sendable {
     public let icon: String
 }
 
+/// Internal structure for decoding JSON metadata.
+private struct SymbolMetadata: Codable {
+    let bundleVersion: String
+    let latestYear: String
+    let versionToYear: [String: String]
+    let yearToVersion: [String: [String: String]]
+    let categories: [[String: String]]
+    let aliases: [String: String]
+    let symbolCategories: [String: [String]]
+    let symbolAvailability: [String: [String]]
+    let searchKeywords: [String: [String]]
+    let restrictedSymbols: [String: String]
+}
+
 /// A service that provides access to SF Symbols metadata, availability, categories, and search keywords.
 public final class SFSymbolService: Sendable {
     public static let shared = SFSymbolService()
@@ -18,29 +32,33 @@ public final class SFSymbolService: Sendable {
     /// All available system categories.
     public let systemCategories: [SFSymbolCategory]
     
+    /// Internal metadata storage
+    private let metadata: SymbolMetadata?
+    
     /// Internal map: Symbol Name -> Introduction Year
     private let symbolToYear: [String: String]
-    
-    /// Internal map: Symbol Name -> List of Categories
-    private let symbolToCategories: [String: [String]]
-    
-    /// Internal map: Symbol Name -> List of Keywords
-    private let symbolToKeywords: [String: [String]]
-    
-    /// Internal map: Symbol Name -> Restriction Reason
-    private let restrictedSymbols: [String: String]
-    
-    /// Internal map: Old Name -> New Name
-    private let aliases: [String: String]
     
     /// Internal map: New Name -> [Old Names]
     private let reverseAliases: [String: [String]]
     
     private init() {
+        // Load JSON from bundle
+        guard let url = Bundle.module.url(forResource: "SFSymbolData", withExtension: "json"),
+              let data = try? Data(contentsOf: url),
+              let decoded = try? JSONDecoder().decode(SymbolMetadata.self, from: data) else {
+            self.metadata = nil
+            self.allSymbols = []
+            self.systemCategories = []
+            self.symbolToYear = [:]
+            self.reverseAliases = [:]
+            return
+        }
+        
+        self.metadata = decoded
+        
         var allNames = [String]()
         var lookupYear = [String: String]()
-        
-        for (year, symbols) in SFSymbolData.symbolAvailability {
+        for (year, symbols) in decoded.symbolAvailability {
             allNames.append(contentsOf: symbols)
             for symbol in symbols {
                 lookupYear[symbol] = year
@@ -48,30 +66,25 @@ public final class SFSymbolService: Sendable {
         }
         
         self.symbolToYear = lookupYear
-        self.aliases = SFSymbolData.aliases
-        self.restrictedSymbols = SFSymbolData.restrictedSymbols
         
         // Build reverse aliases for fallback lookup
         var rev = [String: [String]]()
-        for (old, new) in SFSymbolData.aliases {
+        for (old, new) in decoded.aliases {
             rev[new, default: []].append(old)
         }
         self.reverseAliases = rev
         
         // Canonical symbols are those that are NOT an old alias for something else
-        let oldAliasSet = Set(SFSymbolData.aliases.keys)
+        let oldAliasSet = Set(decoded.aliases.keys)
         self.allSymbols = allNames.filter { !oldAliasSet.contains($0) }.sorted()
         
-        self.systemCategories = SFSymbolData.categories.map { dict in
+        self.systemCategories = decoded.categories.map { dict in
             SFSymbolCategory(
                 id: dict["id"] ?? "",
                 label: dict["label"] ?? "",
                 icon: dict["icon"] ?? ""
             )
         }
-        
-        self.symbolToCategories = SFSymbolData.symbolCategories
-        self.symbolToKeywords = SFSymbolData.searchKeywords
     }
     
     // MARK: - Dynamic Naming
@@ -91,7 +104,7 @@ public final class SFSymbolService: Sendable {
         var queue = [name]
         while !queue.isEmpty {
             let current = queue.removeFirst()
-            if let new = aliases[current], !cluster.contains(new) {
+            if let new = metadata?.aliases[current], !cluster.contains(new) {
                 cluster.insert(new)
                 queue.append(new)
             }
@@ -109,10 +122,10 @@ public final class SFSymbolService: Sendable {
     
     public func isAvailable(_ symbol: String, limitVersion: Double? = nil) -> Bool {
         guard let year = symbolToYear[symbol] else { return false }
-        if let limit = limitVersion, let limitYear = SFSymbolData.versionToYear[limit] {
+        if let limit = limitVersion, let limitYear = metadata?.versionToYear[String(limit)] {
             if year.compare(limitYear, options: .numeric) == .orderedDescending { return false }
         }
-        guard let versions = SFSymbolData.yearToVersion[year] else { return false }
+        guard let versions = metadata?.yearToVersion[year] else { return false }
         
         var currentOS: String? = nil
         #if os(iOS)
@@ -166,7 +179,7 @@ public final class SFSymbolService: Sendable {
         
         if excludeRestricted {
             let explicitlyIncludedByCustom = Set(customCategories.flatMap { $0.symbols })
-            let restrictedSet = Set(restrictedSymbols.keys)
+            let restrictedSet = Set(metadata?.restrictedSymbols.keys.map { String($0) } ?? [])
             let restrictedToExclude = restrictedSet.subtracting(explicitlyIncludedByCustom)
             baseSymbols.subtract(restrictedToExclude)
         }
@@ -179,7 +192,8 @@ public final class SFSymbolService: Sendable {
     private func symbolsInSystemCategory(_ id: String) -> Set<String> {
         if id == "all" { return Set(allSymbols) }
         var result = Set<String>()
-        for (symbol, cats) in symbolToCategories {
+        guard let symbolCategories = metadata?.symbolCategories else { return result }
+        for (symbol, cats) in symbolCategories {
             if cats.contains(id) { result.insert(symbol) }
         }
         return result
@@ -194,7 +208,7 @@ public final class SFSymbolService: Sendable {
         let lowQuery = query.lowercased()
         return symbols.filter { symbol in
             if symbol.lowercased().contains(lowQuery) { return true }
-            if let keywords = symbolToKeywords[symbol], keywords.contains(where: { $0.lowercased().contains(lowQuery) }) { return true }
+            if let keywords = metadata?.searchKeywords[symbol], keywords.contains(where: { $0.lowercased().contains(lowQuery) }) { return true }
             if let custom = customKeywords[symbol], custom.contains(where: { $0.lowercased().contains(lowQuery) }) { return true }
             let cluster = findSymbolCluster(startingWith: symbol)
             if cluster.contains(where: { $0.lowercased().contains(lowQuery) }) { return true }
