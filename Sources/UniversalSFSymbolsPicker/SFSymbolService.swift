@@ -2,13 +2,14 @@ import Foundation
 import SwiftUI
 
 /// Represents a category of SF Symbols.
-public struct SFSymbolCategory: Identifiable, Hashable {
+public struct SFSymbolCategory: Identifiable, Hashable, Sendable {
     public let id: String
     public let label: String
     public let icon: String
 }
 
 /// A service that provides access to SF Symbols metadata, availability, categories, and search keywords.
+@MainActor
 public final class SFSymbolService {
     public static let shared = SFSymbolService()
     
@@ -32,6 +33,24 @@ public final class SFSymbolService {
     
     /// Internal map: New Name -> [Old Names]
     private let reverseAliases: [String: [String]]
+
+    /// Returns the current OS identifier string used in metadata.
+    private var currentOS: String {
+        #if os(iOS)
+        let osName = "iOS"
+        #elseif os(macOS)
+        let osName = "macOS"
+        #elseif os(tvOS)
+        let osName = "tvOS"
+        #elseif os(watchOS)
+        let osName = "watchOS"
+        #elseif os(visionOS)
+        let osName = "visionOS"
+        #else
+        let osName = ""
+        #endif
+        return osName
+    }
 
     private init() {
         var allNames = [String]()
@@ -102,21 +121,10 @@ public final class SFSymbolService {
         guard let year = symbolToYear[symbol] else { return false }
         guard let versions = SFSymbolData.yearToVersion[year] else { return false }
         
-        #if os(iOS)
-        let currentOS = "iOS"
-        #elif os(macOS)
-        let currentOS = "macOS"
-        #elif os(tvOS)
-        let currentOS = "tvOS"
-        #elif os(watchOS)
-        let currentOS = "watchOS"
-        #elif os(visionOS)
-        let currentOS = "visionOS"
-        #else
-        return false
-        #endif
+        let os = currentOS
+        if os.isEmpty { return false }
         
-        guard let requiredVersionString = versions[currentOS] else { return false }
+        guard let requiredVersionString = versions[os] else { return false }
         let requiredVersion = OperatingSystemVersion(versionString: requiredVersionString)
         return ProcessInfo.processInfo.isOperatingSystemAtLeast(requiredVersion)
     }
@@ -136,7 +144,6 @@ public final class SFSymbolService {
         if let maxVersion = sfSymbolsVersion, let maxYear = SFSymbolData.versionToYear[maxVersion] {
             results = results.filter { symbol in
                 guard let introYear = symbolToYear[symbol] else { return false }
-                // Lexicographical comparison works for "2024.1" vs "2024.2"
                 return introYear <= maxYear
             }
         }
@@ -158,7 +165,9 @@ public final class SFSymbolService {
         
         // 3. Filter by specific category selection
         if let categoryId = categoryId, categoryId != "all" {
-            results = results.filter { symbolToCategories[symbol]?.contains(categoryId) == true }
+            results = results.filter { symbol in
+                symbolToCategories[symbol]?.contains(categoryId) == true
+            }
         }
         
         // 4. Resolve best name for current OS and filter out unavailable ones
