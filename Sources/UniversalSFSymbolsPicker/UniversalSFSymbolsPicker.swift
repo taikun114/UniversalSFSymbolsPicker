@@ -203,6 +203,8 @@ public struct SFSymbolPicker: View {
         }
         #if os(macOS)
         .frame(width: 400, height: 550) // macOS 専用の固定サイズ指定
+        #elseif os(visionOS)
+        .frame(width: 500, height: 600) // visionOS 専用の固定サイズ指定
         #else
         .frame(minWidth: 350, minHeight: 450)
         #endif
@@ -421,11 +423,14 @@ public struct SFSymbolPicker: View {
             if showCategoryPicker {
                 popoverCategoryPicker
                     .buttonStyle(.plain)
+                    .frame(width: 40) // 幅を固定して潰れないようにする
                     .layoutPriority(0)
             }
-        }
-        .padding()
-        .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(.horizontal, 16) // 左右パディングを少し広めに
+            .padding(.vertical, 12)
+            .fixedSize(horizontal: false, vertical: true)
+
     }
 }
 

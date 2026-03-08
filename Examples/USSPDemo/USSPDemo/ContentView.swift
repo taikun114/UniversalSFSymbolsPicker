@@ -80,6 +80,38 @@ struct ContentView: View {
                         .contentShape(Rectangle()) // 全体をタップ可能にする
                     }
                     .buttonStyle(.plain)
+                    // ポップオーバーとシートをボタンに紐付け
+                    .sheet(isPresented: $isSheetPresented) {
+                        NavigationStack {
+                            SFSymbolPicker(
+                                isPresented: $isSheetPresented,
+                                selection: $selectedIcon,
+                                showAs: .sheet,
+                                showIconName: showIconName,
+                                renderingMode: renderingModeOption.mode,
+                                primaryColor: primaryColor,
+                                secondaryColor: useSecondaryColor ? secondaryColor : nil,
+                                tertiaryColor: useTertiaryColor ? tertiaryColor : nil,
+                                variableValue: $variableValue
+                            )
+                            .conditionalSearchable(show: showSearchBarSheet, text: $searchTextSheet)
+                        }
+                    }
+                    .popover(isPresented: $isPopoverPresented, attachmentAnchor: .rect(.bounds), arrowEdge: .top) {
+                        SFSymbolPicker(
+                            isPresented: $isPopoverPresented,
+                            selection: $selectedIcon,
+                            showAs: .popover,
+                            searchBarPosition: searchBarPosition,
+                            showSearchBar: showSearchBarPopover,
+                            showIconName: showIconName,
+                            renderingMode: renderingModeOption.mode,
+                            primaryColor: primaryColor,
+                            secondaryColor: useSecondaryColor ? secondaryColor : nil,
+                            tertiaryColor: useTertiaryColor ? tertiaryColor : nil,
+                            variableValue: $variableValue
+                        )
+                    }
                 } header: {
                     Text("Picker Instance")
                 }
@@ -164,39 +196,9 @@ struct ContentView: View {
             .formStyle(.grouped)
             #if os(macOS)
             .frame(width: 400, height: 500)
+            #elseif os(visionOS)
+            .frame(width: 600, height: 800)
             #endif
-            // ピッカーの起動（フラグを分離）
-            .sheet(isPresented: $isSheetPresented) {
-                NavigationStack {
-                    SFSymbolPicker(
-                        isPresented: $isSheetPresented,
-                        selection: $selectedIcon,
-                        showAs: .sheet,
-                        showIconName: showIconName,
-                        renderingMode: renderingModeOption.mode,
-                        primaryColor: primaryColor,
-                        secondaryColor: useSecondaryColor ? secondaryColor : nil,
-                        tertiaryColor: useTertiaryColor ? tertiaryColor : nil,
-                        variableValue: $variableValue
-                    )
-                    .conditionalSearchable(show: showSearchBarSheet, text: $searchTextSheet)
-                }
-            }
-            .popover(isPresented: $isPopoverPresented) {
-                SFSymbolPicker(
-                    isPresented: $isPopoverPresented,
-                    selection: $selectedIcon,
-                    showAs: .popover,
-                    searchBarPosition: searchBarPosition,
-                    showSearchBar: showSearchBarPopover,
-                    showIconName: showIconName,
-                    renderingMode: renderingModeOption.mode,
-                    primaryColor: primaryColor,
-                    secondaryColor: useSecondaryColor ? secondaryColor : nil,
-                    tertiaryColor: useTertiaryColor ? tertiaryColor : nil,
-                    variableValue: $variableValue
-                )
-            }
         }
     }
 }
