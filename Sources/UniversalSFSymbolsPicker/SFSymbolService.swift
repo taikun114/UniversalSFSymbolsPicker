@@ -121,12 +121,24 @@ public final class SFSymbolService: Sendable {
     // MARK: - Availability
     
     public func isAvailable(_ symbol: String, limitVersion: Double? = nil) -> Bool {
+        // 1. 指定された名前そのものが利用可能かチェック
+        if checkIndividualAvailability(symbol, limitVersion: limitVersion) {
+            return true
+        }
+
+        // 2. エイリアス（仲間）の中に、現在の OS で利用可能なものがあるかチェック
+        // これにより、最新名が v26+ でも、旧名が v17+ であれば、OS 17 環境でリストに残るようになる
+        let cluster = findSymbolCluster(startingWith: symbol)
+        return cluster.contains { checkIndividualAvailability($0, limitVersion: limitVersion) }
+    }
+
+    private func checkIndividualAvailability(_ symbol: String, limitVersion: Double? = nil) -> Bool {
         guard let year = symbolToYear[symbol] else { return false }
         if let limit = limitVersion, let limitYear = metadata?.versionToYear[String(limit)] {
             if year.compare(limitYear, options: .numeric) == .orderedDescending { return false }
         }
         guard let versions = metadata?.yearToVersion[year] else { return false }
-        
+
         var currentOS: String? = nil
         #if os(iOS)
         currentOS = "iOS"
@@ -139,12 +151,11 @@ public final class SFSymbolService: Sendable {
         #elseif os(visionOS)
         currentOS = "visionOS"
         #endif
-        
+
         guard let osKey = currentOS, let requiredVersionString = versions[osKey] else { return false }
         let requiredVersion = OperatingSystemVersion(versionString: requiredVersionString)
         return ProcessInfo.processInfo.isOperatingSystemAtLeast(requiredVersion)
     }
-    
     // MARK: - Filtering & Search
     
     public func symbols(
