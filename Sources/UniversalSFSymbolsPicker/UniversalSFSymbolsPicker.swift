@@ -38,12 +38,23 @@ public struct SFSymbolPicker: View {
     let secondaryColor: Color?
     let tertiaryColor: Color?
     @Binding var variableValue: Double?
+    @Binding var searchText: String
     
     // Internal State
-    @State private var searchText = ""
     @State private var selectedCategoryID: String
     @State private var temporarySelection: String?
+    @State private var lastTapTime: Date = .distantPast
+    @State private var lastTapName: String? = nil
     private let service = SFSymbolService.shared
+    
+    /// The standard height for bars and buttons, adjusted for each platform
+    private var controlHeight: CGFloat {
+        #if os(macOS)
+        return 32
+        #else
+        return 40
+        #endif
+    }
     
     /// Helper to dismiss the picker reliably across platforms
     private func close(save: Bool = false) {
@@ -66,6 +77,17 @@ public struct SFSymbolPicker: View {
         return service.systemCategories.first(where: { $0.id == selectedCategoryID })?.icon ?? "square.grid.2x2"
     }
     
+    /// Returns the label for the currently selected category
+    private var currentCategoryLabel: String {
+        if selectedCategoryID == "all" {
+            return "All"
+        }
+        if let custom = customCategories.first(where: { $0.id.uuidString == selectedCategoryID }) {
+            return custom.label
+        }
+        return service.systemCategories.first(where: { $0.id == selectedCategoryID })?.label ?? "All"
+    }
+    
     public init(
         isPresented: Binding<Bool>,
         selection: Binding<String?>,
@@ -85,7 +107,8 @@ public struct SFSymbolPicker: View {
         primaryColor: Color = .primary,
         secondaryColor: Color? = nil,
         tertiaryColor: Color? = nil,
-        variableValue: Binding<Double?> = .constant(nil)
+        variableValue: Binding<Double?> = .constant(nil),
+        searchText: Binding<String> = .constant("")
     ) {
         self._isPresented = isPresented
         self._selection = selection
@@ -106,6 +129,7 @@ public struct SFSymbolPicker: View {
         self.secondaryColor = secondaryColor
         self.tertiaryColor = tertiaryColor
         self._variableValue = variableValue
+        self._searchText = searchText
         self._selectedCategoryID = State(initialValue: defaultCategory)
         self._temporarySelection = State(initialValue: selection.wrappedValue)
     }
@@ -124,70 +148,62 @@ public struct SFSymbolPicker: View {
     // MARK: - Sheet View
     
     private var sheetView: some View {
-        VStack(spacing: 0) {
-            symbolGrid
-            
-            #if os(macOS)
-            // macOS 専用の下部ボタンエリア
-            Divider()
-            HStack {
-                Button(role: .cancel) {
-                    close(save: false)
-                } label: {
-                    Text("Cancel")
+        symbolGrid
+            .adaptiveSoftEdge()
+            .adaptiveSafeAreaBar(edge: .top) {
+                if showSearchBar && searchBarPosition == .top {
+                    searchBox
                 }
-                .keyboardShortcut(.cancelAction)
-                .controlSize(.large)
-                
-                Spacer()
+            }
+            .adaptiveSafeAreaBar(edge: .bottom) {
+                #if os(macOS)
+                macOSBottomBar
+                #else
+                if showSearchBar && searchBarPosition == .bottom {
+                    searchBox
+                }
+                #endif
+            }
+            #if !os(macOS)
+            .navigationTitle("Select an Icon")
+            #endif
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            #if os(macOS)
+            .frame(width: 600, height: 500)
+            #endif
+            .toolbar {
+                #if !os(macOS)
+                ToolbarItem(placement: .cancellationAction) {
+                    if #available(iOS 26.0, macOS 26.0, tvOS 26.0, watchOS 26.0, visionOS 26.0, *) {
+                        Button(role: .cancel) {
+                            close(save: false)
+                        }
+                        .keyboardShortcut(.cancelAction)
+                    } else {
+                        Button(role: .cancel) {
+                            close(save: false)
+                        } label: {
+                            Image(systemName: "xmark")
+                                .font(.body.weight(.semibold))
+                        }
+                        .keyboardShortcut(.cancelAction)
+                    }
+                }
                 
                 if showCategoryPicker {
-                    sheetCategoryPicker
-                        .controlSize(.large)
+                    ToolbarItem(placement: .primaryAction) {
+                        sheetCategoryPicker
+                    }
                 }
                 
-                doneButton
-                    .keyboardShortcut(.defaultAction)
-                    .controlSize(.large)
-            }
-            .padding()
-            #endif
-        }
-        .navigationTitle("Select an Icon")
-#if os(iOS)
-        .navigationBarTitleDisplayMode(.inline)
-#endif
-        .toolbar {
-            #if !os(macOS)
-            ToolbarItem(placement: .cancellationAction) {
-                if #available(iOS 26.0, macOS 26.0, tvOS 26.0, watchOS 26.0, visionOS 26.0, *) {
-                    Button(role: .cancel) {
-                        close(save: false)
-                    }
-                    .keyboardShortcut(.cancelAction)
-                } else {
-                    Button(role: .cancel) {
-                        close(save: false)
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.body.weight(.semibold))
-                    }
-                    .keyboardShortcut(.cancelAction)
+                ToolbarItem(placement: .confirmationAction) {
+                    doneButton
+                        .keyboardShortcut(.defaultAction)
                 }
+                #endif
             }
-            
-            if showCategoryPicker {
-                ToolbarItem(placement: .primaryAction) {
-                    sheetCategoryPicker
-                }
-            }
-            
-            ToolbarItem(placement: .confirmationAction) {
-                doneButton
-                    .keyboardShortcut(.defaultAction)
-            }
-            #endif
-        }
     }
     
     // MARK: - Popover View
@@ -196,7 +212,7 @@ public struct SFSymbolPicker: View {
         VStack(spacing: 0) {
             symbolGrid
                 .adaptiveSafeAreaBar(edge: searchBarPosition == .top ? .top : .bottom) {
-                    if showSearchBar {
+                    if showSearchBar || showCategoryPicker {
                         searchBox
                     }
                 }
@@ -229,61 +245,92 @@ public struct SFSymbolPicker: View {
         )
         let filteredSymbols = service.search(query: searchText, in: symbols)
         
-        return ScrollView {
-            LazyVGrid(columns: columns, spacing: 20) {
-                ForEach(filteredSymbols, id: \.self) { name in
-                    symbolButton(for: name)
+        return ScrollViewReader { proxy in
+            ScrollView {
+                // 最上部へスクロールするためのアンカー
+                Color.clear
+                    .frame(height: 0)
+                    .id("top_anchor")
+                
+                LazyVGrid(columns: columns, spacing: 20) {
+                    ForEach(filteredSymbols, id: \.self) { name in
+                        symbolButton(for: name)
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.top, (showSearchBar && searchBarPosition == .top) ? 0 : 16)
+                .padding(.bottom, (showSearchBar && searchBarPosition == .bottom) || showAs == .sheet ? 0 : 16)
+            }
+            .onChange(of: selectedCategoryID) { _, _ in
+                // カテゴリ変更時に最上部へスクロール
+                withAnimation {
+                    proxy.scrollTo("top_anchor", anchor: .top)
                 }
             }
-            .padding()
         }
     }
     
     private func symbolButton(for name: String) -> some View {
         let effectiveName = service.effectiveName(for: name) ?? name
         let isSelected = temporarySelection == effectiveName
-        
-        return Button {
-            temporarySelection = effectiveName
-        } label: {
-            VStack(spacing: 8) {
-                Image(systemName: effectiveName, variableValue: variableValue)
-                    .font(.system(size: 28))
-                    .symbolRenderingMode(isSelected ? .monochrome : renderingMode)
-                    .foregroundStyle(isSelected ? AnyShapeStyle(Color.white) : AnyShapeStyle(primaryColor))
 
-                if showIconName {
-                    // ドットの位置で折り返しやすくするためにゼロ幅スペースを挿入
-                    let displayLabel = effectiveName.replacingOccurrences(of: ".", with: ".\u{200B}")
-                    
-                    Text(displayLabel)
-                        .font(.caption2)
-                        .lineLimit(2)
-                        .multilineTextAlignment(.center)
-                        .minimumScaleFactor(0.8)
-                        .foregroundStyle(isSelected ? Color.white : .secondary)
-                        .frame(height: 32, alignment: .center)
-                }
-                }
+        return VStack(spacing: 8) {
+            Image(systemName: effectiveName, variableValue: variableValue)
+                .font(.system(size: 28))
+                .symbolRenderingMode(isSelected ? .monochrome : renderingMode)
+                .foregroundStyle(isSelected ? AnyShapeStyle(Color.white) : AnyShapeStyle(primaryColor))
 
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 8)
-            .contentShape(Rectangle())
+            if showIconName {
+                let displayLabel = effectiveName.replacingOccurrences(of: ".", with: ".\u{200B}")
+                Text(displayLabel)
+                    .font(.caption2)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+                    .minimumScaleFactor(0.8)
+                    .foregroundStyle(isSelected ? Color.white : .secondary)
+                    .frame(height: 32, alignment: .center)
+            }
         }
-        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 8)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            let now = Date()
+            let diff = now.timeIntervalSince(lastTapTime)
+            
+            // 1. 即座に選択状態を更新
+            temporarySelection = effectiveName
+            
+            // 2. ダブルタップ判定 (同じアイコンかつ0.5秒以内)
+            if effectiveName == lastTapName && diff < 0.5 {
+                close(save: true)
+            }
+            
+            // 3. 今回の情報を保存
+            lastTapTime = now
+            lastTapName = effectiveName
+        }
         .background {
             if isSelected {
                 RoundedRectangle(cornerRadius: 10)
-                    .fill(Color.accentColor) // 不透明なアクセントカラー
+                    .fill(Color.accentColor)
             }
         }
     }
+
     
     private var sheetCategoryPicker: some View {
         Menu {
             categoryMenuItems
         } label: {
+            #if os(macOS)
+            HStack(spacing: 8) {
+                Image(systemName: currentCategoryIcon)
+                Text("Category: \(currentCategoryLabel)")
+            }
+            #else
             Label("Category", systemImage: currentCategoryIcon)
+            #endif
         }
     }
     
@@ -292,38 +339,122 @@ public struct SFSymbolPicker: View {
             categoryMenuItems
         } label: {
             ZStack {
-                if #available(iOS 26.0, macOS 26.0, tvOS 26.0, watchOS 26.0, visionOS 26.0, *) {
-                    Image(systemName: currentCategoryIcon)
-                        .font(.body.weight(.semibold))
-                        .foregroundStyle(.primary)
-                        .frame(width: 40, height: 40)
-                        #if !os(visionOS)
-                        .glassEffect(.regular.interactive())
-                        #endif
-                } else {
-                    Image(systemName: currentCategoryIcon)
-                        .font(.body.weight(.semibold))
-                        .foregroundStyle(.primary)
-                        .frame(width: 40, height: 40)
-                        .background {
-                            #if os(macOS)
-                            VisualEffectView(material: .headerView, blendingMode: .withinWindow)
-                                .clipShape(Circle())
-                            #elseif os(visionOS)
-                            Color.clear.background(.ultraThinMaterial, in: Circle())
-                            #else
-                            Circle().fill(.thinMaterial)
-                            #endif
+                #if os(visionOS)
+                // visionOS では常に標準の素材を使用
+                Group {
+                    if showSearchBar {
+                        // アイコンのみ
+                        Image(systemName: currentCategoryIcon)
+                            .frame(width: controlHeight, height: controlHeight)
+                    } else {
+                        // 横長ラベル
+                        HStack(spacing: 8) {
+                            Image(systemName: currentCategoryIcon)
+                            Text("Category: \(currentCategoryLabel)")
                         }
+                        .padding(.horizontal, controlHeight * 0.4)
+                        .frame(height: controlHeight)
+                    }
                 }
+                .foregroundStyle(.primary)
+                .background(.regularMaterial, in: Capsule())
+                #else
+                if #available(iOS 26.0, macOS 26.0, tvOS 26.0, watchOS 26.0, *) {
+                    Group {
+                        if showSearchBar {
+                            Image(systemName: currentCategoryIcon)
+                                .frame(width: controlHeight, height: controlHeight)
+                        } else {
+                            HStack(spacing: 8) {
+                                Image(systemName: currentCategoryIcon)
+                                Text("Category: \(currentCategoryLabel)")
+                            }
+                            .padding(.horizontal, controlHeight * 0.4)
+                            .frame(height: controlHeight)
+                        }
+                    }
+                    .foregroundStyle(.primary)
+                    .glassEffect(.regular.interactive())
+                    .clipShape(Capsule())
+                } else {
+                    Group {
+                        if showSearchBar {
+                            Image(systemName: currentCategoryIcon)
+                                .frame(width: controlHeight, height: controlHeight)
+                        } else {
+                            HStack(spacing: 8) {
+                                Image(systemName: currentCategoryIcon)
+                                Text("Category: \(currentCategoryLabel)")
+                            }
+                            .padding(.horizontal, controlHeight * 0.4)
+                            .frame(height: controlHeight)
+                        }
+                    }
+                    .foregroundStyle(.primary)
+                    .background {
+                        #if os(macOS)
+                        VisualEffectView(material: .headerView, blendingMode: .withinWindow)
+                            .clipShape(Capsule())
+                        #else
+                        Capsule().fill(.thinMaterial)
+                        #endif
+                    }
+                }
+                #endif
             }
             .overlay(
-                Circle()
+                Capsule()
                     .stroke(Color.gray.opacity(0.3), lineWidth: 1)
             )
-            .contentShape(Circle())
+            .contentShape(Capsule())
         }
     }
+    
+    #if os(macOS)
+    private var macOSBottomBar: some View {
+        VStack(spacing: 0) {
+            if showSearchBar && searchBarPosition == .bottom {
+                searchBox
+            }
+            
+            HStack {
+                Button(role: .cancel) {
+                    close(save: false)
+                } label: {
+                    Label("Cancel", systemImage: "xmark")
+                }
+                .keyboardShortcut(.cancelAction)
+                .controlSize(.large)
+                .adaptiveLiquidGlassButtonStyle() // グラスエフェクト適用
+                
+                Spacer()
+                
+                if showCategoryPicker {
+                    sheetCategoryPicker
+                        .controlSize(.large)
+                        .adaptiveLiquidGlassButtonStyle() // グラスエフェクト適用
+                }
+                
+                Button {
+                    close(save: true)
+                } label: {
+                    Label("Done", systemImage: "checkmark")
+                }
+                .keyboardShortcut(.defaultAction)
+                .controlSize(.large)
+                .adaptiveLiquidGlassButtonStyle() // グラスエフェクト適用
+            }
+            .padding()
+        }
+        .background {
+            if #available(macOS 26.0, *) {
+                Color.clear
+            } else {
+                VisualEffectView(material: .headerView, blendingMode: .withinWindow)
+            }
+        }
+    }
+    #endif
     
     @ViewBuilder
     private var categoryMenuItems: some View {
@@ -331,23 +462,28 @@ public struct SFSymbolPicker: View {
             Label("All", systemImage: "square.grid.2x2").tag("all")
         }
         .pickerStyle(.inline)
+        .labelStyle(.titleAndIcon)
         
         Picker("System Categories", selection: $selectedCategoryID) {
             ForEach(service.systemCategories) { cat in
                 if cat.id != "all" {
-                    Label(cat.label, systemImage: cat.icon).tag(cat.id)
+                    let iconName = service.effectiveName(for: cat.icon) ?? "square.grid.2x2"
+                    Label(cat.label, systemImage: iconName).tag(cat.id)
                 }
             }
         }
         .pickerStyle(.inline)
+        .labelStyle(.titleAndIcon)
         
         if !customCategories.isEmpty {
             Picker("Custom Categories", selection: $selectedCategoryID) {
                 ForEach(customCategories) { cat in
-                    Label(cat.label, systemImage: cat.icon).tag(cat.id.uuidString)
+                    let iconName = service.effectiveName(for: cat.icon) ?? "square.grid.2x2"
+                    Label(cat.label, systemImage: iconName).tag(cat.id.uuidString)
                 }
             }
             .pickerStyle(.inline)
+            .labelStyle(.titleAndIcon)
         }
     }
     private var doneButton: some View {
@@ -371,66 +507,82 @@ public struct SFSymbolPicker: View {
     private var searchBox: some View {
         HStack(spacing: 12) {
             // Island 1: Search Input (Capsule)
-            ZStack {
-                if #available(iOS 26.0, macOS 26.0, tvOS 26.0, watchOS 26.0, visionOS 26.0, *) {
+            if showSearchBar {
+                ZStack {
+                    #if os(visionOS)
+                    // visionOS では常に標準の素材を使用
                     Color.clear
-                        #if !os(visionOS)
-                        .adaptiveLiquidGlass(in: Capsule())
-                        #endif
-                } else {
-                    Group {
-                        #if os(macOS)
-                        VisualEffectView(material: .headerView, blendingMode: .withinWindow)
-                        #elseif os(visionOS)
-                        Color.clear.background(.ultraThinMaterial)
-                        #else
-                        VisualEffectView(material: .systemThinMaterial)
-                        #endif
-                    }
-                    .clipShape(Capsule())
-                }
-                
-                HStack(spacing: 8) {
-                    Image(systemName: "magnifyingglass")
-                        .foregroundStyle(.secondary)
-                        .font(.body.weight(.semibold))
-                    
-                    TextField(prompt, text: $searchText)
-                        .textFieldStyle(.plain)
-                        .background(Color.clear)
-                    
-                    if !searchText.isEmpty {
-                        Button {
-                            searchText = ""
-                        } label: {
-                            Image(systemName: "xmark.circle.fill")
-                                .foregroundStyle(.secondary)
+                        .background(.regularMaterial, in: Capsule())
+                    #else
+                    if #available(iOS 26.0, macOS 26.0, tvOS 26.0, watchOS 26.0, *) {
+                        Color.clear
+                            .adaptiveLiquidGlass(in: Capsule())
+                    } else {
+                        Group {
+                            #if os(macOS)
+                            VisualEffectView(material: .headerView, blendingMode: .withinWindow)
+                            #else
+                            VisualEffectView(material: .systemThinMaterial)
+                            #endif
                         }
-                        .buttonStyle(.plain)
+                        .clipShape(Capsule())
                     }
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 10)
-            }
-            .frame(height: 40)
-            .overlay(
-                Capsule()
-                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-            )
-            .layoutPriority(1)
-            
-            // Island 2: Category Picker (Circle Button)
-            if showCategoryPicker {
-                popoverCategoryPicker
-                    .buttonStyle(.plain)
-                    .frame(width: 40) // 幅を固定して潰れないようにする
-                    .layoutPriority(0)
-            }
-            }
-            .padding(.horizontal, 16) // 左右パディングを少し広めに
-            .padding(.vertical, 12)
-            .fixedSize(horizontal: false, vertical: true)
+                    #endif
+                    
+                    HStack(spacing: 8) {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundStyle(.secondary)
+                            .font(.body.weight(.semibold))
+                        
+                        TextField(prompt, text: $searchText)
+                            .textFieldStyle(.plain)
+                            .background(Color.clear)
+                        
+                        if !searchText.isEmpty {
+                            Button {
+                                searchText = ""
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundStyle(.secondary)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, controlHeight == 32 ? 6 : 10)
+                    }
+                    .frame(height: controlHeight)
+                    .overlay(
+                    Capsule()
+                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                    )
+                    .layoutPriority(1)
+                    }
 
+                    // Island 2: Category Picker (Circle/Capsule Button)
+                    // シート時はツールバーにピッカーがあるため、ポップオーバー時のみ表示
+                    if showCategoryPicker && showAs == .popover {
+                    popoverCategoryPicker
+                    .buttonStyle(.plain)
+                    .frame(minWidth: showSearchBar ? controlHeight : 0)
+                    .layoutPriority(showSearchBar ? 0 : 1)
+                    }
+
+            }
+            .frame(maxWidth: .infinity) // 全体で中央寄せを可能にする
+            .padding(.horizontal, 16)
+            .padding(.top, 16)
+            .padding(.bottom, (showAs == .sheet && searchBarPosition == .bottom && osIsMacOS) ? 0 : 16)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+    
+    /// Helper to identify macOS at runtime within views
+    private var osIsMacOS: Bool {
+        #if os(macOS)
+        return true
+        #else
+        return false
+        #endif
     }
 }
 
@@ -462,13 +614,57 @@ private extension View {
         self.background(.ultraThinMaterial, in: shape)
         #endif
     }
+    
+    @ViewBuilder
+    func adaptiveLiquidGlassButtonStyle() -> some View {
+        #if os(macOS)
+        if #available(macOS 26.0, *) {
+            self.glassEffect(.regular.interactive())
+        } else {
+            self
+        }
+        #else
+        self
+        #endif
+    }
+    
+    @ViewBuilder
+    func adaptiveSoftEdge() -> some View {
+        #if os(macOS) || os(iOS)
+        if #available(iOS 26.0, macOS 26.0, *) {
+            self.scrollEdgeEffectStyle(.soft, for: .all)
+        } else {
+            self
+        }
+        #else
+        self
+        #endif
+    }
 }
 
 // MARK: - Previews
 
-#Preview("Sheet Mode") {
+#Preview("Sheet (No Search)") {
     NavigationStack {
-        SFSymbolPicker(isPresented: .constant(true), selection: .constant("star.fill"), showAs: .sheet, showIconName: true)
+        SFSymbolPicker(isPresented: .constant(true), selection: .constant("star.fill"), showAs: .sheet, showSearchBar: false, showIconName: true, searchText: .constant(""))
+    }
+    #if os(macOS)
+    .frame(width: 600, height: 500)
+    #endif
+}
+
+#Preview("Sheet (Search Top)") {
+    NavigationStack {
+        SFSymbolPicker(isPresented: .constant(true), selection: .constant("star.fill"), showAs: .sheet, searchBarPosition: .top, showSearchBar: true, showIconName: true, searchText: .constant(""))
+    }
+    #if os(macOS)
+    .frame(width: 600, height: 500)
+    #endif
+}
+
+#Preview("Sheet (Search Bottom)") {
+    NavigationStack {
+        SFSymbolPicker(isPresented: .constant(true), selection: .constant("star.fill"), showAs: .sheet, searchBarPosition: .bottom, showSearchBar: true, showIconName: true, searchText: .constant(""))
     }
     #if os(macOS)
     .frame(width: 600, height: 500)
@@ -476,14 +672,14 @@ private extension View {
 }
 
 #Preview("Popover Mode (Bottom)") {
-    SFSymbolPicker(isPresented: .constant(true), selection: .constant("heart.fill"), showAs: .popover, searchBarPosition: .bottom, showIconName: true)
+    SFSymbolPicker(isPresented: .constant(true), selection: .constant("heart.fill"), showAs: .popover, searchBarPosition: .bottom, showIconName: true, searchText: .constant(""))
     #if os(macOS)
     .frame(width: 400, height: 500)
     #endif
 }
 
 #Preview("Popover Mode (Top)") {
-    SFSymbolPicker(isPresented: .constant(true), selection: .constant("gearshape.fill"), showAs: .popover, searchBarPosition: .top, showIconName: true)
+    SFSymbolPicker(isPresented: .constant(true), selection: .constant("gearshape.fill"), showAs: .popover, searchBarPosition: .top, showIconName: true, searchText: .constant(""))
     #if os(macOS)
     .frame(width: 400, height: 500)
     #endif

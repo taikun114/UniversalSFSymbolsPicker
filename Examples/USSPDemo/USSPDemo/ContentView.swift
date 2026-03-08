@@ -16,17 +16,25 @@ enum RenderingModeOption: String, CaseIterable, Identifiable {
     }
 }
 
+enum SearchBarStyle: String, CaseIterable, Identifiable {
+    case searchable = ".searchable"
+    case custom = "Custom"
+    var id: String { rawValue }
+}
+
 struct ContentView: View {
     @State private var selectedIcon: String? = "star.fill"
     @State private var pickerMode: SFSymbolPickerDisplayMode = .sheet
     @State private var searchBarPosition: SFSymbolPickerSearchBarPosition = .bottom
-    @State private var showSearchBarPopover = true
-    @State private var showSearchBarSheet = true
+    @State private var showSearchBar = true
+    @State private var searchBarStyle: SearchBarStyle = .searchable
     @State private var searchTextSheet = ""
+    @State private var searchTextPopover = ""
     
     @State private var isSheetPresented = false
     @State private var isPopoverPresented = false
     @State private var showIconName = true
+    @State private var showCategoryPicker = true
     
     // デモ用の設定
     @State private var variableValue: Double? = 1.0
@@ -34,8 +42,10 @@ struct ContentView: View {
     @State private var primaryColor: Color = .blue
     @State private var secondaryColor: Color = .red
     @State private var tertiaryColor: Color = .green
+    @State private var usePrimaryColor = false
     @State private var useSecondaryColor = false
     @State private var useTertiaryColor = false
+    @State private var excludeRestricted = false
     
     var body: some View {
         NavigationStack {
@@ -54,9 +64,9 @@ struct ContentView: View {
                                     .font(.title)
                                     .symbolRenderingMode(renderingModeOption.mode)
                                     .foregroundStyle(
-                                        primaryColor,
-                                        useSecondaryColor ? secondaryColor : primaryColor,
-                                        useTertiaryColor ? tertiaryColor : primaryColor
+                                        usePrimaryColor ? primaryColor : .primary,
+                                        useSecondaryColor ? secondaryColor : (usePrimaryColor ? primaryColor : .primary),
+                                        useTertiaryColor ? tertiaryColor : (usePrimaryColor ? primaryColor : .primary)
                                     )
                                     .frame(width: 44, height: 44)
                                 
@@ -87,15 +97,20 @@ struct ContentView: View {
                                 isPresented: $isSheetPresented,
                                 selection: $selectedIcon,
                                 showAs: .sheet,
+                                searchBarPosition: searchBarPosition, // ここを追加
+                                showSearchBar: showSearchBar && searchBarStyle == .custom, // カスタム時のみ
+                                showCategoryPicker: showCategoryPicker,
                                 showIconName: showIconName,
+                                excludeRestricted: excludeRestricted,
                                 renderingMode: renderingModeOption.mode,
-                                primaryColor: primaryColor,
+                                primaryColor: usePrimaryColor ? primaryColor : .primary,
                                 secondaryColor: useSecondaryColor ? secondaryColor : nil,
                                 tertiaryColor: useTertiaryColor ? tertiaryColor : nil,
-                                variableValue: $variableValue
+                                variableValue: $variableValue,
+                                searchText: $searchTextSheet
                             )
-                            .conditionalSearchable(show: showSearchBarSheet, text: $searchTextSheet)
                         }
+                        .conditionalSearchable(show: showSearchBar && searchBarStyle == .searchable, text: $searchTextSheet)
                     }
                     .popover(isPresented: $isPopoverPresented, attachmentAnchor: .rect(.bounds), arrowEdge: .top) {
                         SFSymbolPicker(
@@ -103,13 +118,16 @@ struct ContentView: View {
                             selection: $selectedIcon,
                             showAs: .popover,
                             searchBarPosition: searchBarPosition,
-                            showSearchBar: showSearchBarPopover,
+                            showSearchBar: showSearchBar && searchBarStyle == .custom, // カスタム時のみ
+                            showCategoryPicker: showCategoryPicker,
                             showIconName: showIconName,
+                            excludeRestricted: excludeRestricted,
                             renderingMode: renderingModeOption.mode,
-                            primaryColor: primaryColor,
+                            primaryColor: usePrimaryColor ? primaryColor : .primary,
                             secondaryColor: useSecondaryColor ? secondaryColor : nil,
                             tertiaryColor: useTertiaryColor ? tertiaryColor : nil,
-                            variableValue: $variableValue
+                            variableValue: $variableValue,
+                            searchText: $searchTextPopover
                         )
                     }
                 } header: {
@@ -117,25 +135,129 @@ struct ContentView: View {
                 }
                 
                 Section("Settings") {
-                    Picker("Display Mode", selection: $pickerMode) {
-                        Text("Sheet").tag(SFSymbolPickerDisplayMode.sheet)
-                        Text("Popover").tag(SFSymbolPickerDisplayMode.popover)
-                    }
-                    .pickerStyle(.segmented)
-                    
-                    if pickerMode == .sheet {
-                        Toggle("Show Search Bar", isOn: $showSearchBarSheet)
-                    }
-                    
-                    Toggle("Show Icon Name", isOn: $showIconName)
-                    
-                    if pickerMode == .popover {
-                        Toggle("Show Search Bar", isOn: $showSearchBarPopover)
-                        
-                        Picker("Search Bar Position", selection: $searchBarPosition) {
-                            Text("Top").tag(SFSymbolPickerSearchBarPosition.top)
-                            Text("Bottom").tag(SFSymbolPickerSearchBarPosition.bottom)
+                    #if os(macOS)
+                    HStack {
+                        VStack(alignment: .leading) {
+                            Text("Display Mode")
+                            Text("Select how the symbol picker is presented.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                         }
+                        Spacer()
+                        Picker(selection: $pickerMode) {
+                            Text("Sheet").tag(SFSymbolPickerDisplayMode.sheet)
+                            Text("Popover").tag(SFSymbolPickerDisplayMode.popover)
+                        } label: {
+                            Text("Display Mode")
+                        }
+                        .pickerStyle(.segmented)
+                        .labelsHidden()
+                        .fixedSize()
+                    }
+                    #else
+                    VStack(alignment: .leading, spacing: 8) {
+                        VStack(alignment: .leading) {
+                            Text("Display Mode")
+                            Text("Select how the symbol picker is presented.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        Picker(selection: $pickerMode) {
+                            Text("Sheet").tag(SFSymbolPickerDisplayMode.sheet)
+                            Text("Popover").tag(SFSymbolPickerDisplayMode.popover)
+                        } label: {
+                            Text("Display Mode")
+                        }
+                        .pickerStyle(.segmented)
+                        .labelsHidden()
+                    }
+                    #endif
+                    
+                    Toggle("Show Search Bar", isOn: $showSearchBar)
+                    
+                    if showSearchBar {
+                        #if os(macOS)
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text("Search Bar Style")
+                                if searchBarStyle == .searchable {
+                                    Text("Adds a system standard search box using the .searchable modifier.")
+                                } else {
+                                    Text("Adds a custom search box provided by UniversalSFSymbolsPicker.")
+                                }
+                            }
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            Spacer()
+                            Picker(selection: $searchBarStyle) {
+                                ForEach(SearchBarStyle.allCases) { style in
+                                    Text(style.rawValue).tag(style)
+                                }
+                            } label: {
+                                Text("Search Bar Style")
+                            }
+                            .pickerStyle(.segmented)
+                            .labelsHidden()
+                            .fixedSize()
+                        }
+                        #else
+                        VStack(alignment: .leading, spacing: 8) {
+                            VStack(alignment: .leading) {
+                                Text("Search Bar Style")
+                                if searchBarStyle == .searchable {
+                                    Text("Adds a system standard search box using the .searchable modifier.")
+                                } else {
+                                    Text("Adds a custom search box provided by UniversalSFSymbolsPicker.")
+                                }
+                            }
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            Picker(selection: $searchBarStyle) {
+                                ForEach(SearchBarStyle.allCases) { style in
+                                    Text(style.rawValue).tag(style)
+                                }
+                            } label: {
+                                Text("Search Bar Style")
+                            }
+                            .pickerStyle(.segmented)
+                            .labelsHidden()
+                        }
+                        #endif
+                        
+                        if searchBarStyle == .custom {
+                            HStack {
+                                VStack(alignment: .leading) {
+                                    Text("Search Bar Position")
+                                    Text("Set the position where the search box and category picker will appear.")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                                Picker(selection: $searchBarPosition) {
+                                    Text("Top").tag(SFSymbolPickerSearchBarPosition.top)
+                                    Text("Bottom").tag(SFSymbolPickerSearchBarPosition.bottom)
+                                } label: {
+                                    Text("Search Bar Position")
+                                }
+                                .labelsHidden()
+                                .fixedSize()
+                            }
+                        }
+                    }
+                    
+                    Toggle(isOn: $showCategoryPicker) {
+                        Text("Show Category Picker")
+                        Text("Adds a category picker to filter symbols by category.")
+                    }
+                    
+                    Toggle(isOn: $showIconName) {
+                        Text("Show Icon Name")
+                        Text("Toggle whether to display the name of each symbol.")
+                    }
+                    
+                    Toggle(isOn: $excludeRestricted) {
+                        Text("Exclude Restricted Symbols")
+                        Text("Hide symbols with usage restrictions, such as those for Apple services or hardware.")
                     }
                 }
                 
@@ -146,6 +268,7 @@ struct ContentView: View {
                         set: { variableValue = $0 }
                     ), in: 0...1) {
                         Text("Variable Value: \(variableValue ?? 0, specifier: "%.2f")")
+                        Text("Specify the value to apply to variable symbols.")
                     }
                     #else
                     VStack(alignment: .leading, spacing: 8) {
@@ -154,6 +277,9 @@ struct ContentView: View {
                             get: { variableValue ?? 0 },
                             set: { variableValue = $0 }
                         ), in: 0...1)
+                        Text("Specify the value to apply to variable symbols.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
                     #endif
                     
@@ -164,7 +290,17 @@ struct ContentView: View {
                     }
                     
                     Group {
-                        ColorPicker("Primary Color", selection: $primaryColor)
+                        Toggle(isOn: $usePrimaryColor) {
+                            HStack {
+                                Text("Primary Color")
+                                if usePrimaryColor {
+                                    Spacer()
+                                    ColorPicker("", selection: $primaryColor)
+                                        .labelsHidden()
+                                        .fixedSize()
+                                }
+                            }
+                        }
                         
                         Toggle(isOn: $useSecondaryColor) {
                             HStack {
@@ -194,14 +330,16 @@ struct ContentView: View {
             }
             .navigationTitle("Picker Demo")
             .formStyle(.grouped)
-            #if os(macOS)
-            .frame(width: 400, height: 500)
-            #elseif os(visionOS)
-            .frame(width: 600, height: 800)
-            #endif
         }
+        #if os(macOS)
+        .frame(width: 400, height: 500)
+        #elseif os(visionOS)
+        // ナビゲーションバー等を含めた全体のサイズを固定
+        .frame(width: 600, height: 800)
+        #endif
     }
 }
+
 
 #Preview {
     ContentView()
