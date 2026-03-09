@@ -15,6 +15,7 @@ public enum SFSymbolPickerSearchBarPosition: Sendable {
 public struct SFSymbolPicker: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.presentationMode) private var presentationMode
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     
     @Binding var isPresented: Bool
     @Binding var selection: String?
@@ -58,12 +59,23 @@ public struct SFSymbolPicker: View {
     
     /// Helper to dismiss the picker reliably across platforms
     private func close(save: Bool = false) {
-        if save {
-            selection = temporarySelection
+        if save, let temp = temporarySelection {
+            selection = temp
         }
+        
+        #if os(tvOS)
+        // tvOS でも dismiss() を呼び出すことで、NavigationLink 等の多様な遷移に対応させる
+        isPresented = false
+        dismiss()
+        #elseif os(macOS)
         isPresented = false
         dismiss()
         presentationMode.wrappedValue.dismiss()
+        #else
+        isPresented = false
+        dismiss()
+        presentationMode.wrappedValue.dismiss()
+        #endif
     }
     
     /// Returns the icon for the currently selected category
@@ -148,62 +160,64 @@ public struct SFSymbolPicker: View {
     // MARK: - Sheet View
     
     private var sheetView: some View {
-        symbolGrid
-            .adaptiveSoftEdge()
-            .adaptiveSafeAreaBar(edge: .top) {
-                if showSearchBar && searchBarPosition == .top {
-                    searchBox
-                }
-            }
-            .adaptiveSafeAreaBar(edge: .bottom) {
-                #if os(macOS)
-                macOSBottomBar
-                #else
-                if showSearchBar && searchBarPosition == .bottom {
-                    searchBox
-                }
-                #endif
-            }
-            #if !os(macOS)
-            .navigationTitle("Select an Icon")
-            #endif
-            #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-            #endif
-            #if os(macOS)
-            .frame(width: 600, height: 500)
-            #endif
-            .toolbar {
-                #if !os(macOS)
-                ToolbarItem(placement: .cancellationAction) {
-                    if #available(iOS 26.0, macOS 26.0, tvOS 26.0, watchOS 26.0, visionOS 26.0, *) {
-                        Button(role: .cancel) {
-                            close(save: false)
-                        }
-                        .keyboardShortcut(.cancelAction)
-                    } else {
-                        Button(role: .cancel) {
-                            close(save: false)
-                        } label: {
-                            Image(systemName: "xmark")
-                                .font(.body.weight(.semibold))
-                        }
-                        .keyboardShortcut(.cancelAction)
+        VStack(spacing: 0) {
+            #if os(tvOS)
+            // tvOS では ScrollView 内にすべてを配置し、フォーカス制御を OS に任せる
+            symbolGrid
+            #else
+            symbolGrid
+                .adaptiveSoftEdge()
+                .adaptiveSafeAreaBar(edge: .top) {
+                    if showSearchBar && searchBarPosition == .top {
+                        searchBox
                     }
                 }
-                
-                if showCategoryPicker {
-                    ToolbarItem(placement: .primaryAction) {
-                        sheetCategoryPicker
+                .adaptiveSafeAreaBar(edge: .bottom) {
+                    #if os(macOS)
+                    macOSBottomBar
+                    #else
+                    if showSearchBar && searchBarPosition == .bottom {
+                        searchBox
                     }
+                    #endif
                 }
-                
-                ToolbarItem(placement: .confirmationAction) {
-                    doneButton
-                        .keyboardShortcut(.defaultAction)
+            #endif
+        }
+        #if !os(macOS) && !os(tvOS)
+        .navigationTitle("Select an Icon")
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                if #available(iOS 26.0, macOS 26.0, tvOS 26.0, watchOS 26.0, visionOS 26.0, *) {
+                    Button(role: .cancel) {
+                        close(save: false)
+                    }
+                    .keyboardShortcut(.cancelAction)
+                } else {
+                    Button(role: .cancel) {
+                        close(save: false)
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.body.weight(.semibold))
+                    }
+                    .keyboardShortcut(.cancelAction)
                 }
-                #endif
             }
+            
+            if showCategoryPicker {
+                ToolbarItem(placement: .primaryAction) {
+                    sheetCategoryPicker
+                }
+            }
+            
+            ToolbarItem(placement: .confirmationAction) {
+                doneButton
+                    .keyboardShortcut(.defaultAction)
+            }
+        }
+        #endif
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
     }
     
     // MARK: - Popover View
@@ -211,18 +225,20 @@ public struct SFSymbolPicker: View {
     private var popoverView: some View {
         VStack(spacing: 0) {
             symbolGrid
+                #if !os(tvOS)
                 .adaptiveSafeAreaBar(edge: searchBarPosition == .top ? .top : .bottom) {
                     if showSearchBar || showCategoryPicker {
                         searchBox
                     }
                 }
+                #endif
         }
         #if os(macOS)
-        .frame(width: 400, height: 550) // macOS 専用の固定サイズ指定
+        .frame(width: 360, height: 500) // macOS 専用の固定サイズ指定
         #elseif os(visionOS)
-        .frame(width: 500, height: 600) // visionOS 専用の固定サイズ指定
+        .frame(width: 440, height: 540) // visionOS 専用の固定サイズ指定
         #else
-        .frame(minWidth: 350, minHeight: 450)
+        .frame(minWidth: 320, minHeight: 400)
         #endif
         .onDisappear {
             // ポップオーバーが閉じられた際に選択を確定
@@ -234,7 +250,15 @@ public struct SFSymbolPicker: View {
     // MARK: - Components
     
     private var symbolGrid: some View {
-        let columns = [GridItem(.adaptive(minimum: 65))]
+        #if os(tvOS)
+        let minWidth: CGFloat = 160
+        let spacing: CGFloat = 80
+        #else
+        let minWidth: CGFloat = 65
+        let spacing: CGFloat = 20
+        #endif
+        
+        let columns = [GridItem(.adaptive(minimum: minWidth))]
         let symbols = service.symbols(
             for: selectedCategoryID,
             customCategories: customCategories,
@@ -247,19 +271,43 @@ public struct SFSymbolPicker: View {
         
         return ScrollViewReader { proxy in
             ScrollView {
+                #if os(tvOS)
+                // tvOS 専用：常に上部に表示
+                if showSearchBar {
+                    searchBox
+                        .padding(.top, 80)
+                        .padding(.bottom, 40)
+                        .padding(.horizontal, spacing)
+                } else if showCategoryPicker {
+                    HStack {
+                        Spacer()
+                        sheetCategoryPicker
+                            .buttonStyle(.bordered)
+                            .controlSize(.large)
+                        Spacer()
+                    }
+                    .padding(.top, 80)
+                    .padding(.bottom, 40)
+                }
+                #endif
+                
                 // 最上部へスクロールするためのアンカー
                 Color.clear
                     .frame(height: 0)
                     .id("top_anchor")
                 
-                LazyVGrid(columns: columns, spacing: 20) {
+                LazyVGrid(columns: columns, spacing: spacing) {
                     ForEach(filteredSymbols, id: \.self) { name in
                         symbolButton(for: name)
                     }
                 }
-                .padding(.horizontal)
-                .padding(.top, (showSearchBar && searchBarPosition == .top) ? 0 : 16)
-                .padding(.bottom, (showSearchBar && searchBarPosition == .bottom) || showAs == .sheet ? 0 : 16)
+                .padding(.horizontal, spacing)
+                #if os(tvOS)
+                .padding(.bottom, 200) // 下側のマージンをしっかり確保
+                #else
+                .padding(.top, (showSearchBar && searchBarPosition == .top) ? 0 : spacing)
+                .padding(.bottom, (showAs == .sheet && searchBarPosition == .bottom) || showAs == .sheet ? 0 : spacing)
+                #endif
             }
             .onChange(of: selectedCategoryID) { _, _ in
                 // カテゴリ変更時に最上部へスクロール
@@ -272,11 +320,19 @@ public struct SFSymbolPicker: View {
     
     private func symbolButton(for name: String) -> some View {
         let effectiveName = service.effectiveName(for: name) ?? name
-        let isSelected = temporarySelection == effectiveName
-
-        return VStack(spacing: 8) {
+        let isSelected = (temporarySelection == effectiveName) || (selection == effectiveName)
+        
+        #if os(tvOS)
+        let iconSize: CGFloat = 60 // tvOS では少し大きく
+        let nameHeight: CGFloat = 64
+        #else
+        let iconSize: CGFloat = 28
+        let nameHeight: CGFloat = 32
+        #endif
+        
+        let content = VStack(spacing: 8) {
             Image(systemName: effectiveName, variableValue: variableValue)
-                .font(.system(size: 28))
+                .font(.system(size: iconSize))
                 .symbolRenderingMode(isSelected ? .monochrome : renderingMode)
                 .foregroundStyle(isSelected ? AnyShapeStyle(Color.white) : AnyShapeStyle(primaryColor))
 
@@ -288,49 +344,62 @@ public struct SFSymbolPicker: View {
                     .multilineTextAlignment(.center)
                     .minimumScaleFactor(0.8)
                     .foregroundStyle(isSelected ? Color.white : .secondary)
-                    .frame(height: 32, alignment: .center)
+                    .frame(height: nameHeight, alignment: .center)
             }
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 8)
         .contentShape(Rectangle())
-        .onTapGesture {
-            let now = Date()
-            let diff = now.timeIntervalSince(lastTapTime)
-            
-            // 1. 即座に選択状態を更新
+        
+        #if os(tvOS)
+        return Button {
             temporarySelection = effectiveName
-            
-            // 2. ダブルタップ判定 (同じアイコンかつ0.5秒以内)
-            if effectiveName == lastTapName && diff < 0.5 {
-                close(save: true)
-            }
-            
-            // 3. 今回の情報を保存
-            lastTapTime = now
-            lastTapName = effectiveName
+            close(save: true)
+        } label: {
+            content
         }
-        .background {
-            if isSelected {
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(Color.accentColor)
+        .buttonStyle(.plain) // tvOS のフォーカスエフェクトを活かす
+        #else
+        return content
+            .onTapGesture {
+                let now = Date()
+                let diff = now.timeIntervalSince(lastTapTime)
+                
+                // 1. 即座に選択状態を更新
+                temporarySelection = effectiveName
+                
+                // 2. ダブルタップ判定 (同じアイコンかつ0.5秒以内)
+                if effectiveName == lastTapName && diff < 0.5 {
+                    close(save: true)
+                }
+                
+                // 3. 今回の情報を保存
+                lastTapTime = now
+                lastTapName = effectiveName
             }
-        }
+            .background {
+                if isSelected {
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.accentColor)
+                }
+            }
+        #endif
     }
-
     
     private var sheetCategoryPicker: some View {
         Menu {
             categoryMenuItems
         } label: {
-            #if os(macOS)
             HStack(spacing: 8) {
                 Image(systemName: currentCategoryIcon)
+                #if !os(tvOS)
+                if horizontalSizeClass != .compact {
+                    Text("Category: \(currentCategoryLabel)")
+                }
+                #else
                 Text("Category: \(currentCategoryLabel)")
+                #endif
             }
-            #else
-            Label("Category", systemImage: currentCategoryIcon)
-            #endif
         }
     }
     
@@ -408,6 +477,7 @@ public struct SFSymbolPicker: View {
             )
             .contentShape(Capsule())
         }
+        .buttonStyle(.plain)
     }
     
     #if os(macOS)
@@ -423,8 +493,11 @@ public struct SFSymbolPicker: View {
                 } label: {
                     Label("Cancel", systemImage: "xmark")
                 }
+                #if !os(tvOS)
                 .keyboardShortcut(.cancelAction)
+                #endif
                 .controlSize(.large)
+
                 .adaptiveLiquidGlassButtonStyle() // グラスエフェクト適用
                 
                 Spacer()
@@ -440,8 +513,11 @@ public struct SFSymbolPicker: View {
                 } label: {
                     Label("Done", systemImage: "checkmark")
                 }
+                #if !os(tvOS)
                 .keyboardShortcut(.defaultAction)
+                #endif
                 .controlSize(.large)
+
                 .adaptiveLiquidGlassButtonStyle() // グラスエフェクト適用
             }
             .padding()
@@ -456,34 +532,54 @@ public struct SFSymbolPicker: View {
     }
     #endif
     
-    @ViewBuilder
-    private var categoryMenuItems: some View {
-        Picker("All Symbols", selection: $selectedCategoryID) {
-            Label("All", systemImage: "square.grid.2x2").tag("all")
-        }
-        .pickerStyle(.inline)
-        .labelStyle(.titleAndIcon)
-        
-        Picker("System Categories", selection: $selectedCategoryID) {
-            ForEach(service.systemCategories) { cat in
-                if cat.id != "all" {
-                    let iconName = service.effectiveName(for: cat.icon) ?? "square.grid.2x2"
-                    Label(cat.label, systemImage: iconName).tag(cat.id)
-                }
+    #if os(tvOS)
+    private var tvOSControlBar: some View {
+        VStack(spacing: 30) {
+            sheetCategoryPicker
+            
+            if showSearchBar && searchBarPosition == .top {
+                searchBox
             }
         }
-        .pickerStyle(.inline)
-        .labelStyle(.titleAndIcon)
+        .padding(.vertical, 40)
+        .background(.regularMaterial)
+    }
+    #endif
+    
+    @ViewBuilder
+    private var categoryMenuItems: some View {
+        Section {
+            Picker("All Symbols", selection: $selectedCategoryID) {
+                Label("All", systemImage: "square.grid.2x2").tag("all")
+            }
+            .pickerStyle(.inline)
+            .labelStyle(.titleAndIcon)
+        }
         
-        if !customCategories.isEmpty {
-            Picker("Custom Categories", selection: $selectedCategoryID) {
-                ForEach(customCategories) { cat in
-                    let iconName = service.effectiveName(for: cat.icon) ?? "square.grid.2x2"
-                    Label(cat.label, systemImage: iconName).tag(cat.id.uuidString)
+        Section {
+            Picker("System Categories", selection: $selectedCategoryID) {
+                ForEach(service.systemCategories) { cat in
+                    if cat.id != "all" {
+                        let iconName = service.effectiveName(for: cat.icon) ?? "square.grid.2x2"
+                        Label(cat.label, systemImage: iconName).tag(cat.id)
+                    }
                 }
             }
             .pickerStyle(.inline)
             .labelStyle(.titleAndIcon)
+        }
+        
+        if !customCategories.isEmpty {
+            Section {
+                Picker("Custom Categories", selection: $selectedCategoryID) {
+                    ForEach(customCategories) { cat in
+                        let iconName = service.effectiveName(for: cat.icon) ?? "square.grid.2x2"
+                        Label(cat.label, systemImage: iconName).tag(cat.id.uuidString)
+                    }
+                }
+                .pickerStyle(.inline)
+                .labelStyle(.titleAndIcon)
+            }
         }
     }
     private var doneButton: some View {
@@ -505,12 +601,37 @@ public struct SFSymbolPicker: View {
 
     
     private var searchBox: some View {
+        #if os(tvOS)
+        // tvOS 専用：極限までシンプルにした検索・カテゴリーバー
+        HStack(spacing: 20) {
+            // 検索入力エリア (虫眼鏡 + テキストフィールド)
+            HStack(spacing: 12) {
+                Image(systemName: "magnifyingglass")
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
+                
+                TextField(prompt, text: $searchText)
+                    .font(.headline)
+                    .textFieldStyle(.plain)
+            }
+            .padding(.horizontal, 24)
+            .frame(maxWidth: .infinity)
+            .frame(height: 80)
+            
+            // カテゴリーピッカー
+            if showCategoryPicker {
+                sheetCategoryPicker
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                    .frame(height: 80)
+            }
+        }
+        #else
+        // iOS/macOS/visionOS 向け Island 構成
         HStack(spacing: 12) {
-            // Island 1: Search Input (Capsule)
             if showSearchBar {
                 ZStack {
                     #if os(visionOS)
-                    // visionOS では常に標準の素材を使用
                     Color.clear
                         .background(.regularMaterial, in: Capsule())
                     #else
@@ -550,30 +671,24 @@ public struct SFSymbolPicker: View {
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, controlHeight == 32 ? 6 : 10)
-                    }
-                    .frame(height: controlHeight)
-                    .overlay(
+                }
+                .frame(height: controlHeight)
+                .overlay(
                     Capsule()
                         .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                    )
-                    .layoutPriority(1)
-                    }
-
-                    // Island 2: Category Picker (Circle/Capsule Button)
-                    // シート時はツールバーにピッカーがあるため、ポップオーバー時のみ表示
-                    if showCategoryPicker && showAs == .popover {
-                    popoverCategoryPicker
-                    .buttonStyle(.plain)
-                    .frame(minWidth: showSearchBar ? controlHeight : 0)
-                    .layoutPriority(showSearchBar ? 0 : 1)
-                    }
-
+                )
             }
-            .frame(maxWidth: .infinity) // 全体で中央寄せを可能にする
-            .padding(.horizontal, 16)
-            .padding(.top, 16)
-            .padding(.bottom, (showAs == .sheet && searchBarPosition == .bottom && osIsMacOS) ? 0 : 16)
-            .fixedSize(horizontal: false, vertical: true)
+
+            if showCategoryPicker && showAs == .popover {
+                popoverCategoryPicker
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 16)
+        .padding(.top, 16)
+        .padding(.bottom, (showAs == .sheet && searchBarPosition == .bottom && osIsMacOS) ? 0 : 16)
+        .fixedSize(horizontal: false, vertical: true)
+        #endif
     }
     
     /// Helper to identify macOS at runtime within views
@@ -590,7 +705,7 @@ public struct SFSymbolPicker: View {
 
 private extension View {
     @ViewBuilder
-    func adaptiveSafeAreaBar<Content: View>(edge: VerticalEdge, @ViewBuilder content: () -> Content) -> some View {
+    func adaptiveSafeAreaBar<Content: View>(edge: VerticalEdge, @ViewBuilder content: @escaping () -> Content) -> some View {
         #if canImport(SwiftUI)
         if #available(iOS 26.0, macOS 26.0, tvOS 26.0, watchOS 26.0, visionOS 26.0, *) {
             self.safeAreaBar(edge: edge, content: content)
