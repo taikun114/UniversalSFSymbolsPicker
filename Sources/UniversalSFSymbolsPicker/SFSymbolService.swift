@@ -194,18 +194,24 @@ public final class SFSymbolService: Sendable {
             let restrictedToExclude = restrictedSet.subtracting(explicitlyIncludedByCustom)
             baseSymbols.subtract(restrictedToExclude)
         }
-        // 2文字だがロケールではなく意味のある単語（ホワイトリスト）
-        let nonLocaleTwoLetterWords: Set<String> = [
-            "up", "on", "go", "tv", "pc", "3d", "ex", "of", "to", "in", "by", "at", "as",
-            "ac", "dc", "lc", "or", "no", "re", "pi"
+        // 除外対象とするロケールコードおよびバリアントの定義
+        let symbolVariants: Set<String> = [
+            // 主要な言語コード (2文字)
+            "ar", "hi", "he", "zh", "th", "ja", "ko", "el", "ru", "my", "km",
+            // インド系諸言語 (2文字)
+            "bn", "gu", "kn", "ml", "mr", "or", "pa", "si", "ta", "te",
+            // 3文字の言語コード (Santali, Manipuri等)
+            "sat", "mni",
+            // 右書きバリアント
+            "rtl"
         ]
         
         return baseSymbols
             .filter { name in
                 let components = name.lowercased().components(separatedBy: ".")
                 return !components.contains { component in
-                    // 2文字の要素があり、かつそれがホワイトリストに含まれていない場合はロケールと判断
-                    component.count == 2 && !nonLocaleTwoLetterWords.contains(component)
+                    // 要素が symbolVariants に含まれている場合は、特定のロケール用バリアントと判断して除外
+                    symbolVariants.contains(component)
                 }
             }
             .filter { isAvailable($0, limitVersion: limitVersion) }
