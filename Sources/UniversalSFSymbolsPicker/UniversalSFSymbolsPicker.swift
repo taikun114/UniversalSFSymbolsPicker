@@ -497,15 +497,18 @@ public struct SFSymbolPicker: View {
                 .keyboardShortcut(.cancelAction)
                 #endif
                 .controlSize(.large)
-
-                .adaptiveLiquidGlassButtonStyle() // グラスエフェクト適用
+                #if os(macOS)
+                .adaptiveGlassButtonStyle()
+                #endif
                 
                 Spacer()
                 
                 if showCategoryPicker {
                     sheetCategoryPicker
                         .controlSize(.large)
-                        .adaptiveLiquidGlassButtonStyle() // グラスエフェクト適用
+                        #if os(macOS)
+                        .adaptiveGlassEffectStyle(.interactive)
+                        #endif
                 }
                 
                 Button {
@@ -517,8 +520,9 @@ public struct SFSymbolPicker: View {
                 .keyboardShortcut(.defaultAction)
                 #endif
                 .controlSize(.large)
-
-                .adaptiveLiquidGlassButtonStyle() // グラスエフェクト適用
+                #if os(macOS)
+                .adaptiveGlassProminentButtonStyle()
+                #endif
             }
             .padding()
         }
@@ -635,19 +639,8 @@ public struct SFSymbolPicker: View {
                     Color.clear
                         .background(.regularMaterial, in: Capsule())
                     #else
-                    if #available(iOS 26.0, macOS 26.0, tvOS 26.0, watchOS 26.0, *) {
-                        Color.clear
-                            .adaptiveLiquidGlass(in: Capsule())
-                    } else {
-                        Group {
-                            #if os(macOS)
-                            VisualEffectView(material: .headerView, blendingMode: .withinWindow)
-                            #else
-                            VisualEffectView(material: .systemThinMaterial)
-                            #endif
-                        }
-                        .clipShape(Capsule())
-                    }
+                    Color.clear
+                        .adaptiveGlassEffectStyle(.regular, in: Capsule())
                     #endif
                     
                     HStack(spacing: 8) {
@@ -703,6 +696,13 @@ public struct SFSymbolPicker: View {
 
 // MARK: - Extension for Future APIs
 
+public enum AdaptiveGlassStyle: Sendable {
+    case regular
+    case interactive
+    case clear
+    case clearInteractive
+}
+
 private extension View {
     @ViewBuilder
     func adaptiveSafeAreaBar<Content: View>(edge: VerticalEdge, @ViewBuilder content: @escaping () -> Content) -> some View {
@@ -731,10 +731,67 @@ private extension View {
     }
     
     @ViewBuilder
-    func adaptiveLiquidGlassButtonStyle() -> some View {
-        #if os(macOS)
-        if #available(macOS 26.0, *) {
-            self.glassEffect(.regular.interactive())
+    func adaptiveGlassEffectStyle(_ style: AdaptiveGlassStyle = .regular, tint: Color? = nil) -> some View {
+        if #available(iOS 26.0, macOS 26.0, tvOS 26.0, watchOS 26.0, *) {
+            #if !os(visionOS)
+            let glass: Glass = {
+                switch style {
+                case .regular: return .regular
+                case .interactive: return .regular.interactive()
+                case .clear: return .clear
+                case .clearInteractive: return .clear.interactive()
+                }
+            }()
+            let tintedGlass = tint != nil ? glass.tint(tint!) : glass
+            self.glassEffect(tintedGlass)
+            #else
+            self
+            #endif
+        } else {
+            self
+        }
+    }
+    
+    @ViewBuilder
+    func adaptiveGlassEffectStyle<S: Shape>(_ style: AdaptiveGlassStyle = .regular, tint: Color? = nil, in shape: S) -> some View {
+        if #available(iOS 26.0, macOS 26.0, tvOS 26.0, watchOS 26.0, *) {
+            #if !os(visionOS)
+            let glass: Glass = {
+                switch style {
+                case .regular: return .regular
+                case .interactive: return .regular.interactive()
+                case .clear: return .clear
+                case .clearInteractive: return .clear.interactive()
+                }
+            }()
+            let tintedGlass = tint != nil ? glass.tint(tint!) : glass
+            self.glassEffect(tintedGlass, in: shape)
+            #else
+            self.background(.ultraThinMaterial, in: shape)
+            #endif
+        } else {
+            self.background(.ultraThinMaterial, in: shape)
+        }
+    }
+    
+    @ViewBuilder
+    func adaptiveGlassButtonStyle() -> some View {
+        #if !os(visionOS)
+        if #available(iOS 26.0, macOS 26.0, tvOS 26.0, watchOS 26.0, *) {
+            self.buttonStyle(.glass)
+        } else {
+            self
+        }
+        #else
+        self
+        #endif
+    }
+    
+    @ViewBuilder
+    func adaptiveGlassProminentButtonStyle() -> some View {
+        #if !os(visionOS)
+        if #available(iOS 26.0, macOS 26.0, tvOS 26.0, watchOS 26.0, *) {
+            self.buttonStyle(.glassProminent)
         } else {
             self
         }

@@ -217,8 +217,6 @@ struct ContentView: View {
                 .conditionalSearchable(show: showSearchBar && searchBarStyle == .searchable, text: $searchTextSheet)
                 #if os(macOS)
                 .frame(width: 600, height: 500)
-                #elseif os(visionOS)
-                .frame(width: 600, height: 800)
                 #endif
             }
             .popover(isPresented: $isPopoverPresented, attachmentAnchor: .rect(.bounds), arrowEdge: .top) {
