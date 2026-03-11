@@ -192,6 +192,8 @@ public final class SFSymbolService: Sendable {
         if excludeRestricted {
             let explicitlyIncludedByCustom = Set(customCategories.flatMap { $0.symbols })
             let restrictedSet = Set(metadata?.restrictedSymbols.keys.map { String($0) } ?? [])
+            
+            // Allow restricted symbols if they are explicitly included in ANY provided custom category.
             let restrictedToExclude = restrictedSet.subtracting(explicitlyIncludedByCustom)
             baseSymbols.subtract(restrictedToExclude)
         }

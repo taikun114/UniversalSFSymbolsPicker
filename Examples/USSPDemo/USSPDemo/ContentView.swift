@@ -35,6 +35,7 @@ struct ContentView: View {
     @State private var isPopoverPresented: Bool
     @State private var showIconName = true
     @State private var showCategoryPicker = true
+    @State private var showCategorySectionLabel = true
     @State private var categoryLabelVisibility: SFSymbolPickerCategoryLabelVisibility = .default
     @State private var categoryLabelStyle: SFSymbolPickerCategoryLabelStyle = .both
     
@@ -48,6 +49,36 @@ struct ContentView: View {
     @State private var useSecondaryColor = false
     @State private var useTertiaryColor = false
     @State private var excludeRestricted = false
+    
+    // Custom Categories for Demo
+    private let demoCustomCategories = [
+        CustomCategory(
+            label: String(localized: "Demo Category 1 (Random)"),
+            icon: "star",
+            symbols: [
+                "square.and.arrow.up", "pencil", "eraser", "trash", "paperplane",
+                "tray.circle", "shareplay", "aqi.medium", "highlighter.badge.ellipsis",
+                "paperplane.circle.fill", "widget.extralarge.badge.plus", "bolt.square",
+                "camera.fill", "plus.viewfinder", "sunset", "moonphase.waning.gibbous"
+            ]
+        ),
+        CustomCategory(
+            label: String(localized: "Demo Category 2"),
+            icon: "desktopcomputer.and.macbook",
+            symbols: [
+                "desktopcomputer", "macpro.gen1", "macpro.gen2", "macpro.gen3", "macpro.gen3.server",
+                "macbook.gen1", "macbook.gen2", "macbook", "macbook.and.iphone", "macbook.and.ipad",
+                "macbook.and.applewatch", "macbook.and.ipod", "macmini", "macmini.gen2", "macmini.gen3",
+                "macstudio", "macbook.sizes", "macbook.gen1.sizes", "macbook.gen2.sizes", "macbook.and.vision.pro"
+            ]
+        ),
+        CustomCategory(
+            label: String(localized: "Demo Category 3 (Maps + Transportation + star.fill)"),
+            icon: "map",
+            symbols: ["star.fill"],
+            systemCategories: ["maps", "transportation"]
+        )
+    ]
     
     // プラットフォームごとのレイアウト調整用プロパティ
     private var selectedIconSpacing: CGFloat {
@@ -106,9 +137,11 @@ struct ContentView: View {
                     controlBarPosition: controlBarPosition,
                     showSearchBar: showSearchBar && searchBarStyle == .custom,
                     showCategoryPicker: showCategoryPicker,
+                    showCategorySectionLabel: showCategorySectionLabel,
                     categoryLabelVisibility: categoryLabelVisibility,
                     categoryLabelStyle: categoryLabelStyle,
                     showIconName: showIconName,
+                    customCategories: demoCustomCategories,
                     excludeRestricted: excludeRestricted,
                     renderingMode: renderingModeOption.mode,
                     primaryColor: usePrimaryColor ? primaryColor : .primary,
@@ -198,9 +231,11 @@ struct ContentView: View {
                         controlBarPosition: controlBarPosition,
                         showSearchBar: showSearchBar && searchBarStyle == .custom,
                         showCategoryPicker: showCategoryPicker,
+                        showCategorySectionLabel: showCategorySectionLabel,
                         categoryLabelVisibility: categoryLabelVisibility,
                         categoryLabelStyle: categoryLabelStyle,
                         showIconName: showIconName,
+                        customCategories: demoCustomCategories,
                         excludeRestricted: excludeRestricted,
                         renderingMode: renderingModeOption.mode,
                         primaryColor: usePrimaryColor ? primaryColor : .primary,
@@ -223,9 +258,11 @@ struct ContentView: View {
                     controlBarPosition: controlBarPosition,
                     showSearchBar: showSearchBar && searchBarStyle == .custom,
                     showCategoryPicker: showCategoryPicker,
+                    showCategorySectionLabel: showCategorySectionLabel,
                     categoryLabelVisibility: categoryLabelVisibility,
                     categoryLabelStyle: categoryLabelStyle,
                     showIconName: showIconName,
+                    customCategories: demoCustomCategories,
                     excludeRestricted: excludeRestricted,
                     renderingMode: renderingModeOption.mode,
                     primaryColor: usePrimaryColor ? primaryColor : .primary,
@@ -354,6 +391,18 @@ struct ContentView: View {
             #endif
             
             if showCategoryPicker {
+                Toggle(isOn: $showCategorySectionLabel) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Show Category Section Label")
+                        Text("Toggle whether to display section headers in the category menu (iOS 18.0+, macOS 15.0+, tvOS 18.0+, watchOS 11.0+, visionOS 2.0+).")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                #if os(tvOS)
+                .padding(.vertical, 8)
+                #endif
+                
                 #if os(tvOS)
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
