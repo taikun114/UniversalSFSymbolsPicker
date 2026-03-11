@@ -489,8 +489,9 @@ public struct SFSymbolPicker: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 8)
+        .padding(8)
         .contentShape(Rectangle())
+        .help(name)
         
         #if os(tvOS)
         return Button {
