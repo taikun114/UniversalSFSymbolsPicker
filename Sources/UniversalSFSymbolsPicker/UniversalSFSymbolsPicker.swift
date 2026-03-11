@@ -102,8 +102,9 @@ public struct SFSymbolPicker: View {
         // Execute search
         let searched = service.search(query: searchText, in: rawSymbols)
         
-        // Pre-resolve effective names to reduce computation during scrolling
-        allFilteredSymbols = searched.map { service.effectiveName(for: $0) ?? $0 }
+        // Pre-resolve effective names to reduce computation during scrolling.
+        // Also respects sfSymbolsVersion for name resolution.
+        allFilteredSymbols = searched.compactMap { service.effectiveName(for: $0, limitVersion: sfSymbolsVersion) }
         
         // Set the first page
         displayedSymbols = Array(allFilteredSymbols.prefix(pageSize))
@@ -141,10 +142,13 @@ public struct SFSymbolPicker: View {
         if selectedCategoryID == "all" {
             return "square.grid.2x2"
         }
+        let rawIcon: String
         if let custom = customCategories.first(where: { $0.id.uuidString == selectedCategoryID }) {
-            return custom.icon
+            rawIcon = custom.icon
+        } else {
+            rawIcon = service.systemCategories.first(where: { $0.id == selectedCategoryID })?.icon ?? "square.grid.2x2"
         }
-        return service.systemCategories.first(where: { $0.id == selectedCategoryID })?.icon ?? "square.grid.2x2"
+        return service.effectiveName(for: rawIcon, limitVersion: sfSymbolsVersion) ?? rawIcon
     }
     
     /// Returns the label for the currently selected category
@@ -717,7 +721,7 @@ public struct SFSymbolPicker: View {
         Picker(systemCategoriesTitle, selection: $selectedCategoryID) {
             ForEach(service.systemCategories) { cat in
                 if cat.id != "all" {
-                    let iconName = service.effectiveName(for: cat.icon) ?? "square.grid.2x2"
+                    let iconName = service.effectiveName(for: cat.icon, limitVersion: sfSymbolsVersion) ?? "square.grid.2x2"
                     Label(cat.label, systemImage: iconName).tag(cat.id)
                 }
             }
@@ -729,7 +733,7 @@ public struct SFSymbolPicker: View {
         if !customCategories.isEmpty {
             Picker(customCategoriesTitle, selection: $selectedCategoryID) {
                 ForEach(customCategories) { cat in
-                    let iconName = service.effectiveName(for: cat.icon) ?? "square.grid.2x2"
+                    let iconName = service.effectiveName(for: cat.icon, limitVersion: sfSymbolsVersion) ?? "square.grid.2x2"
                     Label(cat.label, systemImage: iconName).tag(cat.id.uuidString)
                 }
             }

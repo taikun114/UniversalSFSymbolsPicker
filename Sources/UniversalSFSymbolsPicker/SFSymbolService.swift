@@ -89,14 +89,15 @@ public final class SFSymbolService: Sendable {
     
     // MARK: - Dynamic Naming
     
-    public func effectiveName(for name: String) -> String? {
+    public func effectiveName(for name: String, limitVersion: Double? = nil) -> String? {
         let cluster = findSymbolCluster(startingWith: name)
         let sortedNames = cluster.sorted { a, b in
             let yearA = symbolToYear[a] ?? "0"
             let yearB = symbolToYear[b] ?? "0"
             return yearA.compare(yearB, options: .numeric) == .orderedDescending
         }
-        return sortedNames.first { isAvailable($0) }
+        // Find the latest name that is individually available on the current OS
+        return sortedNames.first { checkIndividualAvailability($0, limitVersion: limitVersion) }
     }
     
     private func findSymbolCluster(startingWith name: String) -> Set<String> {
