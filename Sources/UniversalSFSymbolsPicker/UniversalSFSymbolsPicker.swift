@@ -102,9 +102,10 @@ public struct SFSymbolPicker: View {
         // Execute search
         let searched = service.search(query: searchText, in: rawSymbols)
         
-        // Pre-resolve effective names to reduce computation during scrolling.
-        // Also respects sfSymbolsVersion for name resolution.
-        allFilteredSymbols = searched.compactMap { service.effectiveName(for: $0, limitVersion: sfSymbolsVersion) }
+        // Resolve effective names to ensure version compatibility.
+        // This processes all symbols (system-defined, custom, and search results) through the version filter.
+        // It selects the most appropriate alias for the current OS, or falls back to a placeholder.
+        allFilteredSymbols = searched.map { service.effectiveName(for: $0, limitVersion: sfSymbolsVersion) ?? "questionmark.square.dashed" }
         
         // Set the first page
         displayedSymbols = Array(allFilteredSymbols.prefix(pageSize))

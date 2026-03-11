@@ -54,12 +54,13 @@ struct ContentView: View {
     private let demoCustomCategories = [
         CustomCategory(
             label: String(localized: "Demo Category 1 (Random)"),
-            icon: "star",
+            icon: "test.for.non.existent.icon",
             symbols: [
                 "square.and.arrow.up", "pencil", "eraser", "trash", "paperplane",
                 "tray.circle", "shareplay", "aqi.medium", "highlighter.badge.ellipsis",
                 "paperplane.circle.fill", "widget.extralarge.badge.plus", "bolt.square",
-                "camera.fill", "plus.viewfinder", "sunset", "moonphase.waning.gibbous"
+                "camera.fill", "plus.viewfinder", "sunset", "moonphase.waning.gibbous",
+                "test.for.non.existent.icon", "apple.classical.pages", "a"
             ]
         ),
         CustomCategory(

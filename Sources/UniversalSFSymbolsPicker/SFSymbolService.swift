@@ -96,8 +96,9 @@ public final class SFSymbolService: Sendable {
             let yearB = symbolToYear[b] ?? "0"
             return yearA.compare(yearB, options: .numeric) == .orderedDescending
         }
-        // Find the latest name that is individually available on the current OS
-        return sortedNames.first { checkIndividualAvailability($0, limitVersion: limitVersion) }
+        // Find the latest name that is individually available on the current OS.
+        // If no name is available, return a fallback icon.
+        return sortedNames.first { checkIndividualAvailability($0, limitVersion: limitVersion) } ?? "questionmark.square.dashed"
     }
     
     private func findSymbolCluster(startingWith name: String) -> Set<String> {
