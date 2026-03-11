@@ -6,10 +6,24 @@ public enum SFSymbolPickerDisplayMode: Sendable {
     case popover
 }
 
-/// The position of the search bar in popover mode.
-public enum SFSymbolPickerSearchBarPosition: Sendable {
+/// The position of the control bar (search bar and category picker).
+public enum SFSymbolPickerControlBarPosition: Sendable {
     case top
     case bottom
+}
+
+/// The mode for displaying the category picker label.
+public enum SFSymbolPickerCategoryLabelVisibility: Sendable {
+    case `default`
+    case visible
+    case hidden
+}
+
+/// The style for the category picker label text.
+public enum SFSymbolPickerCategoryLabelStyle: Sendable {
+    case both      // "Category: Name"
+    case titleOnly // "Category"
+    case nameOnly  // "Name"
 }
 
 public struct SFSymbolPicker: View {
@@ -20,11 +34,13 @@ public struct SFSymbolPicker: View {
     @Binding var isPresented: Bool
     @Binding var selection: String?
     let showAs: SFSymbolPickerDisplayMode
-    let searchBarPosition: SFSymbolPickerSearchBarPosition
+    let controlBarPosition: SFSymbolPickerControlBarPosition
     let showSearchBar: Bool
     
     let prompt: String
     let showCategoryPicker: Bool
+    let categoryLabelVisibility: SFSymbolPickerCategoryLabelVisibility
+    let categoryLabelStyle: SFSymbolPickerCategoryLabelStyle
     let showIconName: Bool
     let defaultCategory: String
     let includedCategories: [String]?
@@ -40,6 +56,15 @@ public struct SFSymbolPicker: View {
     let tertiaryColor: Color?
     @Binding var variableValue: Double?
     @Binding var searchText: String
+    
+    // Computed Properties for Layout
+    private var effectiveControlBarPosition: SFSymbolPickerControlBarPosition {
+        #if os(tvOS)
+        return .top
+        #else
+        return controlBarPosition
+        #endif
+    }
     
     // Internal State
     @State private var selectedCategoryID: String
@@ -100,14 +125,65 @@ public struct SFSymbolPicker: View {
         return service.systemCategories.first(where: { $0.id == selectedCategoryID })?.label ?? "All"
     }
     
+    /// Returns the text to display in the category picker label based on current style
+    private var categoryDisplayText: String {
+        switch categoryLabelStyle {
+        case .both:
+            return String(localized: "Category: \(currentCategoryLabel)", bundle: .module)
+        case .titleOnly:
+            return String(localized: "Category", bundle: .module)
+        case .nameOnly:
+            return currentCategoryLabel
+        }
+    }
+    
+    /// Determines whether to show the category label based on settings and context
+    private var shouldShowCategoryLabel: Bool {
+        switch categoryLabelVisibility {
+        case .visible:
+            return true
+        case .hidden:
+            return false
+        case .default:
+            #if os(macOS)
+            if showAs == .sheet {
+                return true
+            } else {
+                // Popover: Show only if search bar is hidden
+                return !showSearchBar
+            }
+            #elseif os(iOS)
+            if showAs == .sheet {
+                // Sheet: Show only in regular layout
+                return horizontalSizeClass != .compact
+            } else {
+                // Popover: Show only if search bar is hidden
+                return !showSearchBar
+            }
+            #elseif os(visionOS)
+            if showAs == .sheet {
+                return false
+            } else {
+                // Popover: Show only if search bar is hidden
+                return !showSearchBar
+            }
+            #else
+            // tvOS, watchOS, etc.
+            return true
+            #endif
+        }
+    }
+    
     public init(
         isPresented: Binding<Bool>,
         selection: Binding<String?>,
         showAs: SFSymbolPickerDisplayMode,
-        searchBarPosition: SFSymbolPickerSearchBarPosition = .bottom,
+        controlBarPosition: SFSymbolPickerControlBarPosition = .bottom,
         showSearchBar: Bool = true, // Only effective in Popover mode
         prompt: String = "Search Icons...",
         showCategoryPicker: Bool = true,
+        categoryLabelVisibility: SFSymbolPickerCategoryLabelVisibility = .default,
+        categoryLabelStyle: SFSymbolPickerCategoryLabelStyle = .both,
         showIconName: Bool = true,
         defaultCategory: String = "all",
         includedCategories: [String]? = nil,
@@ -125,10 +201,12 @@ public struct SFSymbolPicker: View {
         self._isPresented = isPresented
         self._selection = selection
         self.showAs = showAs
-        self.searchBarPosition = searchBarPosition
+        self.controlBarPosition = controlBarPosition
         self.showSearchBar = showSearchBar
         self.prompt = prompt
         self.showCategoryPicker = showCategoryPicker
+        self.categoryLabelVisibility = categoryLabelVisibility
+        self.categoryLabelStyle = categoryLabelStyle
         self.showIconName = showIconName
         self.defaultCategory = defaultCategory
         self.includedCategories = includedCategories
@@ -168,7 +246,7 @@ public struct SFSymbolPicker: View {
             symbolGrid
                 .adaptiveSoftEdge()
                 .adaptiveSafeAreaBar(edge: .top) {
-                    if showSearchBar && searchBarPosition == .top {
+                    if (showSearchBar || showCategoryPicker) && effectiveControlBarPosition == .top {
                         searchBox
                     }
                 }
@@ -176,7 +254,7 @@ public struct SFSymbolPicker: View {
                     #if os(macOS)
                     macOSBottomBar
                     #else
-                    if showSearchBar && searchBarPosition == .bottom {
+                    if (showSearchBar || showCategoryPicker) && effectiveControlBarPosition == .bottom {
                         searchBox
                     }
                     #endif
@@ -226,7 +304,7 @@ public struct SFSymbolPicker: View {
         VStack(spacing: 0) {
             symbolGrid
                 #if !os(tvOS)
-                .adaptiveSafeAreaBar(edge: searchBarPosition == .top ? .top : .bottom) {
+                .adaptiveSafeAreaBar(edge: effectiveControlBarPosition == .top ? .top : .bottom) {
                     if showSearchBar || showCategoryPicker {
                         searchBox
                     }
@@ -305,8 +383,8 @@ public struct SFSymbolPicker: View {
                 #if os(tvOS)
                 .padding(.bottom, 200) // 下側のマージンをしっかり確保
                 #else
-                .padding(.top, (showSearchBar && searchBarPosition == .top) ? 0 : spacing)
-                .padding(.bottom, (showAs == .sheet && searchBarPosition == .bottom) || showAs == .sheet ? 0 : spacing)
+                .padding(.top, ((showSearchBar || showCategoryPicker) && effectiveControlBarPosition == .top) ? 0 : spacing)
+                .padding(.bottom, (showAs == .sheet && effectiveControlBarPosition == .bottom) || showAs == .sheet ? 0 : spacing)
                 #endif
             }
             .onChange(of: selectedCategoryID) { _, _ in
@@ -392,13 +470,10 @@ public struct SFSymbolPicker: View {
         } label: {
             HStack(spacing: 8) {
                 Image(systemName: currentCategoryIcon)
-                #if !os(tvOS)
-                if horizontalSizeClass != .compact {
-                    Text("Category: \(currentCategoryLabel)")
+                if shouldShowCategoryLabel {
+                    Text(categoryDisplayText)
+                        .lineLimit(1)
                 }
-                #else
-                Text("Category: \(currentCategoryLabel)")
-                #endif
             }
         }
     }
@@ -411,7 +486,7 @@ public struct SFSymbolPicker: View {
                 #if os(visionOS)
                 // visionOS では常に標準の素材を使用
                 Group {
-                    if showSearchBar {
+                    if !shouldShowCategoryLabel {
                         // アイコンのみ
                         Image(systemName: currentCategoryIcon)
                             .frame(width: controlHeight, height: controlHeight)
@@ -419,7 +494,8 @@ public struct SFSymbolPicker: View {
                         // 横長ラベル
                         HStack(spacing: 8) {
                             Image(systemName: currentCategoryIcon)
-                            Text("Category: \(currentCategoryLabel)")
+                            Text(categoryDisplayText)
+                                .lineLimit(1)
                         }
                         .padding(.horizontal, controlHeight * 0.4)
                         .frame(height: controlHeight)
@@ -430,13 +506,14 @@ public struct SFSymbolPicker: View {
                 #else
                 if #available(iOS 26.0, macOS 26.0, tvOS 26.0, watchOS 26.0, *) {
                     Group {
-                        if showSearchBar {
+                        if !shouldShowCategoryLabel {
                             Image(systemName: currentCategoryIcon)
                                 .frame(width: controlHeight, height: controlHeight)
                         } else {
                             HStack(spacing: 8) {
                                 Image(systemName: currentCategoryIcon)
-                                Text("Category: \(currentCategoryLabel)")
+                                Text(categoryDisplayText)
+                                .lineLimit(1)
                             }
                             .padding(.horizontal, controlHeight * 0.4)
                             .frame(height: controlHeight)
@@ -447,13 +524,14 @@ public struct SFSymbolPicker: View {
                     .clipShape(Capsule())
                 } else {
                     Group {
-                        if showSearchBar {
+                        if !shouldShowCategoryLabel {
                             Image(systemName: currentCategoryIcon)
                                 .frame(width: controlHeight, height: controlHeight)
                         } else {
                             HStack(spacing: 8) {
                                 Image(systemName: currentCategoryIcon)
-                                Text("Category: \(currentCategoryLabel)")
+                                Text(categoryDisplayText)
+                                .lineLimit(1)
                             }
                             .padding(.horizontal, controlHeight * 0.4)
                             .frame(height: controlHeight)
@@ -483,7 +561,7 @@ public struct SFSymbolPicker: View {
     #if os(macOS)
     private var macOSBottomBar: some View {
         VStack(spacing: 0) {
-            if showSearchBar && searchBarPosition == .bottom {
+            if (showSearchBar || showCategoryPicker) && effectiveControlBarPosition == .bottom {
                 searchBox
             }
             
@@ -541,7 +619,7 @@ public struct SFSymbolPicker: View {
         VStack(spacing: 30) {
             sheetCategoryPicker
             
-            if showSearchBar && searchBarPosition == .top {
+            if showSearchBar {
                 searchBox
             }
         }
@@ -679,7 +757,7 @@ public struct SFSymbolPicker: View {
         .frame(maxWidth: .infinity)
         .padding(.horizontal, 16)
         .padding(.top, 16)
-        .padding(.bottom, (showAs == .sheet && searchBarPosition == .bottom && osIsMacOS) ? 0 : 16)
+        .padding(.bottom, (showAs == .sheet && effectiveControlBarPosition == .bottom && osIsMacOS) ? 0 : 16)
         .fixedSize(horizontal: false, vertical: true)
         #endif
     }
@@ -827,7 +905,7 @@ private extension View {
 
 #Preview("Sheet (Search Top)") {
     NavigationStack {
-        SFSymbolPicker(isPresented: .constant(true), selection: .constant("star.fill"), showAs: .sheet, searchBarPosition: .top, showSearchBar: true, showIconName: true, searchText: .constant(""))
+        SFSymbolPicker(isPresented: .constant(true), selection: .constant("star.fill"), showAs: .sheet, controlBarPosition: .top, showSearchBar: true, showIconName: true, searchText: .constant(""))
     }
     #if os(macOS)
     .frame(width: 600, height: 500)
@@ -836,7 +914,7 @@ private extension View {
 
 #Preview("Sheet (Search Bottom)") {
     NavigationStack {
-        SFSymbolPicker(isPresented: .constant(true), selection: .constant("star.fill"), showAs: .sheet, searchBarPosition: .bottom, showSearchBar: true, showIconName: true, searchText: .constant(""))
+        SFSymbolPicker(isPresented: .constant(true), selection: .constant("star.fill"), showAs: .sheet, controlBarPosition: .bottom, showSearchBar: true, showIconName: true, searchText: .constant(""))
     }
     #if os(macOS)
     .frame(width: 600, height: 500)
@@ -844,14 +922,14 @@ private extension View {
 }
 
 #Preview("Popover Mode (Bottom)") {
-    SFSymbolPicker(isPresented: .constant(true), selection: .constant("heart.fill"), showAs: .popover, searchBarPosition: .bottom, showIconName: true, searchText: .constant(""))
+    SFSymbolPicker(isPresented: .constant(true), selection: .constant("heart.fill"), showAs: .popover, controlBarPosition: .bottom, showIconName: true, searchText: .constant(""))
     #if os(macOS)
     .frame(width: 400, height: 500)
     #endif
 }
 
 #Preview("Popover Mode (Top)") {
-    SFSymbolPicker(isPresented: .constant(true), selection: .constant("gearshape.fill"), showAs: .popover, searchBarPosition: .top, showIconName: true, searchText: .constant(""))
+    SFSymbolPicker(isPresented: .constant(true), selection: .constant("gearshape.fill"), showAs: .popover, controlBarPosition: .top, showIconName: true, searchText: .constant(""))
     #if os(macOS)
     .frame(width: 400, height: 500)
     #endif

@@ -25,7 +25,7 @@ enum SearchBarStyle: String, CaseIterable, Identifiable {
 struct ContentView: View {
     @State private var selectedIcon: String? = "star.fill"
     @State private var pickerMode: SFSymbolPickerDisplayMode = .sheet
-    @State private var searchBarPosition: SFSymbolPickerSearchBarPosition = .bottom
+    @State private var controlBarPosition: SFSymbolPickerControlBarPosition = .bottom
     @State private var showSearchBar = true
     @State private var searchBarStyle: SearchBarStyle = .searchable
     @State private var searchTextSheet = ""
@@ -35,6 +35,8 @@ struct ContentView: View {
     @State private var isPopoverPresented: Bool
     @State private var showIconName = true
     @State private var showCategoryPicker = true
+    @State private var categoryLabelVisibility: SFSymbolPickerCategoryLabelVisibility = .default
+    @State private var categoryLabelStyle: SFSymbolPickerCategoryLabelStyle = .both
     
     // デモ用の設定
     @State private var variableValue: Double? = 1.0
@@ -94,9 +96,11 @@ struct ContentView: View {
                         isPresented: .constant(true),
                         selection: $selectedIcon,
                         showAs: .sheet,
-                        searchBarPosition: searchBarPosition,
+                        controlBarPosition: controlBarPosition,
                         showSearchBar: showSearchBar && searchBarStyle == .custom,
                         showCategoryPicker: showCategoryPicker,
+                        categoryLabelVisibility: categoryLabelVisibility,
+                        categoryLabelStyle: categoryLabelStyle,
                         showIconName: showIconName,
                         excludeRestricted: excludeRestricted,
                         renderingMode: renderingModeOption.mode,
@@ -201,9 +205,11 @@ struct ContentView: View {
                         isPresented: $isSheetPresented,
                         selection: $selectedIcon,
                         showAs: .sheet,
-                        searchBarPosition: searchBarPosition,
+                        controlBarPosition: controlBarPosition,
                         showSearchBar: showSearchBar && searchBarStyle == .custom,
                         showCategoryPicker: showCategoryPicker,
+                        categoryLabelVisibility: categoryLabelVisibility,
+                        categoryLabelStyle: categoryLabelStyle,
                         showIconName: showIconName,
                         excludeRestricted: excludeRestricted,
                         renderingMode: renderingModeOption.mode,
@@ -224,9 +230,11 @@ struct ContentView: View {
                     isPresented: $isPopoverPresented,
                     selection: $selectedIcon,
                     showAs: .popover,
-                    searchBarPosition: searchBarPosition,
+                    controlBarPosition: controlBarPosition,
                     showSearchBar: showSearchBar && searchBarStyle == .custom,
                     showCategoryPicker: showCategoryPicker,
+                    categoryLabelVisibility: categoryLabelVisibility,
+                    categoryLabelStyle: categoryLabelStyle,
                     showIconName: showIconName,
                     excludeRestricted: excludeRestricted,
                     renderingMode: renderingModeOption.mode,
@@ -244,26 +252,6 @@ struct ContentView: View {
         
         Section {
             #if !os(tvOS)
-            #if os(macOS)
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Display Mode")
-                    Text("Select how the symbol picker is presented.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                Spacer()
-                Picker(selection: $pickerMode) {
-                    Text("Sheet").tag(SFSymbolPickerDisplayMode.sheet)
-                    Text("Popover").tag(SFSymbolPickerDisplayMode.popover)
-                } label: {
-                    Text("Display Mode")
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-                .fixedSize()
-            }
-            #else
             VStack(alignment: .leading, spacing: 8) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Display Mode")
@@ -279,8 +267,28 @@ struct ContentView: View {
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
+                .adaptiveButtonSizingFlexible()
             }
-            #endif
+            
+            if pickerMode == .popover || searchBarStyle == .custom {
+                VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Control Bar Position")
+                        Text("Select where the search bar and category picker are located.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Picker(selection: $controlBarPosition) {
+                        Text("Top").tag(SFSymbolPickerControlBarPosition.top)
+                        Text("Bottom").tag(SFSymbolPickerControlBarPosition.bottom)
+                    } label: {
+                        Text("Control Bar Position")
+                    }
+                    .pickerStyle(.segmented)
+                    .labelsHidden()
+                    .adaptiveButtonSizingFlexible()
+                }
+            }
             #endif
             
             Toggle("Show Search Bar", isOn: $showSearchBar)
@@ -311,35 +319,9 @@ struct ContentView: View {
                     }
                     .labelsHidden()
                     .pickerStyle(.segmented)
-                    .frame(width: 600)
+                    .frame(width: 900)
                 }
                 .padding(.vertical, 8)
-                #elseif os(macOS)
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Search Bar Style")
-                        Group {
-                            if searchBarStyle == .searchable {
-                                Text("Adds a system standard search box using the .searchable modifier.")
-                            } else {
-                                Text("Adds a custom search box provided by UniversalSFSymbolsPicker.")
-                            }
-                        }
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    }
-                    Spacer()
-                    Picker(selection: $searchBarStyle) {
-                        ForEach(SearchBarStyle.allCases) { style in
-                            Text(style.rawValue).tag(style)
-                        }
-                    } label: {
-                        Text("Search Bar Style")
-                    }
-                    .pickerStyle(.segmented)
-                    .labelsHidden()
-                    .fixedSize()
-                }
                 #else
                 VStack(alignment: .leading, spacing: 8) {
                     VStack(alignment: .leading, spacing: 4) {
@@ -364,48 +346,7 @@ struct ContentView: View {
                     }
                     .pickerStyle(.segmented)
                     .labelsHidden()
-                }
-                #endif
-                
-                #if !os(tvOS)
-                if searchBarStyle == .custom {
-                    #if os(macOS)
-                    HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Search Bar Position")
-                            Text("Select where the search bar is located.")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                        Spacer()
-                        Picker(selection: $searchBarPosition) {
-                            Text("Top").tag(SFSymbolPickerSearchBarPosition.top)
-                            Text("Bottom").tag(SFSymbolPickerSearchBarPosition.bottom)
-                        } label: {
-                            Text("Search Bar Position")
-                        }
-                        .pickerStyle(.segmented)
-                        .labelsHidden()
-                        .fixedSize()
-                    }
-                    #else
-                    VStack(alignment: .leading, spacing: 8) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Search Bar Position")
-                            Text("Select where the search bar is located.")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                        Picker(selection: $searchBarPosition) {
-                            Text("Top").tag(SFSymbolPickerSearchBarPosition.top)
-                            Text("Bottom").tag(SFSymbolPickerSearchBarPosition.bottom)
-                        } label: {
-                            Text("Search Bar Position")
-                        }
-                        .pickerStyle(.segmented)
-                        .labelsHidden()
-                    }
-                    #endif
+                    .adaptiveButtonSizingFlexible()
                 }
                 #endif
             }
@@ -421,6 +362,86 @@ struct ContentView: View {
             #if os(tvOS)
             .padding(.vertical, 8)
             #endif
+            
+            if showCategoryPicker {
+                #if os(tvOS)
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Category Label Visibility")
+                        Text("Select how the category label is displayed.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Picker("", selection: $categoryLabelVisibility) {
+                        Text("Default").tag(SFSymbolPickerCategoryLabelVisibility.default)
+                        Text("Visible").tag(SFSymbolPickerCategoryLabelVisibility.visible)
+                        Text("Hidden").tag(SFSymbolPickerCategoryLabelVisibility.hidden)
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.segmented)
+                    .frame(width: 900)
+                }
+                .padding(.vertical, 8)
+                
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Category Label Style")
+                        Text("Select the style of the category label.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Picker("", selection: $categoryLabelStyle) {
+                        Text("Both").tag(SFSymbolPickerCategoryLabelStyle.both)
+                        Text("Title Only").tag(SFSymbolPickerCategoryLabelStyle.titleOnly)
+                        Text("Name Only").tag(SFSymbolPickerCategoryLabelStyle.nameOnly)
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.segmented)
+                    .frame(width: 900)
+                }
+                .padding(.vertical, 8)
+                #else
+                VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Category Label Visibility")
+                        Text("Select how the category label is displayed.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Picker(selection: $categoryLabelVisibility) {
+                        Text("Default").tag(SFSymbolPickerCategoryLabelVisibility.default)
+                        Text("Visible").tag(SFSymbolPickerCategoryLabelVisibility.visible)
+                        Text("Hidden").tag(SFSymbolPickerCategoryLabelVisibility.hidden)
+                    } label: {
+                        Text("Category Label Visibility")
+                    }
+                    .pickerStyle(.segmented)
+                    .labelsHidden()
+                    .adaptiveButtonSizingFlexible()
+                }
+                
+                VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Category Label Style")
+                        Text("Select the style of the category label.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Picker(selection: $categoryLabelStyle) {
+                        Text("Both").tag(SFSymbolPickerCategoryLabelStyle.both)
+                        Text("Title Only").tag(SFSymbolPickerCategoryLabelStyle.titleOnly)
+                        Text("Name Only").tag(SFSymbolPickerCategoryLabelStyle.nameOnly)
+                    } label: {
+                        Text("Category Label Style")
+                    }
+                    .pickerStyle(.segmented)
+                    .labelsHidden()
+                    .adaptiveButtonSizingFlexible()
+                }
+                #endif
+            }
             
             Toggle(isOn: $showIconName) {
                 VStack(alignment: .leading, spacing: 4) {
@@ -445,6 +466,8 @@ struct ContentView: View {
             #if os(tvOS)
             .padding(.vertical, 8)
             #endif
+        } header: {
+            Text("Settings")
         }
         
         Section {
@@ -487,20 +510,6 @@ struct ContentView: View {
             #endif
             
             #if os(tvOS)
-            Picker(selection: $renderingModeOption) {
-                ForEach(RenderingModeOption.allCases) { option in
-                    Text(option.rawValue.capitalized).tag(option)
-                }
-            } label: {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Rendering Mode")
-                    Text("Select the rendering mode for the symbol.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .padding(.vertical, 8)
-            #else
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Rendering Mode")
@@ -509,6 +518,24 @@ struct ContentView: View {
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
+                Picker("", selection: $renderingModeOption) {
+                    ForEach(RenderingModeOption.allCases) { option in
+                        Text(option.rawValue.capitalized).tag(option)
+                    }
+                }
+                .labelsHidden()
+                .pickerStyle(.segmented)
+                .frame(width: 1000)
+            }
+            .padding(.vertical, 8)
+            #else
+            VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Rendering Mode")
+                    Text("Select the rendering mode for the symbol.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
                 Picker(selection: $renderingModeOption) {
                     ForEach(RenderingModeOption.allCases) { option in
                         Text(option.rawValue.capitalized).tag(option)
@@ -516,8 +543,9 @@ struct ContentView: View {
                 } label: {
                     Text("Rendering Mode")
                 }
+                .pickerStyle(.segmented)
                 .labelsHidden()
-                .pickerStyle(.menu)
+                .adaptiveButtonSizingFlexible()
             }
             #endif
             
@@ -547,6 +575,8 @@ struct ContentView: View {
                 ColorPicker("Select Tertiary Color", selection: $tertiaryColor)
                 #endif
             }
+        } header: {
+            Text("Dynamic Rendering Demo")
         }
     }
 }
@@ -567,6 +597,15 @@ private extension View {
     func conditionalSearchable(show: Bool, text: Binding<String>) -> some View {
         if show {
             self.searchable(text: text, prompt: "Search icons in sheet...")
+        } else {
+            self
+        }
+    }
+    
+    @ViewBuilder
+    func adaptiveButtonSizingFlexible() -> some View {
+        if #available(iOS 26.0, macOS 26.0, tvOS 26.0, watchOS 26.0, visionOS 26.0, *) {
+            self.buttonSizing(.flexible)
         } else {
             self
         }
