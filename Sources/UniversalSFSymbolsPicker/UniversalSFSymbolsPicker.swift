@@ -520,8 +520,7 @@ public struct SFSymbolPicker: View {
                         }
                     }
                     .foregroundStyle(.primary)
-                    .glassEffect(.regular.interactive())
-                    .clipShape(Capsule())
+                    .adaptiveGlassEffectStyle(.clearInteractive, in: Capsule())
                 } else {
                     Group {
                         if !shouldShowCategoryLabel {
@@ -585,7 +584,7 @@ public struct SFSymbolPicker: View {
                     sheetCategoryPicker
                         .controlSize(.large)
                         #if os(macOS)
-                        .adaptiveGlassEffectStyle(.interactive)
+                        .adaptiveGlassEffectStyle(.clearInteractive)
                         #endif
                 }
                 
@@ -718,7 +717,7 @@ public struct SFSymbolPicker: View {
                         .background(.regularMaterial, in: Capsule())
                     #else
                     Color.clear
-                        .adaptiveGlassEffectStyle(.regular, in: Capsule())
+                        .adaptiveGlassEffectStyle(.clear, in: Capsule())
                     #endif
                     
                     HStack(spacing: 8) {
