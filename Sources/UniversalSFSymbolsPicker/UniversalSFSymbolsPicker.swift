@@ -89,9 +89,8 @@ public struct SFSymbolPicker: View {
         }
         
         #if os(tvOS)
-        // tvOS でも dismiss() を呼び出すことで、NavigationLink 等の多様な遷移に対応させる
+        // tvOS ではバインディングを false に戻すことで、遷移元の画面（ContentView）へ確実に戻る
         isPresented = false
-        dismiss()
         #elseif os(macOS)
         isPresented = false
         dismiss()
@@ -233,6 +232,17 @@ public struct SFSymbolPicker: View {
                 popoverView
             }
         }
+        .onDisappear {
+            #if os(tvOS)
+            // tvOS では明示的な決定ボタンがないため、画面を離れる際に選択を確定
+            selection = temporarySelection
+            #else
+            // ポップオーバー等の明示的な決定ボタンがないモードのみ、離れる際に確定
+            if showAs == .popover {
+                selection = temporarySelection
+            }
+            #endif
+        }
     }
     
     // MARK: - Sheet View
@@ -318,10 +328,6 @@ public struct SFSymbolPicker: View {
         #else
         .frame(minWidth: 320, minHeight: 400)
         #endif
-        .onDisappear {
-            // ポップオーバーが閉じられた際に選択を確定
-            selection = temporarySelection
-        }
     }
 
     
@@ -388,17 +394,24 @@ public struct SFSymbolPicker: View {
                 #endif
             }
             .onChange(of: selectedCategoryID) { _, _ in
-                // カテゴリ変更時に最上部へスクロール
-                withAnimation {
-                    proxy.scrollTo("top_anchor", anchor: .top)
-                }
+                #if !os(tvOS)
+                // カテゴリ変更時に最上部へスクロール（tvOS以外）
+                proxy.scrollTo("top_anchor", anchor: .top)
+                #endif
+            }
+            .onChange(of: searchText) { _, _ in
+                #if !os(tvOS)
+                // 検索ワード変更時も最上部へスクロール（tvOS以外）
+                proxy.scrollTo("top_anchor", anchor: .top)
+                #endif
             }
         }
     }
     
     private func symbolButton(for name: String) -> some View {
         let effectiveName = service.effectiveName(for: name) ?? name
-        let isSelected = (temporarySelection == effectiveName) || (selection == effectiveName)
+        let isSelected = (selection == effectiveName)
+        let isProvisionallySelected = (temporarySelection == effectiveName)
         
         #if os(tvOS)
         let iconSize: CGFloat = 60 // tvOS では少し大きく
@@ -411,8 +424,12 @@ public struct SFSymbolPicker: View {
         let content = VStack(spacing: 8) {
             Image(systemName: effectiveName, variableValue: variableValue)
                 .font(.system(size: iconSize))
-                .symbolRenderingMode(isSelected ? .monochrome : renderingMode)
-                .foregroundStyle(isSelected ? AnyShapeStyle(Color.white) : AnyShapeStyle(primaryColor))
+                .symbolRenderingMode(renderingMode)
+                #if !os(tvOS)
+                .foregroundStyle(
+                    isProvisionallySelected ? AnyShapeStyle(Color.white) : AnyShapeStyle(primaryColor)
+                )
+                #endif
 
             if showIconName {
                 let displayLabel = effectiveName.replacingOccurrences(of: ".", with: ".\u{200B}")
@@ -421,7 +438,11 @@ public struct SFSymbolPicker: View {
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
                     .minimumScaleFactor(0.8)
-                    .foregroundStyle(isSelected ? Color.white : .secondary)
+                    #if !os(tvOS)
+                    .foregroundStyle(
+                        isProvisionallySelected ? AnyShapeStyle(Color.white) : AnyShapeStyle(Color.secondary)
+                    )
+                    #endif
                     .frame(height: nameHeight, alignment: .center)
             }
         }
@@ -431,10 +452,18 @@ public struct SFSymbolPicker: View {
         
         #if os(tvOS)
         return Button {
+            // tvOS では自動で閉じず、選択状態を更新するのみにする
             temporarySelection = effectiveName
-            close(save: true)
+            selection = effectiveName
         } label: {
             content
+                .background {
+                    if isSelected {
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(primaryColor, lineWidth: 6)
+                            .padding(-12)
+                    }
+                }
         }
         .buttonStyle(.plain) // tvOS のフォーカスエフェクトを活かす
         #else
@@ -456,9 +485,12 @@ public struct SFSymbolPicker: View {
                 lastTapName = effectiveName
             }
             .background {
-                if isSelected {
+                if isProvisionallySelected {
                     RoundedRectangle(cornerRadius: 10)
                         .fill(Color.accentColor)
+                } else if isSelected {
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color.accentColor, lineWidth: 2)
                 }
             }
         #endif

@@ -49,9 +49,6 @@ struct ContentView: View {
     @State private var useTertiaryColor = false
     @State private var excludeRestricted = false
     
-    // tvOS のナビゲーション用
-    @State private var navigationPath = NavigationPath()
-    
     // プラットフォームごとのレイアウト調整用プロパティ
     private var selectedIconSpacing: CGFloat {
         #if os(tvOS)
@@ -83,37 +80,12 @@ struct ContentView: View {
     }
     
     var body: some View {
-        NavigationStack(path: $navigationPath) {
+        NavigationStack {
             Form {
                 settingsContent
             }
             .navigationTitle("Picker Demo")
             .formStyle(.grouped)
-            #if os(tvOS)
-            .navigationDestination(for: String.self) { value in
-                if value == "symbol_picker" {
-                    SFSymbolPicker(
-                        isPresented: .constant(true),
-                        selection: $selectedIcon,
-                        showAs: .sheet,
-                        controlBarPosition: controlBarPosition,
-                        showSearchBar: showSearchBar && searchBarStyle == .custom,
-                        showCategoryPicker: showCategoryPicker,
-                        categoryLabelVisibility: categoryLabelVisibility,
-                        categoryLabelStyle: categoryLabelStyle,
-                        showIconName: showIconName,
-                        excludeRestricted: excludeRestricted,
-                        renderingMode: renderingModeOption.mode,
-                        primaryColor: usePrimaryColor ? primaryColor : .primary,
-                        secondaryColor: useSecondaryColor ? secondaryColor : nil,
-                        tertiaryColor: useTertiaryColor ? tertiaryColor : nil,
-                        variableValue: $variableValue,
-                        searchText: $searchTextSheet
-                    )
-                    .conditionalSearchable(show: showSearchBar && searchBarStyle == .searchable, text: $searchTextSheet)
-                }
-            }
-            #endif
         }
         #if os(macOS)
         .frame(width: 400, height: 500)
@@ -126,9 +98,27 @@ struct ContentView: View {
     private var settingsContent: some View {
         Section {
             #if os(tvOS)
-            // データ型 (String) に基づく最新の NavigationLink
-            // これにより、システム標準のシェブロンが自動付与され、警告も解消されます。
-            NavigationLink(value: "symbol_picker") {
+            NavigationLink {
+                SFSymbolPicker(
+                    isPresented: .constant(true),
+                    selection: $selectedIcon,
+                    showAs: .sheet,
+                    controlBarPosition: controlBarPosition,
+                    showSearchBar: showSearchBar && searchBarStyle == .custom,
+                    showCategoryPicker: showCategoryPicker,
+                    categoryLabelVisibility: categoryLabelVisibility,
+                    categoryLabelStyle: categoryLabelStyle,
+                    showIconName: showIconName,
+                    excludeRestricted: excludeRestricted,
+                    renderingMode: renderingModeOption.mode,
+                    primaryColor: usePrimaryColor ? primaryColor : .primary,
+                    secondaryColor: useSecondaryColor ? secondaryColor : nil,
+                    tertiaryColor: useTertiaryColor ? tertiaryColor : nil,
+                    variableValue: $variableValue,
+                    searchText: $searchTextSheet
+                )
+                .conditionalSearchable(show: showSearchBar && searchBarStyle == .searchable, text: $searchTextSheet)
+            } label: {
                 HStack(spacing: selectedIconSpacing) {
                     if let icon = selectedIcon {
                         Image(systemName: icon, variableValue: variableValue)
@@ -384,24 +374,26 @@ struct ContentView: View {
                 }
                 .padding(.vertical, 8)
                 
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Category Label Style")
-                        Text("Select the style of the category label.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                if categoryLabelVisibility != .hidden {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Category Label Style")
+                            Text("Select the style of the category label.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Picker("", selection: $categoryLabelStyle) {
+                            Text("Both").tag(SFSymbolPickerCategoryLabelStyle.both)
+                            Text("Title Only").tag(SFSymbolPickerCategoryLabelStyle.titleOnly)
+                            Text("Name Only").tag(SFSymbolPickerCategoryLabelStyle.nameOnly)
+                        }
+                        .labelsHidden()
+                        .pickerStyle(.segmented)
+                        .frame(width: 900)
                     }
-                    Spacer()
-                    Picker("", selection: $categoryLabelStyle) {
-                        Text("Both").tag(SFSymbolPickerCategoryLabelStyle.both)
-                        Text("Title Only").tag(SFSymbolPickerCategoryLabelStyle.titleOnly)
-                        Text("Name Only").tag(SFSymbolPickerCategoryLabelStyle.nameOnly)
-                    }
-                    .labelsHidden()
-                    .pickerStyle(.segmented)
-                    .frame(width: 900)
+                    .padding(.vertical, 8)
                 }
-                .padding(.vertical, 8)
                 #else
                 VStack(alignment: .leading, spacing: 8) {
                     VStack(alignment: .leading, spacing: 4) {
@@ -422,23 +414,25 @@ struct ContentView: View {
                     .adaptiveButtonSizingFlexible()
                 }
                 
-                VStack(alignment: .leading, spacing: 8) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Category Label Style")
-                        Text("Select the style of the category label.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                if categoryLabelVisibility != .hidden {
+                    VStack(alignment: .leading, spacing: 8) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Category Label Style")
+                            Text("Select the style of the category label.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        Picker(selection: $categoryLabelStyle) {
+                            Text("Both").tag(SFSymbolPickerCategoryLabelStyle.both)
+                            Text("Title Only").tag(SFSymbolPickerCategoryLabelStyle.titleOnly)
+                            Text("Name Only").tag(SFSymbolPickerCategoryLabelStyle.nameOnly)
+                        } label: {
+                            Text("Category Label Style")
+                        }
+                        .pickerStyle(.segmented)
+                        .labelsHidden()
+                        .adaptiveButtonSizingFlexible()
                     }
-                    Picker(selection: $categoryLabelStyle) {
-                        Text("Both").tag(SFSymbolPickerCategoryLabelStyle.both)
-                        Text("Title Only").tag(SFSymbolPickerCategoryLabelStyle.titleOnly)
-                        Text("Name Only").tag(SFSymbolPickerCategoryLabelStyle.nameOnly)
-                    } label: {
-                        Text("Category Label Style")
-                    }
-                    .pickerStyle(.segmented)
-                    .labelsHidden()
-                    .adaptiveButtonSizingFlexible()
                 }
                 #endif
             }
