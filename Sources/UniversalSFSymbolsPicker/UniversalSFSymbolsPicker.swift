@@ -71,6 +71,12 @@ public struct SFSymbolPicker: View {
     @State private var temporarySelection: String?
     @State private var lastTapTime: Date = .distantPast
     @State private var lastTapName: String? = nil
+    
+    // Pagination State
+    @State private var allFilteredSymbols: [String] = []
+    @State private var displayedSymbols: [String] = [] // Flattened list of displayed symbols
+    private let pageSize = 100
+    
     private let service = SFSymbolService.shared
     
     /// The standard height for bars and buttons, adjusted for each platform
@@ -82,20 +88,47 @@ public struct SFSymbolPicker: View {
         #endif
     }
     
+    /// Updates the list of symbols based on current filters and resets pagination
+    private func updateFilteredSymbols() {
+        let rawSymbols = service.symbols(
+            for: selectedCategoryID,
+            customCategories: customCategories,
+            includedIDs: includedCategories,
+            excludedIDs: excludedCategories,
+            excludeRestricted: excludeRestricted,
+            limitVersion: sfSymbolsVersion
+        )
+        // Execute search
+        let searched = service.search(query: searchText, in: rawSymbols)
+        
+        // Pre-resolve effective names to reduce computation during scrolling
+        allFilteredSymbols = searched.map { service.effectiveName(for: $0) ?? $0 }
+        
+        // Set the first page
+        displayedSymbols = Array(allFilteredSymbols.prefix(pageSize))
+    }
+    
+    /// Loads the next page of symbols
+    private func loadNextPage() {
+        let currentCount = displayedSymbols.count
+        guard currentCount < allFilteredSymbols.count else { return }
+        
+        let nextCount = min(currentCount + pageSize, allFilteredSymbols.count)
+        let nextPage = allFilteredSymbols[currentCount..<nextCount]
+        displayedSymbols.append(contentsOf: nextPage)
+    }
+    
     /// Helper to dismiss the picker reliably across platforms
     private func close(save: Bool = false) {
         if save, let temp = temporarySelection {
             selection = temp
         }
         
-        #if os(tvOS)
-        // tvOS ではバインディングを false に戻すことで、遷移元の画面（ContentView）へ確実に戻る
-        isPresented = false
-        #elseif os(macOS)
+        #if os(macOS)
         isPresented = false
         dismiss()
         presentationMode.wrappedValue.dismiss()
-        #else
+        #elseif !os(tvOS)
         isPresented = false
         dismiss()
         presentationMode.wrappedValue.dismiss()
@@ -234,10 +267,10 @@ public struct SFSymbolPicker: View {
         }
         .onDisappear {
             #if os(tvOS)
-            // tvOS では明示的な決定ボタンがないため、画面を離れる際に選択を確定
+            // On tvOS, selection is confirmed when leaving screen as there is no explicit done button
             selection = temporarySelection
             #else
-            // ポップオーバー等の明示的な決定ボタンがないモードのみ、離れる際に確定
+            // Confirmation on leaving for popover mode
             if showAs == .popover {
                 selection = temporarySelection
             }
@@ -250,7 +283,7 @@ public struct SFSymbolPicker: View {
     private var sheetView: some View {
         VStack(spacing: 0) {
             #if os(tvOS)
-            // tvOS では ScrollView 内にすべてを配置し、フォーカス制御を OS に任せる
+            // On tvOS, place everything within ScrollView and let the OS handle focus control
             symbolGrid
             #else
             symbolGrid
@@ -322,9 +355,9 @@ public struct SFSymbolPicker: View {
                 #endif
         }
         #if os(macOS)
-        .frame(width: 360, height: 500) // macOS 専用の固定サイズ指定
+        .frame(width: 360, height: 500) // Fixed size for macOS popover
         #elseif os(visionOS)
-        .frame(width: 440, height: 540) // visionOS 専用の固定サイズ指定
+        .frame(width: 440, height: 540) // Fixed size for visionOS popover
         #else
         .frame(minWidth: 320, minHeight: 400)
         #endif
@@ -343,20 +376,11 @@ public struct SFSymbolPicker: View {
         #endif
         
         let columns = [GridItem(.adaptive(minimum: minWidth))]
-        let symbols = service.symbols(
-            for: selectedCategoryID,
-            customCategories: customCategories,
-            includedIDs: includedCategories,
-            excludedIDs: excludedCategories,
-            excludeRestricted: excludeRestricted,
-            limitVersion: sfSymbolsVersion
-        )
-        let filteredSymbols = service.search(query: searchText, in: symbols)
         
         return ScrollViewReader { proxy in
             ScrollView {
                 #if os(tvOS)
-                // tvOS 専用：常に上部に表示
+                // tvOS specific: Always displayed at top
                 if showSearchBar {
                     searchBox
                         .padding(.top, 80)
@@ -375,46 +399,57 @@ public struct SFSymbolPicker: View {
                 }
                 #endif
                 
-                // 最上部へスクロールするためのアンカー
+                // Anchor to scroll to top
                 Color.clear
                     .frame(height: 0)
                     .id("top_anchor")
                 
                 LazyVGrid(columns: columns, spacing: spacing) {
-                    ForEach(filteredSymbols, id: \.self) { name in
+                    ForEach(displayedSymbols, id: \.self) { name in
                         symbolButton(for: name)
+                            .onAppear {
+                                if name == displayedSymbols.last {
+                                    loadNextPage()
+                                }
+                            }
                     }
                 }
                 .padding(.horizontal, spacing)
                 #if os(tvOS)
-                .padding(.bottom, 200) // 下側のマージンをしっかり確保
+                .padding(.bottom, 200) // Ensure enough bottom padding for tvOS
                 #else
                 .padding(.top, ((showSearchBar || showCategoryPicker) && effectiveControlBarPosition == .top) ? 0 : spacing)
                 .padding(.bottom, (showAs == .sheet && effectiveControlBarPosition == .bottom) || showAs == .sheet ? 0 : spacing)
                 #endif
             }
             .onChange(of: selectedCategoryID) { _, _ in
+                updateFilteredSymbols()
                 #if !os(tvOS)
-                // カテゴリ変更時に最上部へスクロール（tvOS以外）
+                // Scroll to top on category change (except tvOS)
                 proxy.scrollTo("top_anchor", anchor: .top)
                 #endif
             }
             .onChange(of: searchText) { _, _ in
+                updateFilteredSymbols()
                 #if !os(tvOS)
-                // 検索ワード変更時も最上部へスクロール（tvOS以外）
+                // Scroll to top on search query change (except tvOS)
                 proxy.scrollTo("top_anchor", anchor: .top)
                 #endif
+            }
+            .onAppear {
+                if displayedSymbols.isEmpty {
+                    updateFilteredSymbols()
+                }
             }
         }
     }
     
     private func symbolButton(for name: String) -> some View {
-        let effectiveName = service.effectiveName(for: name) ?? name
-        let isSelected = (selection == effectiveName)
-        let isProvisionallySelected = (temporarySelection == effectiveName)
+        let isSelected = (selection == name)
+        let isProvisionallySelected = (temporarySelection == name)
         
         #if os(tvOS)
-        let iconSize: CGFloat = 60 // tvOS では少し大きく
+        let iconSize: CGFloat = 60 // Slightly larger for tvOS
         let nameHeight: CGFloat = 64
         #else
         let iconSize: CGFloat = 28
@@ -422,7 +457,7 @@ public struct SFSymbolPicker: View {
         #endif
         
         let content = VStack(spacing: 8) {
-            Image(systemName: effectiveName, variableValue: variableValue)
+            Image(systemName: name, variableValue: variableValue)
                 .font(.system(size: iconSize))
                 .symbolRenderingMode(renderingMode)
                 #if !os(tvOS)
@@ -432,7 +467,7 @@ public struct SFSymbolPicker: View {
                 #endif
 
             if showIconName {
-                let displayLabel = effectiveName.replacingOccurrences(of: ".", with: ".\u{200B}")
+                let displayLabel = name.replacingOccurrences(of: ".", with: ".\u{200B}")
                 Text(displayLabel)
                     .font(.caption2)
                     .lineLimit(2)
@@ -452,9 +487,9 @@ public struct SFSymbolPicker: View {
         
         #if os(tvOS)
         return Button {
-            // tvOS では自動で閉じず、選択状態を更新するのみにする
-            temporarySelection = effectiveName
-            selection = effectiveName
+            // Update selection without closing automatically on tvOS
+            temporarySelection = name
+            selection = name
         } label: {
             content
                 .background {
@@ -465,24 +500,24 @@ public struct SFSymbolPicker: View {
                     }
                 }
         }
-        .buttonStyle(.plain) // tvOS のフォーカスエフェクトを活かす
+        .buttonStyle(.plain) // Standard focus effect for tvOS
         #else
         return content
             .onTapGesture {
                 let now = Date()
                 let diff = now.timeIntervalSince(lastTapTime)
                 
-                // 1. 即座に選択状態を更新
-                temporarySelection = effectiveName
+                // 1. Immediately update selection state
+                temporarySelection = name
                 
-                // 2. ダブルタップ判定 (同じアイコンかつ0.5秒以内)
-                if effectiveName == lastTapName && diff < 0.5 {
+                // 2. Double-tap detection (same icon within 0.5s)
+                if name == lastTapName && diff < 0.5 {
                     close(save: true)
                 }
                 
-                // 3. 今回の情報を保存
+                // 3. Save current tap info
                 lastTapTime = now
-                lastTapName = effectiveName
+                lastTapName = name
             }
             .background {
                 if isProvisionallySelected {
@@ -516,14 +551,14 @@ public struct SFSymbolPicker: View {
         } label: {
             ZStack {
                 #if os(visionOS)
-                // visionOS では常に標準の素材を使用
+                // Always use standard material on visionOS
                 Group {
                     if !shouldShowCategoryLabel {
-                        // アイコンのみ
+                        // Icon only
                         Image(systemName: currentCategoryIcon)
                             .frame(width: controlHeight, height: controlHeight)
                     } else {
-                        // 横長ラベル
+                        // Horizontal label
                         HStack(spacing: 8) {
                             Image(systemName: currentCategoryIcon)
                             Text(categoryDisplayText)
@@ -715,9 +750,9 @@ public struct SFSymbolPicker: View {
     
     private var searchBox: some View {
         #if os(tvOS)
-        // tvOS 専用：極限までシンプルにした検索・カテゴリーバー
+        // tvOS specific: Extremely simplified search and category bar
         HStack(spacing: 20) {
-            // 検索入力エリア (虫眼鏡 + テキストフィールド)
+            // Search input area (Magnifying glass + Text field)
             HStack(spacing: 12) {
                 Image(systemName: "magnifyingglass")
                     .font(.headline)
@@ -731,7 +766,7 @@ public struct SFSymbolPicker: View {
             .frame(maxWidth: .infinity)
             .frame(height: 80)
             
-            // カテゴリーピッカー
+            // Category picker
             if showCategoryPicker {
                 sheetCategoryPicker
                     .buttonStyle(.bordered)
@@ -740,7 +775,7 @@ public struct SFSymbolPicker: View {
             }
         }
         #else
-        // iOS/macOS/visionOS 向け Island 構成
+        // Island configuration for iOS/macOS/visionOS
         HStack(spacing: 12) {
             if showSearchBar {
                 ZStack {

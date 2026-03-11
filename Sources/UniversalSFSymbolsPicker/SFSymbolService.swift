@@ -121,13 +121,14 @@ public final class SFSymbolService: Sendable {
     // MARK: - Availability
     
     public func isAvailable(_ symbol: String, limitVersion: Double? = nil) -> Bool {
-        // 1. 指定された名前そのものが利用可能かチェック
+        // 1. Check if the specified name itself is available
         if checkIndividualAvailability(symbol, limitVersion: limitVersion) {
             return true
         }
 
-        // 2. エイリアス（仲間）の中に、現在の OS で利用可能なものがあるかチェック
-        // これにより、最新名が v26+ でも、旧名が v17+ であれば、OS 17 環境でリストに残るようになる
+        // 2. Check if any aliases are available in the current OS.
+        // This ensures symbols remain in the list on older OSs if an alias exists for that version,
+        // even if the latest name was introduced in a newer OS.
         let cluster = findSymbolCluster(startingWith: symbol)
         return cluster.contains { checkIndividualAvailability($0, limitVersion: limitVersion) }
     }
@@ -194,15 +195,15 @@ public final class SFSymbolService: Sendable {
             let restrictedToExclude = restrictedSet.subtracting(explicitlyIncludedByCustom)
             baseSymbols.subtract(restrictedToExclude)
         }
-        // 除外対象とするロケールコードおよびバリアントの定義
+        // Define locale codes and variants to exclude
         let symbolVariants: Set<String> = [
-            // 主要な言語コード (2文字)
+            // Major language codes (2-letter)
             "ar", "hi", "he", "zh", "th", "ja", "ko", "el", "ru", "my", "km",
-            // インド系諸言語 (2文字)
+            // Indic languages (2-letter)
             "bn", "gu", "kn", "ml", "mr", "or", "pa", "si", "ta", "te",
-            // 3文字の言語コード (Santali, Manipuri等)
+            // 3-letter language codes (e.g., Santali, Manipuri)
             "sat", "mni",
-            // 右書きバリアント
+            // Right-to-left variants
             "rtl"
         ]
         
@@ -210,7 +211,7 @@ public final class SFSymbolService: Sendable {
             .filter { name in
                 let components = name.lowercased().components(separatedBy: ".")
                 return !components.contains { component in
-                    // 要素が symbolVariants に含まれている場合は、特定のロケール用バリアントと判断して除外
+                    // If a component is in symbolVariants, it's considered a locale-specific variant
                     symbolVariants.contains(component)
                 }
             }
