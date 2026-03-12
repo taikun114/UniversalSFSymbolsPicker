@@ -92,7 +92,7 @@ plutil -p "/Applications/SF Symbols.app/Contents/Frameworks/SFSymbolsShared.fram
 以下のキーが `Localizable.xcstrings` で管理されています。カテゴリ名は `CategoryTitles.strings` の値と一致させる必要があります。
 
 - **システムカテゴリ:** `Accessibility`, `All`, `Arrows`, `Automotive`, `Camera & Photos`, `Commerce`, `Communication`, `Connectivity`, `Devices`, `Editing`, `Fitness`, `Gaming`, `Health`, `Home`, `Human`, `Indices`, `Keyboard`, `Maps`, `Math`, `Media`, `Nature`, `Objects & Tools`, `Privacy & Security`, `Shapes`, `Text Formatting`, `Time`, `Transportation`, `Weather`
-- **UI 文字列:** `All Symbols`, `Category`, `Category: %@`, `Custom Categories`, `Search Icons...`, `Select an Icon`, `System Categories`
+- **UI 文字列:** `All Symbols`, `Category`, `Category: %@`, `Custom Categories`, `Search Icons...`, `Select an Icon`, `System Categories`, `Cancel`, `Done`
 
 ### 3. 翻訳更新用スクリプトのサンプル
 
@@ -108,7 +108,9 @@ translations = {
     "Accessibility": "アクセシビリティ",
     "All": "すべて",
     # ... (抽出したデータをここに記載)
-    "Search Icons...": "アイコンを検索…"
+    "Search Icons...": "アイコンを検索…",
+    "Cancel": "キャンセル",
+    "Done": "完了"
 }
 
 file_path = 'Sources/UniversalSFSymbolsPicker/Resources/Localizable.xcstrings'
@@ -119,8 +121,10 @@ with open(file_path, 'r') as f:
 
 for key, value in translations.items():
     if key in data['strings']:
-        if 'localizations' not in data['strings'][key]:
+        # 'localizations' キーがない場合や、辞書でない場合を考慮して初期化
+        if 'localizations' not in data['strings'][key] or not isinstance(data['strings'][key]['localizations'], dict):
             data['strings'][key]['localizations'] = {}
+
         data['strings'][key]['localizations'][lang_code] = {
             "stringUnit": {"state": "translated", "value": value}
         }
@@ -129,5 +133,6 @@ for key, value in translations.items():
 with open(file_path, 'w') as f:
     json.dump(data, f, indent=2, ensure_ascii=False)
 ```
+
 
 
