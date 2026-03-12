@@ -155,12 +155,15 @@ public struct SFSymbolPicker: View {
     /// Returns the label for the currently selected category
     private var currentCategoryLabel: String {
         if selectedCategoryID == "all" {
-            return "All"
+            return String(localized: "All", bundle: .module)
         }
         if let custom = customCategories.first(where: { $0.id.uuidString == selectedCategoryID }) {
             return custom.label
         }
-        return service.systemCategories.first(where: { $0.id == selectedCategoryID })?.label ?? "All"
+        if let system = service.systemCategories.first(where: { $0.id == selectedCategoryID }) {
+            return String(localized: String.LocalizationValue(system.label), bundle: .module)
+        }
+        return String(localized: "All", bundle: .module)
     }
     
     /// Returns the text to display in the category picker label based on current style
@@ -218,7 +221,7 @@ public struct SFSymbolPicker: View {
         showAs: SFSymbolPickerDisplayMode,
         controlBarPosition: SFSymbolPickerControlBarPosition = .bottom,
         showSearchBar: Bool = true, // Only effective in Popover mode
-        prompt: String = "Search Icons...",
+        prompt: String? = nil,
         showCategoryPicker: Bool = true,
         showCategorySectionLabel: Bool = true,
         categoryLabelVisibility: SFSymbolPickerCategoryLabelVisibility = .default,
@@ -242,7 +245,7 @@ public struct SFSymbolPicker: View {
         self.showAs = showAs
         self.controlBarPosition = controlBarPosition
         self.showSearchBar = showSearchBar
-        self.prompt = prompt
+        self.prompt = prompt ?? String(localized: "Search Icons...", bundle: .module)
         self.showCategoryPicker = showCategoryPicker
         self.showCategorySectionLabel = showCategorySectionLabel
         self.categoryLabelVisibility = categoryLabelVisibility
@@ -313,7 +316,7 @@ public struct SFSymbolPicker: View {
             #endif
         }
         #if !os(macOS) && !os(tvOS)
-        .navigationTitle("Select an Icon")
+        .navigationTitle(String(localized: "Select an Icon", bundle: .module))
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 if #available(iOS 26.0, macOS 26.0, tvOS 26.0, watchOS 26.0, visionOS 26.0, *) {
@@ -705,11 +708,21 @@ public struct SFSymbolPicker: View {
     
     @ViewBuilder
     private var categoryMenuItems: some View {
-        let allSymbolsTitle = String(localized: "All Symbols", bundle: .module)
-        let systemCategoriesTitle = String(localized: "System Categories", bundle: .module)
-        let customCategoriesTitle = String(localized: "Custom Categories", bundle: .module)
-        
         // 1. All Symbols Picker
+        allSymbolsContent
+        
+        // 2. System Categories Picker
+        systemCategoriesContent
+        
+        // 3. Custom Categories Picker
+        if !customCategories.isEmpty {
+            customCategoriesContent
+        }
+    }
+    
+    @ViewBuilder
+    private var allSymbolsContent: some View {
+        let allSymbolsTitle = String(localized: "All Symbols", bundle: .module)
         Picker(allSymbolsTitle, selection: $selectedCategoryID) {
             Label(
                 String(localized: "All", bundle: .module),
@@ -718,30 +731,37 @@ public struct SFSymbolPicker: View {
         }
         .pickerStyle(.inline)
         .adaptiveLabelsVisibility(showCategorySectionLabel ? .visible : .hidden)
-        
-        // 2. System Categories Picker
+    }
+    
+    @ViewBuilder
+    private var systemCategoriesContent: some View {
+        let systemCategoriesTitle = String(localized: "System Categories", bundle: .module)
         Picker(systemCategoriesTitle, selection: $selectedCategoryID) {
             ForEach(service.systemCategories) { cat in
                 if cat.id != "all" {
                     let iconName = service.effectiveName(for: cat.icon, limitVersion: sfSymbolsVersion) ?? "square.grid.2x2"
-                    Label(cat.label, systemImage: iconName).tag(cat.id)
+                    Label(
+                        String(localized: String.LocalizationValue(cat.label), bundle: .module),
+                        systemImage: iconName
+                    ).tag(cat.id)
                 }
             }
         }
         .pickerStyle(.inline)
         .adaptiveLabelsVisibility(showCategorySectionLabel ? .visible : .hidden)
-        
-        // 3. Custom Categories Picker
-        if !customCategories.isEmpty {
-            Picker(customCategoriesTitle, selection: $selectedCategoryID) {
-                ForEach(customCategories) { cat in
-                    let iconName = service.effectiveName(for: cat.icon, limitVersion: sfSymbolsVersion) ?? "square.grid.2x2"
-                    Label(cat.label, systemImage: iconName).tag(cat.id.uuidString)
-                }
+    }
+    
+    @ViewBuilder
+    private var customCategoriesContent: some View {
+        let customCategoriesTitle = String(localized: "Custom Categories", bundle: .module)
+        Picker(customCategoriesTitle, selection: $selectedCategoryID) {
+            ForEach(customCategories) { cat in
+                let iconName = service.effectiveName(for: cat.icon, limitVersion: sfSymbolsVersion) ?? "square.grid.2x2"
+                Label(cat.label, systemImage: iconName).tag(cat.id.uuidString)
             }
-            .pickerStyle(.inline)
-            .adaptiveLabelsVisibility(showCategorySectionLabel ? .visible : .hidden)
         }
+        .pickerStyle(.inline)
+        .adaptiveLabelsVisibility(showCategorySectionLabel ? .visible : .hidden)
     }
     
     private var doneButton: some View {

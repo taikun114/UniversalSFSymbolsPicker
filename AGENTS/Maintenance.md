@@ -69,3 +69,65 @@ grep -oE "\.[a-z]{2}[\.\"]" Sources/UniversalSFSymbolsPicker/Resources/SFSymbolD
 ```
 
 出力結果に言語コードが含まれておらず、`up`, `on`, `tv` などの汎用単語だけであれば、フィルタリングは適切に機能しています。
+
+## パッケージローカライズのメンテナンス
+
+`Localizable.xcstrings` に新しい言語を追加したり、既存の翻訳を更新したりする場合は、可能な限り Apple の **SF Symbols アプリ** に含まれる公式の翻訳に合わせるため、スクリプトを作成する前に公式の翻訳データを参照する必要があります。
+
+ユーザーから「パッケージのローカライズに新しい言語を追加して」と聞かれた場合は次のようにして対処できます（このセクションはあくまでパッケージローカライズの話であり、デモアプリのローカライズとは異なります）。
+
+### 1. 公式翻訳データの抽出方法
+
+SF Symbols アプリ内のフレームワークには、サイドバーで使用されているカテゴリ名（システムカテゴリ）の翻訳ファイルが含まれています。以下のコマンドを使用して、特定の言語の翻訳一覧を確認できます。
+
+```bash
+# 例: 日本語 (ja) の翻訳を抽出する場合
+plutil -p "/Applications/SF Symbols.app/Contents/Frameworks/SFSymbolsShared.framework/Versions/A/Resources/ja.lproj/CategoryTitles.strings"
+```
+
+※ アプリのパスが異なる場合は、実際のパスに合わせて調整してください。
+
+### 2. 主要な翻訳キーの一覧
+
+以下のキーが `Localizable.xcstrings` で管理されています。カテゴリ名は `CategoryTitles.strings` の値と一致させる必要があります。
+
+- **システムカテゴリ:** `Accessibility`, `All`, `Arrows`, `Automotive`, `Camera & Photos`, `Commerce`, `Communication`, `Connectivity`, `Devices`, `Editing`, `Fitness`, `Gaming`, `Health`, `Home`, `Human`, `Indices`, `Keyboard`, `Maps`, `Math`, `Media`, `Nature`, `Objects & Tools`, `Privacy & Security`, `Shapes`, `Text Formatting`, `Time`, `Transportation`, `Weather`
+- **UI 文字列:** `All Symbols`, `Category`, `Category: %@`, `Custom Categories`, `Search Icons...`, `Select an Icon`, `System Categories`
+
+### 3. 翻訳更新用スクリプトのサンプル
+
+新しい言語を追加する際は、以下の Python スクリプトをテンプレートとして使用すると、既存の JSON 構造を壊さずに安全に更新できます。
+
+```python
+import json
+
+# 1. 翻訳データの定義
+# lang_code: "ja" (日本語) など
+lang_code = "ja"
+translations = {
+    "Accessibility": "アクセシビリティ",
+    "All": "すべて",
+    # ... (抽出したデータをここに記載)
+    "Search Icons...": "アイコンを検索…"
+}
+
+file_path = 'Sources/UniversalSFSymbolsPicker/Resources/Localizable.xcstrings'
+
+# 2. ファイルの読み込みと更新
+with open(file_path, 'r') as f:
+    data = json.load(f)
+
+for key, value in translations.items():
+    if key in data['strings']:
+        if 'localizations' not in data['strings'][key]:
+            data['strings'][key]['localizations'] = {}
+        data['strings'][key]['localizations'][lang_code] = {
+            "stringUnit": {"state": "translated", "value": value}
+        }
+
+# 3. 書き出し
+with open(file_path, 'w') as f:
+    json.dump(data, f, indent=2, ensure_ascii=False)
+```
+
+
