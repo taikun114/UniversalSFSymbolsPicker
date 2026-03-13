@@ -30,6 +30,7 @@ public struct SFSymbolPicker: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.presentationMode) private var presentationMode
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.colorSchemeContrast) private var colorSchemeContrast
     
     @Binding var isPresented: Bool
     @Binding var selection: String?
@@ -324,6 +325,8 @@ public struct SFSymbolPicker: View {
                         close(save: false)
                     }
                     .keyboardShortcut(.cancelAction)
+                    .accessibilityLabel(String(localized: "Cancel", bundle: .module))
+                    .help(String(localized: "Cancel selection", bundle: .module))
                 } else {
                     Button(role: .cancel) {
                         close(save: false)
@@ -332,6 +335,8 @@ public struct SFSymbolPicker: View {
                             .font(.body.weight(.semibold))
                     }
                     .keyboardShortcut(.cancelAction)
+                    .accessibilityLabel(String(localized: "Cancel", bundle: .module))
+                    .help(String(localized: "Cancel selection", bundle: .module))
                 }
             }
             
@@ -495,52 +500,53 @@ public struct SFSymbolPicker: View {
         .frame(maxWidth: .infinity)
         .padding(8)
         .contentShape(Rectangle())
-        .help(name)
         
-        #if os(tvOS)
         return Button {
+            #if os(tvOS)
             // Update selection without closing automatically on tvOS
             temporarySelection = name
             selection = name
+            #else
+            let now = Date()
+            let diff = now.timeIntervalSince(lastTapTime)
+            
+            // 1. Immediately update selection state
+            temporarySelection = name
+            
+            // 2. Double-tap detection (same icon within 0.5s)
+            if name == lastTapName && diff < 0.5 {
+                close(save: true)
+            }
+            
+            // 3. Save current tap info
+            lastTapTime = now
+            lastTapName = name
+            #endif
         } label: {
             content
                 .background {
+                    #if os(tvOS)
                     if isSelected {
                         RoundedRectangle(cornerRadius: 16)
                             .stroke(primaryColor, lineWidth: 6)
                             .padding(-12)
                     }
+                    #else
+                    if isProvisionallySelected {
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Color.accentColor)
+                    } else if isSelected {
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color.accentColor, lineWidth: 2)
+                    }
+                    #endif
                 }
         }
-        .buttonStyle(.plain) // Standard focus effect for tvOS
-        #else
-        return content
-            .onTapGesture {
-                let now = Date()
-                let diff = now.timeIntervalSince(lastTapTime)
-                
-                // 1. Immediately update selection state
-                temporarySelection = name
-                
-                // 2. Double-tap detection (same icon within 0.5s)
-                if name == lastTapName && diff < 0.5 {
-                    close(save: true)
-                }
-                
-                // 3. Save current tap info
-                lastTapTime = now
-                lastTapName = name
-            }
-            .background {
-                if isProvisionallySelected {
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color.accentColor)
-                } else if isSelected {
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color.accentColor, lineWidth: 2)
-                }
-            }
-        #endif
+        .buttonStyle(.plain)
+        .help(name)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(name)
+        .accessibilityHint(String(localized: "Double-tap or double-click to select", bundle: .module))
     }
     
     private var sheetCategoryPicker: some View {
@@ -555,68 +561,50 @@ public struct SFSymbolPicker: View {
                 }
             }
         }
+        .accessibilityLabel(String(localized: "Category Button", bundle: .module))
+        .accessibilityHint(String(localized: "Changes the icon category. Current category: \(currentCategoryLabel)", bundle: .module))
+        .help(String(localized: "Changes the icon category. Current category: \(currentCategoryLabel)", bundle: .module))
     }
     
     private var popoverCategoryPicker: some View {
         Menu {
             categoryMenuItems
         } label: {
-            ZStack {
-                #if os(visionOS)
-                // Always use standard material on visionOS
-                Group {
-                    if !shouldShowCategoryLabel {
-                        // Icon only
-                        Image(systemName: currentCategoryIcon)
-                            .frame(width: controlHeight, height: controlHeight)
-                    } else {
-                        // Horizontal label
-                        HStack(spacing: 8) {
-                            Image(systemName: currentCategoryIcon)
-                            Text(categoryDisplayText)
-                                .lineLimit(1)
-                        }
-                        .padding(.horizontal, controlHeight * 0.4)
-                        .frame(height: controlHeight)
-                    }
-                }
-                .foregroundStyle(.primary)
-                .background(.regularMaterial, in: Capsule())
-                #else
-                if #available(iOS 26.0, macOS 26.0, tvOS 26.0, watchOS 26.0, *) {
-                    Group {
-                        if !shouldShowCategoryLabel {
-                            Image(systemName: currentCategoryIcon)
-                                .frame(width: controlHeight, height: controlHeight)
-                        } else {
-                            HStack(spacing: 8) {
-                                Image(systemName: currentCategoryIcon)
-                                Text(categoryDisplayText)
-                                .lineLimit(1)
-                            }
-                            .padding(.horizontal, controlHeight * 0.4)
-                            .frame(height: controlHeight)
-                        }
-                    }
-                    .foregroundStyle(.primary)
-                    .adaptiveGlassEffectStyle(.clearInteractive, in: Capsule())
+            Group {
+                if !shouldShowCategoryLabel {
+                    Image(systemName: currentCategoryIcon)
+                        .frame(width: controlHeight, height: controlHeight)
                 } else {
-                    Group {
-                        if !shouldShowCategoryLabel {
-                            Image(systemName: currentCategoryIcon)
-                                .frame(width: controlHeight, height: controlHeight)
-                        } else {
-                            HStack(spacing: 8) {
-                                Image(systemName: currentCategoryIcon)
-                                Text(categoryDisplayText)
-                                .lineLimit(1)
-                            }
-                            .padding(.horizontal, controlHeight * 0.4)
-                            .frame(height: controlHeight)
-                        }
+                    HStack(spacing: 8) {
+                        Image(systemName: currentCategoryIcon)
+                        Text(categoryDisplayText)
+                            .lineLimit(1)
                     }
-                    .foregroundStyle(.primary)
-                    .background {
+                    .padding(.horizontal, controlHeight * 0.4)
+                    .frame(height: controlHeight)
+                }
+            }
+            .foregroundStyle(.primary)
+            .background {
+                #if os(visionOS)
+                Capsule().fill(.regularMaterial)
+                #else
+                if colorSchemeContrast == .increased {
+                    #if os(macOS)
+                    Color(NSColor.controlBackgroundColor)
+                        .clipShape(Capsule())
+                    #elseif os(tvOS)
+                    Color.black.opacity(0.4)
+                        .clipShape(Capsule())
+                    #else
+                    Color(UIColor.secondarySystemBackground)
+                        .clipShape(Capsule())
+                    #endif
+                } else {
+                    if #available(iOS 26.0, macOS 26.0, tvOS 26.0, watchOS 26.0, *) {
+                        Color.clear
+                            .adaptiveGlassEffectStyle(.clearInteractive, in: Capsule())
+                    } else {
                         #if os(macOS)
                         VisualEffectView(material: .headerView, blendingMode: .withinWindow)
                             .clipShape(Capsule())
@@ -629,11 +617,14 @@ public struct SFSymbolPicker: View {
             }
             .overlay(
                 Capsule()
-                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                    .stroke(colorSchemeContrast == .increased ? Color.primary : Color.gray.opacity(0.3), lineWidth: colorSchemeContrast == .increased ? 2 : 1)
             )
             .contentShape(Capsule())
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(String(localized: "Category Button", bundle: .module))
+        .accessibilityHint(String(localized: "Changes the icon category. Current category: \(currentCategoryLabel)", bundle: .module))
+        .help(String(localized: "Changes the icon category. Current category: \(currentCategoryLabel)", bundle: .module))
     }
     
     #if os(macOS)
@@ -656,6 +647,8 @@ public struct SFSymbolPicker: View {
                 #if os(macOS)
                 .adaptiveGlassButtonStyle()
                 #endif
+                .accessibilityLabel(String(localized: "Cancel", bundle: .module))
+                .help(String(localized: "Cancel selection", bundle: .module))
                 
                 Spacer()
                 
@@ -663,7 +656,7 @@ public struct SFSymbolPicker: View {
                     sheetCategoryPicker
                         .controlSize(.large)
                         #if os(macOS)
-                        .adaptiveGlassEffectStyle(.clearInteractive)
+                        .adaptiveGlassEffectStyle(colorSchemeContrast == .increased ? .regular : .clearInteractive)
                         #endif
                 }
                 
@@ -679,6 +672,8 @@ public struct SFSymbolPicker: View {
                 #if os(macOS)
                 .adaptiveGlassProminentButtonStyle()
                 #endif
+                .accessibilityLabel(String(localized: "Done", bundle: .module))
+                .help(String(localized: "Confirm selection", bundle: .module))
             }
             .padding()
         }
@@ -779,6 +774,8 @@ public struct SFSymbolPicker: View {
                 }
             }
         }
+        .accessibilityLabel(String(localized: "Done", bundle: .module))
+        .help(String(localized: "Confirm selection", bundle: .module))
     }
 
     
@@ -817,27 +814,44 @@ public struct SFSymbolPicker: View {
                     Color.clear
                         .background(.regularMaterial, in: Capsule())
                     #else
-                    Color.clear
-                        .adaptiveGlassEffectStyle(.clear, in: Capsule())
+                    if colorSchemeContrast == .increased {
+                        #if os(macOS)
+                        Color(NSColor.controlBackgroundColor)
+                            .clipShape(Capsule())
+                        #elseif os(tvOS)
+                        Color.black.opacity(0.4)
+                            .clipShape(Capsule())
+                        #else
+                        Color(UIColor.secondarySystemBackground)
+                            .clipShape(Capsule())
+                        #endif
+                    } else {
+                        Color.clear
+                            .adaptiveGlassEffectStyle(.clear, in: Capsule())
+                    }
                     #endif
                     
                     HStack(spacing: 8) {
                         Image(systemName: "magnifyingglass")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(searchIconColor)
                             .font(.body.weight(.semibold))
+                            .accessibilityHidden(true)
                         
                         TextField(prompt, text: $searchText)
                             .textFieldStyle(.plain)
                             .background(Color.clear)
+                            .accessibilityLabel(prompt)
                         
                         if !searchText.isEmpty {
                             Button {
                                 searchText = ""
                             } label: {
                                 Image(systemName: "xmark.circle.fill")
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(searchIconColor)
                             }
                             .buttonStyle(.plain)
+                            .accessibilityLabel(String(localized: "Clear search", bundle: .module))
+                            .help(String(localized: "Clear search", bundle: .module))
                         }
                     }
                     .padding(.horizontal, 12)
@@ -846,7 +860,7 @@ public struct SFSymbolPicker: View {
                 .frame(height: controlHeight)
                 .overlay(
                     Capsule()
-                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                        .stroke(colorSchemeContrast == .increased ? Color.primary : Color.gray.opacity(0.3), lineWidth: colorSchemeContrast == .increased ? 2 : 1)
                 )
             }
 
@@ -868,6 +882,14 @@ public struct SFSymbolPicker: View {
         return true
         #else
         return false
+        #endif
+    }
+    
+    private var searchIconColor: Color {
+        #if os(visionOS)
+        return colorSchemeContrast == .increased ? .primary : .secondary
+        #else
+        return .secondary
         #endif
     }
 }

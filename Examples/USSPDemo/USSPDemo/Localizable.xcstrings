@@ -8193,151 +8193,151 @@
         }
       }
     },
-    "Variable Value: %.2f" : {
-      "comment" : "Format string for displaying the current variable symbol value.",
+    "Variable Value: " : {
+      "comment" : "Label for the variable symbol value slider.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "قيمة المتغير: %.2f"
+            "value" : "قيمة المتغير: "
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Variabler Wert: %.2f"
+            "value" : "Variabler Wert: "
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Variable Value: %.2f"
+            "value" : "Variable Value: "
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Valor variable: %.2f"
+            "value" : "Valor variable: "
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Valeur variable : %.2f"
+            "value" : "Valeur variable : "
           }
         },
         "fr-CA" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Valeur variable : %.2f"
+            "value" : "Valeur variable : "
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "परिवर्तनीय मान: %.2f"
+            "value" : "परिवर्तनीय मान: "
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nilai Variabel: %.2f"
+            "value" : "Nilai Variabel: "
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Valore variabile: %.2f"
+            "value" : "Valore variabile: "
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "可変値: %.2f"
+            "value" : "可変値: "
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "가변 값: %.2f"
+            "value" : "가변 값: "
           }
         },
         "ms" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nilai Pemboleh Ubah: %.2f"
+            "value" : "Nilai Pemboleh Ubah: "
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Variabele waarde: %.2f"
+            "value" : "Variabele waarde: "
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wartość zmienna: %.2f"
+            "value" : "Wartość zmienna: "
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Valor Variável: %.2f"
+            "value" : "Valor Variável: "
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Valor Variável: %.2f"
+            "value" : "Valor Variável: "
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Переменное значение: %.2f"
+            "value" : "Переменное значение: "
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ค่าตัวแปร: %.2f"
+            "value" : "ค่าตัวแปร: "
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Değişken Değer: %.2f"
+            "value" : "Değişken Değer: "
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Змінне значення: %.2f"
+            "value" : "Змінне значення: "
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Giá trị biến: %.2f"
+            "value" : "Giá trị biến: "
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "可变数值: %.2f"
+            "value" : "可变数值: "
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "可變數值: %.2f"
+            "value" : "可變數值: "
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "可變數值: %.2f"
+            "value" : "可變數值: "
           }
         }
       }

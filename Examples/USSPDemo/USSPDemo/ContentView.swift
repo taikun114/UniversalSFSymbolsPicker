@@ -356,10 +356,12 @@ struct ContentView: View {
                         .foregroundStyle(.secondary)
                     }
                     Spacer()
-                    Picker("", selection: $searchBarStyle) {
+                    Picker(selection: $searchBarStyle) {
                         ForEach(SearchBarStyle.allCases) { style in
                             Text(style.label).tag(style)
                         }
+                    } label: {
+                        Text("Search Bar Style")
                     }
                     .labelsHidden()
                     .pickerStyle(.segmented)
@@ -429,10 +431,12 @@ struct ContentView: View {
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
-                    Picker("", selection: $categoryLabelVisibility) {
+                    Picker(selection: $categoryLabelVisibility) {
                         Text("Default").tag(SFSymbolPickerCategoryLabelVisibility.default)
                         Text("Visible").tag(SFSymbolPickerCategoryLabelVisibility.visible)
                         Text("Hidden").tag(SFSymbolPickerCategoryLabelVisibility.hidden)
+                    } label: {
+                        Text("Category Label Visibility")
                     }
                     .labelsHidden()
                     .pickerStyle(.segmented)
@@ -449,10 +453,12 @@ struct ContentView: View {
                                 .foregroundStyle(.secondary)
                         }
                         Spacer()
-                        Picker("", selection: $categoryLabelStyle) {
+                        Picker(selection: $categoryLabelStyle) {
                             Text("Both").tag(SFSymbolPickerCategoryLabelStyle.both)
                             Text("Title Only").tag(SFSymbolPickerCategoryLabelStyle.titleOnly)
                             Text("Name Only").tag(SFSymbolPickerCategoryLabelStyle.nameOnly)
+                        } label: {
+                            Text("Category Label Style")
                         }
                         .labelsHidden()
                         .pickerStyle(.segmented)
@@ -536,7 +542,10 @@ struct ContentView: View {
                 get: { variableValue ?? 0 },
                 set: { variableValue = $0 }
             ), in: 0...1) {
-                Text("Variable Value: \(variableValue ?? 0, specifier: "%.2f")")
+                HStack(spacing: 0) {
+                    Text("Variable Value: ")
+                    Text(variableValue ?? 0, format: .number.precision(.fractionLength(2)))
+                }
                 Text("Specify the value to apply to variable symbols.")
             }
             #elseif os(tvOS)
@@ -545,7 +554,7 @@ struct ContentView: View {
                 set: { variableValue = $0 }
             )) {
                 ForEach(Array(stride(from: 0.0, through: 1.0, by: 0.1)), id: \.self) { value in
-                    Text("\(value, specifier: "%.1f")").tag(value)
+                    Text(value, format: .number.precision(.fractionLength(1))).tag(value)
                 }
             } label: {
                 VStack(alignment: .leading, spacing: 4) {
@@ -558,7 +567,10 @@ struct ContentView: View {
             .padding(.vertical, 8)
             #else
             VStack(alignment: .leading, spacing: 8) {
-                Text("Variable Value: \(variableValue ?? 0, specifier: "%.2f")")
+                HStack(spacing: 0) {
+                    Text("Variable Value: ")
+                    Text(variableValue ?? 0, format: .number.precision(.fractionLength(2)))
+                }
                 Slider(value: Binding(
                     get: { variableValue ?? 0 },
                     set: { variableValue = $0 }
