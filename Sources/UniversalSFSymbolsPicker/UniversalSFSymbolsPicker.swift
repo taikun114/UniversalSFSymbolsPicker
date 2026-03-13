@@ -110,6 +110,11 @@ public struct SFSymbolPicker: View {
         
         // Set the first page
         displayedSymbols = Array(allFilteredSymbols.prefix(pageSize))
+        
+        // Announce results to VoiceOver
+        let count = allFilteredSymbols.count
+        let message = String(localized: "Found \(count) icons", bundle: .module)
+        AccessibilityNotification.Announcement(message).post()
     }
     
     /// Loads the next page of symbols
@@ -501,6 +506,14 @@ public struct SFSymbolPicker: View {
         .padding(8)
         .contentShape(Rectangle())
         
+        // Construct accessibility label based on status
+        var accessibilityLabelContent = name
+        if isSelected {
+            accessibilityLabelContent += ", " + String(localized: "This icon is currently selected", bundle: .module)
+        } else if isProvisionallySelected {
+            accessibilityLabelContent += ", " + String(localized: "Provisionally selected", bundle: .module)
+        }
+        
         return Button {
             #if os(tvOS)
             // Update selection without closing automatically on tvOS
@@ -515,7 +528,21 @@ public struct SFSymbolPicker: View {
             
             // 2. Double-tap detection (same icon within 0.5s)
             if name == lastTapName && diff < 0.5 {
+                // Final selection announcement
+                let finalAnnouncement = String(localized: "\(name) icon selected", bundle: .module)
+                AccessibilityNotification.Announcement(finalAnnouncement).post()
+                
                 close(save: true)
+            } else {
+                // First tap: Provisional selection announcement with instructions
+                // But only if it's not already the confirmed selection
+                if isSelected {
+                    let announcement = String(localized: "This icon is currently selected", bundle: .module)
+                    AccessibilityNotification.Announcement(announcement).post()
+                } else {
+                    let announcement = String(localized: "Selected provisionally. To confirm selection with this icon, double-tap or double-click", bundle: .module)
+                    AccessibilityNotification.Announcement(announcement).post()
+                }
             }
             
             // 3. Save current tap info
@@ -545,8 +572,15 @@ public struct SFSymbolPicker: View {
         .buttonStyle(.plain)
         .help(name)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel(name)
-        .accessibilityHint(String(localized: "Double-tap or double-click to select", bundle: .module))
+        .accessibilityLabel(accessibilityLabelContent)
+        .accessibilityValue(Text(verbatim: ""))
+        .accessibilityHint(
+            isSelected ? "" : (
+                isProvisionallySelected
+                ? String(localized: "To confirm selection with this icon, double-tap or double-click", bundle: .module)
+                : String(localized: "Single-tap or single-click to provisionally select, double-tap or double-click to confirm selection", bundle: .module)
+            )
+        )
     }
     
     private var sheetCategoryPicker: some View {
