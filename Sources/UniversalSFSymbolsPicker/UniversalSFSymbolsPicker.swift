@@ -647,7 +647,7 @@ public struct SFSymbolPicker: View {
                 Button(role: .cancel) {
                     close(save: false)
                 } label: {
-                    Label("Cancel", systemImage: "xmark")
+                    Label(String(localized: "Cancel", bundle: .module), systemImage: "xmark")
                 }
                 #if !os(tvOS)
                 .keyboardShortcut(.cancelAction)
@@ -670,7 +670,7 @@ public struct SFSymbolPicker: View {
                 Button {
                     close(save: true)
                 } label: {
-                    Label("Done", systemImage: "checkmark")
+                    Label(String(localized: "Done", bundle: .module), systemImage: "checkmark")
                 }
                 #if !os(tvOS)
                 .keyboardShortcut(.defaultAction)

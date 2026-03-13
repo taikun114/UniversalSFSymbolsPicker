@@ -6,6 +6,15 @@ enum RenderingModeOption: String, CaseIterable, Identifiable {
     case monochrome, hierarchical, palette, multicolor
     var id: String { rawValue }
     
+    var label: LocalizedStringKey {
+        switch self {
+        case .monochrome: return "Monochrome"
+        case .hierarchical: return "Hierarchical"
+        case .palette: return "Palette"
+        case .multicolor: return "Multicolor"
+        }
+    }
+    
     var mode: SymbolRenderingMode {
         switch self {
         case .monochrome: return .monochrome
@@ -20,6 +29,13 @@ enum SearchBarStyle: String, CaseIterable, Identifiable {
     case searchable = ".searchable"
     case custom = "Custom"
     var id: String { rawValue }
+    
+    var label: LocalizedStringKey {
+        switch self {
+        case .searchable: return ".searchable"
+        case .custom: return "Custom"
+        }
+    }
 }
 
 struct ContentView: View {
@@ -342,7 +358,7 @@ struct ContentView: View {
                     Spacer()
                     Picker("", selection: $searchBarStyle) {
                         ForEach(SearchBarStyle.allCases) { style in
-                            Text(style.rawValue).tag(style)
+                            Text(style.label).tag(style)
                         }
                     }
                     .labelsHidden()
@@ -367,7 +383,7 @@ struct ContentView: View {
                     
                     Picker(selection: $searchBarStyle) {
                         ForEach(SearchBarStyle.allCases) { style in
-                            Text(style.rawValue).tag(style)
+                            Text(style.label).tag(style)
                         }
                     } label: {
                         Text("Search Bar Style")
@@ -564,7 +580,7 @@ struct ContentView: View {
                 Spacer()
                 Picker("", selection: $renderingModeOption) {
                     ForEach(RenderingModeOption.allCases) { option in
-                        Text(option.rawValue.capitalized).tag(option)
+                        Text(option.label).tag(option)
                     }
                 }
                 .labelsHidden()
@@ -582,7 +598,7 @@ struct ContentView: View {
                 }
                 Picker(selection: $renderingModeOption) {
                     ForEach(RenderingModeOption.allCases) { option in
-                        Text(option.rawValue.capitalized).tag(option)
+                        Text(option.label).tag(option)
                     }
                 } label: {
                     Text("Rendering Mode")

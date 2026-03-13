@@ -74,27 +74,51 @@ grep -oE "\.[a-z]{2}[\.\"]" Sources/UniversalSFSymbolsPicker/Resources/SFSymbolD
 
 `Localizable.xcstrings` に新しい言語を追加したり、既存の翻訳を更新したりする場合は、可能な限り Apple の **SF Symbols アプリ** に含まれる公式の翻訳に合わせるため、スクリプトを作成する前に公式の翻訳データを参照する必要があります。
 
-ユーザーから「パッケージのローカライズに新しい言語を追加して」と聞かれた場合は次のようにして対処できます（このセクションはあくまでパッケージローカライズの話であり、デモアプリのローカライズとは異なります）。
+### 1. 公式翻訳データの検証と抽出
 
-### 1. 公式翻訳データの抽出方法
+`Utilities/check_localizations.py` を使用すると、パッケージ内の翻訳が SF Symbols アプリの公式データと一致しているか検証したり、新しい言語を追加するための公式データを抽出したりできます。
 
-SF Symbols アプリ内のフレームワークには、サイドバーで使用されているカテゴリ名（システムカテゴリ）の翻訳ファイルが含まれています。以下のコマンドを使用して、特定の言語の翻訳一覧を確認できます。
+**※ 注意:** このツールは **「システムカテゴリ名」** の翻訳のみを検証・抽出対象としています。その他の UI 文字列（「Search Icons...」など）は手動で確認する必要があります。
+
+#### 翻訳の検証 (パッケージ内データのチェック)
+
+引数なしで実行すると、現在 `Localizable.xcstrings` に登録されている全言語を検証します。言語コードを指定すると特定の言語のみを検証します。
 
 ```bash
-# 例: 日本語 (ja) の翻訳を抽出する場合
-plutil -p "/Applications/SF Symbols.app/Contents/Frameworks/SFSymbolsShared.framework/Versions/A/Resources/ja.lproj/CategoryTitles.strings"
+# 全言語を検証
+python3 Utilities/check_localizations.py
+
+# 特定の言語のみを検証
+python3 Utilities/check_localizations.py ja en zh-Hans
 ```
 
-※ アプリのパスが異なる場合は、実際のパスに合わせて調整してください。
+SF Symbols アプリが標準の場所（`/Applications`）にない場合は、`-p` または `--path` オプションでパスを指定できます。`.app` パスを指定した場合は、内部のリソースフォルダが自動的に探索されます。
 
-### 2. 主要な翻訳キーの一覧
+```bash
+python3 Utilities/check_localizations.py -p "/Custom/Path/SF Symbols.app"
+```
 
-以下のキーが `Localizable.xcstrings` で管理されています。カテゴリ名は `CategoryTitles.strings` の値と一致させる必要があります。
+指定した言語が `Localizable.xcstrings` に存在しない場合はエラーが表示されます。
 
-- **システムカテゴリ:** `Accessibility`, `All`, `Arrows`, `Automotive`, `Camera & Photos`, `Commerce`, `Communication`, `Connectivity`, `Devices`, `Editing`, `Fitness`, `Gaming`, `Health`, `Home`, `Human`, `Indices`, `Keyboard`, `Maps`, `Math`, `Media`, `Nature`, `Objects & Tools`, `Privacy & Security`, `Shapes`, `Text Formatting`, `Time`, `Transportation`, `Weather`
-- **UI 文字列:** `All Symbols`, `Category`, `Category: %@`, `Custom Categories`, `Search Icons...`, `Select an Icon`, `System Categories`, `Cancel`, `Done`
+#### 公式データの抽出 (`-o` / `--original` オプション)
 
-### 3. 翻訳更新用スクリプトのサンプル
+このオプションの後に言語コードを指定すると、検証を行わず、SF Symbols アプリ内の公式カテゴリ名をそのまま表示します。新しい言語を `Localizable.xcstrings` に追加する前の下調べに役立ちます。
+
+```bash
+# ヒンディー語の公式カテゴリ名を表示
+python3 Utilities/check_localizations.py -o hi
+
+# 検証と抽出を同時に行う (jaを検証し、hiの公式データを表示)
+python3 Utilities/check_localizations.py ja -o hi
+```
+
+#### 言語コードのマッピングについて
+
+このスクリプトは、パッケージ側の言語コード（BCP 47形式、例: `zh-Hans`）を SF Symbols アプリのリソースフォルダ名（例: `zh_CN.lproj`）に自動的にマッピングします。単純な置換で解決できない特殊なケース（中国語など）は内部の `LANG_MAP_OVERRIDES` で管理されています。
+
+### 2. パッケージローカライズのメンテナンス手順
+
+ユーザーから「パッケージのローカライズに新しい言語を追加して」と聞かれた場合は次のようにして対処できます。
 
 新しい言語を追加する際は、以下の Python スクリプトをテンプレートとして使用すると、既存の JSON 構造を壊さずに安全に更新できます。
 
