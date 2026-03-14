@@ -288,6 +288,11 @@ struct ContentView: View {
                     variableValue: $variableValue,
                     searchText: $searchTextPopover
                 )
+                #if os(macOS)
+                .frame(width: 360, height: 500)
+                #elseif os(visionOS)
+                .frame(width: 440, height: 540)
+                #endif
             }
             #endif
         } header: {

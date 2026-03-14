@@ -375,13 +375,6 @@ public struct SFSymbolPicker: View {
                 }
                 #endif
         }
-        #if os(macOS)
-        .frame(width: 360, height: 500) // Fixed size for macOS popover
-        #elseif os(visionOS)
-        .frame(width: 440, height: 540) // Fixed size for visionOS popover
-        #else
-        .frame(minWidth: 320, minHeight: 400)
-        #endif
     }
 
     
