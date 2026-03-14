@@ -133,15 +133,7 @@ public struct SFSymbolPicker: View {
             selection = temp
         }
         
-        #if os(macOS)
         isPresented = false
-        dismiss()
-        presentationMode.wrappedValue.dismiss()
-        #elseif !os(tvOS)
-        isPresented = false
-        dismiss()
-        presentationMode.wrappedValue.dismiss()
-        #endif
     }
     
     /// Returns the icon for the currently selected category
