@@ -90,15 +90,21 @@ public final class SFSymbolService: Sendable {
     // MARK: - Dynamic Naming
     
     public func effectiveName(for name: String, limitVersion: Double? = nil) -> String? {
+        // First, ensure the symbol (or any of its aliases) was available within the specified version.
+        guard isAvailable(name, limitVersion: limitVersion) else {
+            return "questionmark.square.dashed"
+        }
+        
         let cluster = findSymbolCluster(startingWith: name)
         let sortedNames = cluster.sorted { a, b in
             let yearA = symbolToYear[a] ?? "0"
             let yearB = symbolToYear[b] ?? "0"
             return yearA.compare(yearB, options: .numeric) == .orderedDescending
         }
+        
         // Find the latest name that is individually available on the current OS.
-        // If no name is available, return a fallback icon.
-        return sortedNames.first { checkIndividualAvailability($0, limitVersion: limitVersion) } ?? "questionmark.square.dashed"
+        // We ignore limitVersion here because we want the most modern name supported by the device.
+        return sortedNames.first { checkIndividualAvailability($0, limitVersion: nil) } ?? "questionmark.square.dashed"
     }
     
     private func findSymbolCluster(startingWith name: String) -> Set<String> {

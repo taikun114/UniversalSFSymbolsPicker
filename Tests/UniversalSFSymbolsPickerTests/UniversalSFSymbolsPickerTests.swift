@@ -43,11 +43,15 @@ struct SFSymbolServiceTests {
         // "arrow.clockwise.heart" was introduced in 2.0 (2020)
         // Its newer name "arrow.trianglehead.clockwise.heart" was introduced in 6.0 (2024)
         if service.allSymbols.contains("arrow.trianglehead.clockwise.heart") {
-            // If we limit to 2.0, it should return "arrow.clockwise.heart"
+            // New behavior: even if we limit to 2.0, if the current OS supports 6.0, 
+            // effectiveName should return the latest name "arrow.trianglehead.clockwise.heart" 
+            // because the symbol itself was known in 2.0 (as arrow.clockwise.heart).
             let name20 = service.effectiveName(for: "arrow.trianglehead.clockwise.heart", limitVersion: 2.0)
-            #expect(name20 == "arrow.clockwise.heart")
             
-            // If we allow up to 6.0, it should return "arrow.trianglehead.clockwise.heart"
+            // Since we are running on a recent macOS (26.3.1), it should return the latest name.
+            #expect(name20 == "arrow.trianglehead.clockwise.heart")
+            
+            // On the same OS, limitVersion 6.0 also returns the latest name.
             let name60 = service.effectiveName(for: "arrow.clockwise.heart", limitVersion: 6.0)
             #expect(name60 == "arrow.trianglehead.clockwise.heart")
         }
