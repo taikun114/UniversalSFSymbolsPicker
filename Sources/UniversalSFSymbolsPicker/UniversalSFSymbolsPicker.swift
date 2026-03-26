@@ -410,23 +410,43 @@ public struct SFSymbolPicker: View {
                     .frame(height: 0)
                     .id("top_anchor")
                 
-                LazyVGrid(columns: columns, spacing: spacing) {
-                    ForEach(displayedSymbols, id: \.self) { name in
-                        symbolButton(for: name)
-                            .onAppear {
-                                if name == displayedSymbols.last {
-                                    loadNextPage()
-                                }
+                if displayedSymbols.isEmpty {
+                    VStack {
+                        if !searchText.isEmpty {
+                            ContentUnavailableView.search(text: searchText)
+                        } else {
+                            // Displayed when a category is empty or no results found without search text
+                            ContentUnavailableView {
+                                Label(
+                                    String(localized: "No Icons Found", bundle: .module),
+                                    systemImage: "magnifyingglass"
+                                )
+                            } description: {
+                                Text(String(localized: "Try selecting a different category or adjusting your filters.", bundle: .module))
                             }
+                        }
                     }
+                    .frame(maxWidth: .infinity)
+                    .containerRelativeFrame(.vertical)
+                } else {
+                    LazyVGrid(columns: columns, spacing: spacing) {
+                        ForEach(displayedSymbols, id: \.self) { name in
+                            symbolButton(for: name)
+                                .onAppear {
+                                    if name == displayedSymbols.last {
+                                        loadNextPage()
+                                    }
+                                }
+                        }
+                    }
+                    .padding(.horizontal, spacing)
+                    #if os(tvOS)
+                    .padding(.bottom, 200) // Ensure enough bottom padding for tvOS
+                    #else
+                    .padding(.top, ((showSearchBar || showCategoryPicker) && effectiveControlBarPosition == .top) ? 0 : spacing)
+                    .padding(.bottom, (showAs == .sheet && effectiveControlBarPosition == .bottom) || showAs == .sheet ? 0 : spacing)
+                    #endif
                 }
-                .padding(.horizontal, spacing)
-                #if os(tvOS)
-                .padding(.bottom, 200) // Ensure enough bottom padding for tvOS
-                #else
-                .padding(.top, ((showSearchBar || showCategoryPicker) && effectiveControlBarPosition == .top) ? 0 : spacing)
-                .padding(.bottom, (showAs == .sheet && effectiveControlBarPosition == .bottom) || showAs == .sheet ? 0 : spacing)
-                #endif
             }
             .onChange(of: selectedCategoryID) { _, _ in
                 updateFilteredSymbols()
