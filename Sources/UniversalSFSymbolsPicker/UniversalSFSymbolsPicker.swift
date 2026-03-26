@@ -583,6 +583,7 @@ public struct SFSymbolPicker: View {
         .accessibilityLabel(String(localized: "Category Button", bundle: .module))
         .accessibilityHint(String(localized: "Changes the icon category. Current category: \(currentCategoryLabel)", bundle: .module))
         .help(String(localized: "Changes the icon category. Current category: \(currentCategoryLabel)", bundle: .module))
+        .labelStyle(.titleAndIcon)
     }
     
     private var popoverCategoryPicker: some View {
@@ -644,6 +645,7 @@ public struct SFSymbolPicker: View {
         .accessibilityLabel(String(localized: "Category Button", bundle: .module))
         .accessibilityHint(String(localized: "Changes the icon category. Current category: \(currentCategoryLabel)", bundle: .module))
         .help(String(localized: "Changes the icon category. Current category: \(currentCategoryLabel)", bundle: .module))
+        .labelStyle(.titleAndIcon)
     }
     
     #if os(macOS)
