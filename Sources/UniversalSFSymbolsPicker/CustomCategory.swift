@@ -6,24 +6,31 @@ public struct CustomCategory: Identifiable, Hashable, Sendable {
     public let id: UUID
     public let label: String
     public let icon: String
-    
+
     /// Explicit list of symbol names included in this category.
     public let symbols: [String]
-    
+
     /// List of system category IDs (e.g., "devices", "gaming") to be included in this category.
     public let systemCategories: [String]
-    
+
+    /// List of specific symbol names to be excluded from this category.
+    /// This is useful for removing specific symbols when including entire system categories.
+    public let excludedSymbols: [String]
+
     public init(
         id: UUID = UUID(),
         label: String,
         icon: String,
         symbols: [String] = [],
-        systemCategories: [String] = []
+        systemCategories: [String] = [],
+        excludedSymbols: [String] = []
     ) {
         self.id = id
         self.label = label
         self.icon = icon
         self.symbols = symbols
         self.systemCategories = systemCategories
+        self.excludedSymbols = excludedSymbols
     }
 }
+

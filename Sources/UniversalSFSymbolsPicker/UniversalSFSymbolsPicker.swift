@@ -772,9 +772,20 @@ public struct SFSymbolPicker: View {
     @ViewBuilder
     private var systemCategoriesContent: some View {
         let systemCategoriesTitle = String(localized: "System Categories", bundle: .module)
-        Picker(systemCategoriesTitle, selection: $selectedCategoryID) {
-            ForEach(service.systemCategories) { cat in
-                if cat.id != "all" {
+        let filteredCategories = service.systemCategories.filter { cat in
+            if cat.id == "all" { return false }
+            if let included = includedCategories, !included.contains(cat.id) {
+                return false
+            }
+            if let excluded = excludedCategories, excluded.contains(cat.id) {
+                return false
+            }
+            return true
+        }
+        
+        if !filteredCategories.isEmpty {
+            Picker(systemCategoriesTitle, selection: $selectedCategoryID) {
+                ForEach(filteredCategories) { cat in
                     let iconName = service.effectiveName(for: cat.icon, limitVersion: sfSymbolsVersion) ?? "square.grid.2x2"
                     Label(
                         String(localized: String.LocalizationValue(cat.label), bundle: .module),
@@ -782,22 +793,35 @@ public struct SFSymbolPicker: View {
                     ).tag(cat.id)
                 }
             }
+            .pickerStyle(.inline)
+            .adaptiveLabelsVisibility(showCategorySectionLabel ? .visible : .hidden)
         }
-        .pickerStyle(.inline)
-        .adaptiveLabelsVisibility(showCategorySectionLabel ? .visible : .hidden)
     }
     
     @ViewBuilder
     private var customCategoriesContent: some View {
         let customCategoriesTitle = String(localized: "Custom Categories", bundle: .module)
-        Picker(customCategoriesTitle, selection: $selectedCategoryID) {
-            ForEach(customCategories) { cat in
-                let iconName = service.effectiveName(for: cat.icon, limitVersion: sfSymbolsVersion) ?? "square.grid.2x2"
-                Label(cat.label, systemImage: iconName).tag(cat.id.uuidString)
+        let filteredCustom = customCategories.filter { cat in
+            let idString = cat.id.uuidString
+            if let included = includedCategories, !included.contains(idString) {
+                return false
             }
+            if let excluded = excludedCategories, excluded.contains(idString) {
+                return false
+            }
+            return true
         }
-        .pickerStyle(.inline)
-        .adaptiveLabelsVisibility(showCategorySectionLabel ? .visible : .hidden)
+        
+        if !filteredCustom.isEmpty {
+            Picker(customCategoriesTitle, selection: $selectedCategoryID) {
+                ForEach(filteredCustom) { cat in
+                    let iconName = service.effectiveName(for: cat.icon, limitVersion: sfSymbolsVersion) ?? "square.grid.2x2"
+                    Label(cat.label, systemImage: iconName).tag(cat.id.uuidString)
+                }
+            }
+            .pickerStyle(.inline)
+            .adaptiveLabelsVisibility(showCategorySectionLabel ? .visible : .hidden)
+        }
     }
     
     private var doneButton: some View {

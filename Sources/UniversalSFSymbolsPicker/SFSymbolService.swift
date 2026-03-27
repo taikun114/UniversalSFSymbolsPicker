@@ -176,25 +176,59 @@ public final class SFSymbolService: Sendable {
         limitVersion: Double? = nil
     ) -> [String] {
         var baseSymbols: Set<String>
+        var explicitCustomSymbols = Set<String>()
+        var customExcludedSymbols = Set<String>()
         
         if categoryID == "all" {
             baseSymbols = Set(allSymbols)
         } else if let custom = customCategories.first(where: { $0.id.uuidString == categoryID }) {
-            baseSymbols = Set(custom.symbols)
+            explicitCustomSymbols = Set(custom.symbols)
+            customExcludedSymbols = Set(custom.excludedSymbols)
+            baseSymbols = explicitCustomSymbols
             for sysID in custom.systemCategories {
                 baseSymbols.formUnion(symbolsInSystemCategory(sysID))
             }
+            // Apply local exclusion defined in CustomCategory
+            baseSymbols.subtract(customExcludedSymbols)
         } else {
             baseSymbols = symbolsInSystemCategory(categoryID)
         }
         
-        if let included = includedIDs {
-            let allowed = Set(included.flatMap { symbolsInSystemCategory($0) })
-            baseSymbols.formIntersection(allowed)
+        func resolveSymbols(for ids: [String]) -> Set<String> {
+            var result = Set<String>()
+            for id in ids {
+                // Check system categories
+                result.formUnion(symbolsInSystemCategory(id))
+                // Check custom categories
+                if let custom = customCategories.first(where: { $0.id.uuidString == id }) {
+                    result.formUnion(Set(custom.symbols).subtracting(custom.excludedSymbols))
+                    for sysID in custom.systemCategories {
+                        result.formUnion(symbolsInSystemCategory(sysID).subtracting(custom.excludedSymbols))
+                    }
+                }
+            }
+            return result
         }
+        
+        if let included = includedIDs {
+            let allowed = resolveSymbols(for: included)
+            if categoryID == "all" {
+                baseSymbols.formIntersection(allowed)
+            }
+            // Always keep explicitly listed symbols in the selected custom category
+            baseSymbols.formUnion(explicitCustomSymbols.subtracting(customExcludedSymbols))
+        }
+        
         if let excluded = excludedIDs {
-            let forbidden = Set(excluded.flatMap { symbolsInSystemCategory($0) })
-            baseSymbols.subtract(forbidden)
+            let forbidden = resolveSymbols(for: excluded)
+            // Remove forbidden symbols
+            if categoryID == "all" {
+                baseSymbols.subtract(forbidden)
+            } else {
+                // If a specific category is selected, it can override global exclusion 
+                // ONLY IF the symbol is explicitly listed in its 'symbols' array.
+                baseSymbols.subtract(forbidden.subtracting(explicitCustomSymbols))
+            }
         }
         
         if excludeRestricted {

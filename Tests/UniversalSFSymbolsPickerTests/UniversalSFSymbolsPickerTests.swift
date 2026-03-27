@@ -152,4 +152,84 @@ struct SFSymbolServiceTests {
             #expect(all.contains("audio.jack.mono"))
         }
     }
+
+    @Test("Exclusion priority between 'all' and custom categories")
+    func testExclusionPriority() {
+        // 1. Define a "Hidden" category to act as a global exclusion filter
+        let hiddenID = UUID()
+        let hiddenCat = CustomCategory(
+            id: hiddenID,
+            label: "Hidden",
+            icon: "xmark",
+            symbols: ["figure.wave"]
+        )
+        
+        // 2. Define a "Custom Map" category that explicitly includes the excluded icon
+        let mapID = UUID()
+        let customMap = CustomCategory(
+            id: mapID,
+            label: "Custom Map",
+            icon: "map",
+            symbols: ["figure.wave"], // Explicitly "rescues" the icon
+            systemCategories: ["maps"]
+        )
+        
+        let customCategories = [hiddenCat, customMap]
+        let excludedIDs = [hiddenID.uuidString]
+        
+        // CASE A: 'all' category
+        let allSymbols = service.symbols(
+            for: "all",
+            customCategories: customCategories,
+            excludedIDs: excludedIDs
+        )
+        // figure.wave should be ABSENT in 'all' because it's in the excluded list
+        #expect(!allSymbols.contains("figure.wave"))
+        
+        // CASE B: 'Custom Map' category
+        let mapSymbols = service.symbols(
+            for: mapID.uuidString,
+            customCategories: customCategories,
+            excludedIDs: excludedIDs
+        )
+        // figure.wave should be PRESENT here because it's explicitly in the 'symbols' array
+        #expect(mapSymbols.contains("figure.wave"))
+    }
+
+    @Test("CustomCategory independent excludedSymbols")
+    func testCustomCategoryExcludedSymbols() {
+        let customID = UUID()
+        let customCat = CustomCategory(
+            id: customID,
+            label: "Test",
+            icon: "star",
+            systemCategories: ["nature"],
+            excludedSymbols: ["leaf.fill"] // should be removed from the list
+        )
+        
+        let symbols = service.symbols(for: customID.uuidString, customCategories: [customCat])
+        
+        // 1. Other nature symbols should be present
+        #expect(symbols.contains("ant.fill"))
+        // 2. The specifically excluded symbol should be absent
+        #expect(!symbols.contains("leaf.fill"))
+    }
+
+    @Test("Completely empty custom category")
+    func testEmptyCategory() {
+        let emptyID = UUID()
+        let emptyCat = CustomCategory(
+            id: emptyID,
+            label: "Empty",
+            icon: "circle",
+            symbols: [],
+            systemCategories: [],
+            excludedSymbols: []
+        )
+        
+        let symbols = service.symbols(for: emptyID.uuidString, customCategories: [emptyCat])
+        
+        // Should be completely empty
+        #expect(symbols.isEmpty)
+    }
 }

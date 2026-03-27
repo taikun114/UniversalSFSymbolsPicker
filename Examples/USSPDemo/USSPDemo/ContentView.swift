@@ -94,6 +94,18 @@ struct ContentView: View {
             icon: "map",
             symbols: ["star.fill"],
             systemCategories: ["maps", "transportation"]
+        ),
+        CustomCategory(
+            label: String(localized: "Exclusion Filter (Nature - leaf.fill)"),
+            icon: "leaf",
+            systemCategories: ["nature"],
+            excludedSymbols: ["leaf.fill"] // Exclude specifically leaf.fill from nature
+        ),
+        CustomCategory(
+            label: String(localized: "Empty Category (Test)"),
+            icon: "circle.dashed",
+            symbols: [],
+            systemCategories: []
         )
     ]
     
