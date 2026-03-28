@@ -58,6 +58,7 @@ struct ContentView: View {
     // デモ用の設定
     @State private var variableValue: Double? = 1.0
     @State private var renderingModeOption: RenderingModeOption = .monochrome
+    @State private var isGradient = false
     @State private var primaryColor: Color = .blue
     @State private var secondaryColor: Color = .red
     @State private var tertiaryColor: Color = .green
@@ -173,6 +174,7 @@ struct ContentView: View {
                     customCategories: demoCustomCategories,
                     excludeRestricted: excludeRestricted,
                     renderingMode: renderingModeOption.mode,
+                    isGradient: isGradient,
                     primaryColor: usePrimaryColor ? primaryColor : .primary,
                     secondaryColor: useSecondaryColor ? secondaryColor : nil,
                     tertiaryColor: useTertiaryColor ? tertiaryColor : nil,
@@ -186,6 +188,7 @@ struct ContentView: View {
                         Image(systemName: icon, variableValue: variableValue)
                             .font(.headline)
                             .symbolRenderingMode(renderingModeOption.mode)
+                            .adaptiveSymbolColorRenderingMode(isGradient)
                             .foregroundStyle(
                                 usePrimaryColor ? primaryColor : .primary,
                                 useSecondaryColor ? secondaryColor : (usePrimaryColor ? primaryColor : .primary),
@@ -223,6 +226,7 @@ struct ContentView: View {
                         Image(systemName: icon, variableValue: variableValue)
                             .font(.title)
                             .symbolRenderingMode(renderingModeOption.mode)
+                            .adaptiveSymbolColorRenderingMode(isGradient)
                             .foregroundStyle(
                                 usePrimaryColor ? primaryColor : .primary,
                                 useSecondaryColor ? secondaryColor : (usePrimaryColor ? primaryColor : .primary),
@@ -267,6 +271,7 @@ struct ContentView: View {
                         customCategories: demoCustomCategories,
                         excludeRestricted: excludeRestricted,
                         renderingMode: renderingModeOption.mode,
+                        isGradient: isGradient,
                         primaryColor: usePrimaryColor ? primaryColor : .primary,
                         secondaryColor: useSecondaryColor ? secondaryColor : nil,
                         tertiaryColor: useTertiaryColor ? tertiaryColor : nil,
@@ -294,6 +299,7 @@ struct ContentView: View {
                     customCategories: demoCustomCategories,
                     excludeRestricted: excludeRestricted,
                     renderingMode: renderingModeOption.mode,
+                    isGradient: isGradient,
                     primaryColor: usePrimaryColor ? primaryColor : .primary,
                     secondaryColor: useSecondaryColor ? secondaryColor : nil,
                     tertiaryColor: useTertiaryColor ? tertiaryColor : nil,
@@ -638,6 +644,18 @@ struct ContentView: View {
             }
             #endif
             
+            Toggle(isOn: $isGradient) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Gradient")
+                    Text("Enable gradient rendering for symbols (iOS 26.0+, macOS 26.0+, tvOS 26.0+, watchOS 26.0+, visionOS 26.0+).")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            #if os(tvOS)
+            .padding(.vertical, 8)
+            #endif
+            
             Toggle(isOn: $usePrimaryColor) {
                 Text("Primary Color")
             }
@@ -695,6 +713,19 @@ private extension View {
     func adaptiveButtonSizingFlexible() -> some View {
         if #available(iOS 26.0, macOS 26.0, tvOS 26.0, watchOS 26.0, visionOS 26.0, *) {
             self.buttonSizing(.flexible)
+        } else {
+            self
+        }
+    }
+    
+    @ViewBuilder
+    func adaptiveSymbolColorRenderingMode(_ isGradient: Bool) -> some View {
+        if #available(iOS 26.0, macOS 26.0, tvOS 26.0, watchOS 26.0, visionOS 26.0, *) {
+            if isGradient {
+                self.symbolColorRenderingMode(.gradient)
+            } else {
+                self.symbolColorRenderingMode(.flat)
+            }
         } else {
             self
         }

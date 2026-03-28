@@ -53,6 +53,7 @@ public struct SFSymbolPicker: View {
     
     // Rendering & Style
     let renderingMode: SymbolRenderingMode
+    let isGradient: Bool
     let primaryColor: Color
     let secondaryColor: Color?
     let tertiaryColor: Color?
@@ -232,6 +233,7 @@ public struct SFSymbolPicker: View {
         excludeRestricted: Bool = false,
         sfSymbolsVersion: Double? = nil,
         renderingMode: SymbolRenderingMode = .monochrome,
+        isGradient: Bool = false,
         primaryColor: Color = .primary,
         secondaryColor: Color? = nil,
         tertiaryColor: Color? = nil,
@@ -256,6 +258,7 @@ public struct SFSymbolPicker: View {
         self.excludeRestricted = excludeRestricted
         self.sfSymbolsVersion = sfSymbolsVersion
         self.renderingMode = renderingMode
+        self.isGradient = isGradient
         self.primaryColor = primaryColor
         self.secondaryColor = secondaryColor
         self.tertiaryColor = tertiaryColor
@@ -486,6 +489,7 @@ public struct SFSymbolPicker: View {
             Image(systemName: name, variableValue: variableValue)
                 .font(.system(size: iconSize))
                 .symbolRenderingMode(renderingMode)
+                .adaptiveSymbolColorRenderingMode(isGradient)
                 #if !os(tvOS)
                 .foregroundStyle(
                     isProvisionallySelected ? AnyShapeStyle(Color.white) : AnyShapeStyle(primaryColor)
@@ -975,6 +979,19 @@ public enum AdaptiveLabelsVisibility: Sendable {
 }
 
 private extension View {
+    @ViewBuilder
+    func adaptiveSymbolColorRenderingMode(_ isGradient: Bool) -> some View {
+        if #available(iOS 26.0, macOS 26.0, tvOS 26.0, watchOS 26.0, visionOS 26.0, *) {
+            if isGradient {
+                self.symbolColorRenderingMode(.gradient)
+            } else {
+                self.symbolColorRenderingMode(.flat)
+            }
+        } else {
+            self
+        }
+    }
+    
     @ViewBuilder
     func adaptiveLabelsVisibility(_ visibility: AdaptiveLabelsVisibility) -> some View {
         if #available(iOS 18.0, macOS 15.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *) {
