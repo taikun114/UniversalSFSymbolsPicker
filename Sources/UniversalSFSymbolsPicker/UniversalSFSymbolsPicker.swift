@@ -74,6 +74,7 @@ public struct SFSymbolPicker: View {
     @State private var temporarySelection: String?
     @State private var lastTapTime: Date = .distantPast
     @State private var lastTapName: String? = nil
+    @FocusState private var isSearchFieldFocused: Bool
     
     // Pagination State
     @State private var allFilteredSymbols: [String] = []
@@ -513,7 +514,28 @@ public struct SFSymbolPicker: View {
         }
         .frame(maxWidth: .infinity)
         .padding(8)
+        .background {
+            #if os(tvOS)
+            if isSelected {
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(primaryColor, lineWidth: 6)
+                    .padding(-12)
+            }
+            #else
+            if isProvisionallySelected {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.accentColor)
+            } else if isSelected {
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color.accentColor, lineWidth: 2)
+            }
+            #endif
+        }
+        #if os(visionOS) || os(iOS)
+        .contentShape(RoundedRectangle(cornerRadius: 10))
+        #else
         .contentShape(Rectangle())
+        #endif
         
         // Construct accessibility label based on status
         var accessibilityLabelContent = name
@@ -523,7 +545,7 @@ public struct SFSymbolPicker: View {
             accessibilityLabelContent += ", " + String(localized: "Provisionally selected", bundle: .module)
         }
         
-        return Button {
+        let tapAction = {
             #if os(tvOS)
             // Update selection without closing automatically on tvOS
             temporarySelection = name
@@ -558,25 +580,28 @@ public struct SFSymbolPicker: View {
             lastTapTime = now
             lastTapName = name
             #endif
-        } label: {
+        }
+        
+        #if os(visionOS) || os(iOS)
+        return content
+            .contentShape(RoundedRectangle(cornerRadius: 10))
+            .hoverEffect(.highlight)
+            .onTapGesture(perform: tapAction)
+            .help(name)
+            .accessibilityElement(children: .combine)
+            .accessibilityAddTraits(.isButton)
+            .accessibilityLabel(accessibilityLabelContent)
+            .accessibilityValue(Text(verbatim: ""))
+            .accessibilityHint(
+                isSelected ? "" : (
+                    isProvisionallySelected
+                    ? String(localized: "To confirm selection with this icon, double-tap or double-click", bundle: .module)
+                    : String(localized: "Single-tap or single-click to provisionally select, double-tap or double-click to confirm selection", bundle: .module)
+                )
+            )
+        #else
+        return Button(action: tapAction) {
             content
-                .background {
-                    #if os(tvOS)
-                    if isSelected {
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(primaryColor, lineWidth: 6)
-                            .padding(-12)
-                    }
-                    #else
-                    if isProvisionallySelected {
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(Color.accentColor)
-                    } else if isSelected {
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(Color.accentColor, lineWidth: 2)
-                    }
-                    #endif
-                }
         }
         .buttonStyle(.plain)
         .help(name)
@@ -590,6 +615,7 @@ public struct SFSymbolPicker: View {
                 : String(localized: "Single-tap or single-click to provisionally select, double-tap or double-click to confirm selection", bundle: .module)
             )
         )
+        #endif
     }
     
     private var sheetCategoryPicker: some View {
@@ -907,9 +933,11 @@ public struct SFSymbolPicker: View {
                             .accessibilityHidden(true)
                         
                         TextField(prompt, text: $searchText)
+                            .focused($isSearchFieldFocused)
                             .textFieldStyle(.plain)
                             .background(Color.clear)
                             .accessibilityLabel(prompt)
+                            .adaptiveHoverEffectDisabled(showAs == .popover)
                         
                         if !searchText.isEmpty {
                             Button {
@@ -931,6 +959,11 @@ public struct SFSymbolPicker: View {
                     Capsule()
                         .stroke(colorSchemeContrast == .increased ? Color.primary : Color.gray.opacity(0.3), lineWidth: colorSchemeContrast == .increased ? 2 : 1)
                 )
+                .contentShape(Capsule())
+                .onTapGesture {
+                    isSearchFieldFocused = true
+                }
+                .adaptiveSearchBarHoverEffect(isEnabled: showAs == .popover)
             }
 
             if showCategoryPicker && showAs == .popover {
@@ -1109,6 +1142,28 @@ private extension View {
         #if os(macOS) || os(iOS)
         if #available(iOS 26.0, macOS 26.0, *) {
             self.scrollEdgeEffectStyle(.soft, for: .all)
+        } else {
+            self
+        }
+        #else
+        self
+        #endif
+    }
+    
+    @ViewBuilder
+    func adaptiveHoverEffectDisabled(_ disabled: Bool) -> some View {
+        #if os(visionOS) || os(iOS)
+        self.hoverEffectDisabled(disabled)
+        #else
+        self
+        #endif
+    }
+    
+    @ViewBuilder
+    func adaptiveSearchBarHoverEffect(isEnabled: Bool) -> some View {
+        #if os(visionOS)
+        if isEnabled {
+            self.hoverEffect(.highlight)
         } else {
             self
         }
