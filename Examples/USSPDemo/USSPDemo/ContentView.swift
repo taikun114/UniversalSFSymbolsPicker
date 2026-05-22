@@ -66,6 +66,7 @@ struct ContentView: View {
     @State private var useSecondaryColor = false
     @State private var useTertiaryColor = false
     @State private var excludeRestricted = false
+    @State private var iconScale: Int = 5
     
     // Custom Categories for Demo
     private let demoCustomCategories = [
@@ -111,6 +112,16 @@ struct ContentView: View {
     ]
     
     // プラットフォームごとのレイアウト調整用プロパティ
+    private func formatScaleMultiplier(_ scale: Int) -> String {
+        let multiplier: Double
+        if scale <= 5 {
+            multiplier = 0.5 + Double(scale - 1) * 0.125
+        } else {
+            multiplier = 1.0 + Double(scale - 5) * 0.2
+        }
+        return String(format: "%.2fx", multiplier)
+    }
+
     private var selectedIconSpacing: CGFloat {
         #if os(tvOS)
         return 30
@@ -179,7 +190,8 @@ struct ContentView: View {
                     secondaryColor: useSecondaryColor ? secondaryColor : nil,
                     tertiaryColor: useTertiaryColor ? tertiaryColor : nil,
                     variableValue: $variableValue,
-                    searchText: $searchTextSheet
+                    searchText: $searchTextSheet,
+                    iconScale: iconScale
                 )
                 .conditionalSearchable(show: showSearchBar && searchBarStyle == .searchable, text: $searchTextSheet)
             } label: {
@@ -276,7 +288,8 @@ struct ContentView: View {
                         secondaryColor: useSecondaryColor ? secondaryColor : nil,
                         tertiaryColor: useTertiaryColor ? tertiaryColor : nil,
                         variableValue: $variableValue,
-                        searchText: $searchTextSheet
+                        searchText: $searchTextSheet,
+                        iconScale: iconScale
                     )
                 }
                 .conditionalSearchable(show: showSearchBar && searchBarStyle == .searchable, text: $searchTextSheet)
@@ -304,7 +317,8 @@ struct ContentView: View {
                     secondaryColor: useSecondaryColor ? secondaryColor : nil,
                     tertiaryColor: useTertiaryColor ? tertiaryColor : nil,
                     variableValue: $variableValue,
-                    searchText: $searchTextPopover
+                    searchText: $searchTextPopover,
+                    iconScale: iconScale
                 )
                 #if os(macOS)
                 .frame(width: 360, height: 500)
@@ -553,6 +567,31 @@ struct ContentView: View {
                 }
             }
             #if os(tvOS)
+            .padding(.vertical, 8)
+            #endif
+            
+            #if !os(tvOS)
+            Stepper(value: $iconScale, in: 1...10) {
+                HStack {
+                    Text("Icon Scale: \(iconScale)")
+                    Spacer()
+                    Text(formatScaleMultiplier(iconScale))
+                        .foregroundStyle(.secondary)
+                }
+            }
+            #else
+            Picker(selection: $iconScale) {
+                ForEach(1...10, id: \.self) { val in
+                    Text("\(val) (\(formatScaleMultiplier(val)))").tag(val)
+                }
+            } label: {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Icon Scale")
+                    Text("Change the display size of icons in the grid.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
             .padding(.vertical, 8)
             #endif
         } header: {

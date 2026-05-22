@@ -37,6 +37,7 @@ public struct SFSymbolPicker: View {
     let showAs: SFSymbolPickerDisplayMode
     let controlBarPosition: SFSymbolPickerControlBarPosition
     let showSearchBar: Bool
+    let iconScale: Int
     
     let prompt: String
     let showCategoryPicker: Bool
@@ -67,6 +68,18 @@ public struct SFSymbolPicker: View {
         #else
         return controlBarPosition
         #endif
+    }
+    
+    /// The multiplier used for sizing elements based on the current icon scale.
+    private var scaleMultiplier: CGFloat {
+        let s = max(1, min(10, iconScale))
+        if s <= 5 {
+            // Maps 1...5 to 0.5...1.0
+            return 0.5 + CGFloat(s - 1) * 0.125
+        } else {
+            // Maps 5...10 to 1.0...2.0
+            return 1.0 + CGFloat(s - 5) * 0.2
+        }
     }
     
     // Internal State
@@ -239,7 +252,8 @@ public struct SFSymbolPicker: View {
         secondaryColor: Color? = nil,
         tertiaryColor: Color? = nil,
         variableValue: Binding<Double?> = .constant(nil),
-        searchText: Binding<String> = .constant("")
+        searchText: Binding<String> = .constant(""),
+        iconScale: Int = 5
     ) {
         self._isPresented = isPresented
         self._selection = selection
@@ -265,6 +279,7 @@ public struct SFSymbolPicker: View {
         self.tertiaryColor = tertiaryColor
         self._variableValue = variableValue
         self._searchText = searchText
+        self.iconScale = iconScale
         self._selectedCategoryID = State(initialValue: defaultCategory)
         self._temporarySelection = State(initialValue: selection.wrappedValue)
     }
@@ -378,11 +393,11 @@ public struct SFSymbolPicker: View {
     
     private var symbolGrid: some View {
         #if os(tvOS)
-        let minWidth: CGFloat = 160
-        let spacing: CGFloat = 80
+        let minWidth: CGFloat = 160 * scaleMultiplier
+        let spacing: CGFloat = 80 * scaleMultiplier
         #else
-        let minWidth: CGFloat = 65
-        let spacing: CGFloat = 20
+        let minWidth: CGFloat = 65 * scaleMultiplier
+        let spacing: CGFloat = 20 * scaleMultiplier
         #endif
         
         let columns = [GridItem(.adaptive(minimum: minWidth))]
@@ -479,11 +494,13 @@ public struct SFSymbolPicker: View {
         let isProvisionallySelected = (temporarySelection == name)
         
         #if os(tvOS)
-        let iconSize: CGFloat = 60 // Slightly larger for tvOS
-        let nameHeight: CGFloat = 64
+        let iconSize: CGFloat = 60 * scaleMultiplier // Slightly larger for tvOS
+        let nameHeight: CGFloat = max(48, 64 * scaleMultiplier)
+        let fontSize: CGFloat = max(16, 20 * scaleMultiplier)
         #else
-        let iconSize: CGFloat = 28
-        let nameHeight: CGFloat = 32
+        let iconSize: CGFloat = 28 * scaleMultiplier
+        let nameHeight: CGFloat = max(24, 32 * scaleMultiplier)
+        let fontSize: CGFloat = max(8, 10 * scaleMultiplier)
         #endif
         
         let content = VStack(spacing: 8) {
@@ -500,7 +517,7 @@ public struct SFSymbolPicker: View {
             if showIconName {
                 let displayLabel = name.replacingOccurrences(of: ".", with: ".\u{200B}")
                 Text(displayLabel)
-                    .font(.caption2)
+                    .font(.system(size: fontSize))
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
                     .minimumScaleFactor(0.8)
@@ -587,7 +604,7 @@ public struct SFSymbolPicker: View {
             .contentShape(RoundedRectangle(cornerRadius: 10))
             .hoverEffect(.highlight)
             .onTapGesture(perform: tapAction)
-            .help(name)
+            .adaptiveHelp(name, enabled: showIconName)
             .accessibilityElement(children: .combine)
             .accessibilityAddTraits(.isButton)
             .accessibilityLabel(accessibilityLabelContent)
@@ -604,7 +621,7 @@ public struct SFSymbolPicker: View {
             content
         }
         .buttonStyle(.plain)
-        .help(name)
+        .adaptiveHelp(name, enabled: showIconName)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(accessibilityLabelContent)
         .accessibilityValue(Text(verbatim: ""))
@@ -1157,6 +1174,15 @@ private extension View {
         #else
         self
         #endif
+    }
+    
+    @ViewBuilder
+    func adaptiveHelp(_ text: String, enabled: Bool) -> some View {
+        if enabled {
+            self.help(text)
+        } else {
+            self
+        }
     }
     
     @ViewBuilder

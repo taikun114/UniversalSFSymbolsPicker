@@ -233,3 +233,28 @@ struct SFSymbolServiceTests {
         #expect(symbols.isEmpty)
     }
 }
+
+@Suite("SFSymbolPicker Tests")
+@MainActor
+struct SFSymbolPickerTests {
+    @Test("Default iconScale initialization")
+    func testDefaultIconScale() {
+        let picker = SFSymbolPicker(
+            isPresented: .constant(true),
+            selection: .constant(nil),
+            showAs: .sheet
+        )
+        #expect(picker.iconScale == 5)
+    }
+
+    @Test("Custom iconScale initialization")
+    func testCustomIconScale() {
+        let picker = SFSymbolPicker(
+            isPresented: .constant(true),
+            selection: .constant(nil),
+            showAs: .sheet,
+            iconScale: 15
+        )
+        #expect(picker.iconScale == 15)
+    }
+}
