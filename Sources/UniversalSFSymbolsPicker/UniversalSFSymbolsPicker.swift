@@ -52,6 +52,10 @@ public struct SFSymbolPicker: View {
     let excludeRestricted: Bool
     let sfSymbolsVersion: Double?
     
+    // Recents Options
+    let showRecents: Bool
+    let maxRecents: Int
+    
     // Rendering & Style
     let renderingMode: SymbolRenderingMode
     let isGradient: Bool
@@ -82,12 +86,20 @@ public struct SFSymbolPicker: View {
         }
     }
     
+    private enum SelectionContext: Sendable {
+        case grid
+        case recents
+    }
+    
     // Internal State
     @State private var selectedCategoryID: String
     @State private var temporarySelection: String?
     @State private var lastTapTime: Date = .distantPast
     @State private var lastTapName: String? = nil
     @FocusState private var isSearchFieldFocused: Bool
+    @State private var recentSymbols: [String] = []
+    @State private var selectedContext: SelectionContext = .grid
+    @State private var isScrollingRecents = false
     
     // Pagination State
     @State private var allFilteredSymbols: [String] = []
@@ -95,6 +107,43 @@ public struct SFSymbolPicker: View {
     private let pageSize = 100
     
     private let service = SFSymbolService.shared
+    
+    /// Key used for storing recently used symbols in UserDefaults
+    private let recentsKey = "design.taikun.UniversalSFSymbolsPicker.recents"
+    
+    /// Loads the recently used symbols from UserDefaults
+    private func loadRecents() {
+        guard showRecents else {
+            recentSymbols = []
+            return
+        }
+        if let saved = UserDefaults.standard.stringArray(forKey: recentsKey) {
+            // Filter to ensure only available and non-restricted symbols under the current configuration are loaded
+            let available = saved.filter { name in
+                service.isAvailable(name, limitVersion: sfSymbolsVersion)
+            }
+            recentSymbols = Array(available.prefix(maxRecents))
+        }
+    }
+    
+    /// Adds a symbol to the recently used list and saves it to UserDefaults
+    private func addToRecents(_ name: String) {
+        guard showRecents else { return }
+        
+        // Remove if it already exists to move it to the front
+        recentSymbols.removeAll { $0 == name }
+        
+        // Add to the front
+        recentSymbols.insert(name, at: 0)
+        
+        // Trim to maxRecents
+        if recentSymbols.count > maxRecents {
+            recentSymbols = Array(recentSymbols.prefix(maxRecents))
+        }
+        
+        // Save to UserDefaults
+        UserDefaults.standard.set(recentSymbols, forKey: recentsKey)
+    }
     
     /// The standard height for bars and buttons, adjusted for each platform
     private var controlHeight: CGFloat {
@@ -146,6 +195,7 @@ public struct SFSymbolPicker: View {
     private func close(save: Bool = false) {
         if save, let temp = temporarySelection {
             selection = temp
+            addToRecents(temp)
         }
         
         isPresented = false
@@ -246,6 +296,8 @@ public struct SFSymbolPicker: View {
         customCategories: [CustomCategory] = [],
         excludeRestricted: Bool = false,
         sfSymbolsVersion: Double? = nil,
+        showRecents: Bool = false,
+        maxRecents: Int = 20,
         renderingMode: SymbolRenderingMode = .monochrome,
         isGradient: Bool = false,
         primaryColor: Color = .primary,
@@ -272,6 +324,8 @@ public struct SFSymbolPicker: View {
         self.customCategories = customCategories
         self.excludeRestricted = excludeRestricted
         self.sfSymbolsVersion = sfSymbolsVersion
+        self.showRecents = showRecents
+        self.maxRecents = maxRecents > 0 ? maxRecents : 20
         self.renderingMode = renderingMode
         self.isGradient = isGradient
         self.primaryColor = primaryColor
@@ -297,10 +351,16 @@ public struct SFSymbolPicker: View {
             #if os(tvOS)
             // On tvOS, selection is confirmed when leaving screen as there is no explicit done button
             selection = temporarySelection
+            if let temp = temporarySelection {
+                addToRecents(temp)
+            }
             #else
             // Confirmation on leaving for popover mode
             if showAs == .popover {
                 selection = temporarySelection
+                if let temp = temporarySelection {
+                    addToRecents(temp)
+                }
             }
             #endif
         }
@@ -429,6 +489,15 @@ public struct SFSymbolPicker: View {
                     .frame(height: 0)
                     .id("top_anchor")
                 
+                if showRecents {
+                    recentsView(spacing: spacing)
+                        .padding(.top, spacing / 2) // 余白を半分に減らすか削除する
+                    
+                    Divider()
+                        .padding(.horizontal, spacing)
+                        .padding(.vertical, spacing / 2)
+                }
+                
                 if displayedSymbols.isEmpty {
                     VStack {
                         if !searchText.isEmpty {
@@ -482,6 +551,7 @@ public struct SFSymbolPicker: View {
                 #endif
             }
             .onAppear {
+                loadRecents()
                 if displayedSymbols.isEmpty {
                     updateFilteredSymbols()
                 }
@@ -489,21 +559,25 @@ public struct SFSymbolPicker: View {
         }
     }
     
-    private func symbolButton(for name: String) -> some View {
+    private func symbolButton(for name: String, context: SelectionContext = .grid) -> some View {
         let isSelected = (selection == name)
-        let isProvisionallySelected = (temporarySelection == name)
+        let isProvisionallySelected = (temporarySelection == name && selectedContext == context)
+        
+        let recentsScaleFactor: CGFloat = (context == .recents) ? 0.65 : 1.0
         
         #if os(tvOS)
-        let iconSize: CGFloat = 60 * scaleMultiplier // Slightly larger for tvOS
-        let nameHeight: CGFloat = max(48, 64 * scaleMultiplier)
-        let fontSize: CGFloat = max(16, 20 * scaleMultiplier)
+        let iconSize: CGFloat = 60 * scaleMultiplier * recentsScaleFactor
+        let nameHeight: CGFloat = 64 * scaleMultiplier
+        let fontSize: CGFloat = 20 * scaleMultiplier
         #else
-        let iconSize: CGFloat = 28 * scaleMultiplier
-        let nameHeight: CGFloat = max(24, 32 * scaleMultiplier)
-        let fontSize: CGFloat = max(8, 10 * scaleMultiplier)
+        let iconSize: CGFloat = 28 * scaleMultiplier * recentsScaleFactor
+        let nameHeight: CGFloat = 32 * scaleMultiplier
+        let fontSize: CGFloat = 10 * scaleMultiplier
         #endif
         
-        let content = VStack(spacing: 8) {
+        let vstackSpacing: CGFloat = (context == .recents) ? 2 : 8
+        
+        let content = VStack(spacing: vstackSpacing) {
             Image(systemName: name, variableValue: variableValue)
                 .font(.system(size: iconSize))
                 .symbolRenderingMode(renderingMode)
@@ -530,7 +604,7 @@ public struct SFSymbolPicker: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(8)
+        .padding(8 * recentsScaleFactor)
         .background {
             #if os(tvOS)
             if isSelected {
@@ -540,16 +614,16 @@ public struct SFSymbolPicker: View {
             }
             #else
             if isProvisionallySelected {
-                RoundedRectangle(cornerRadius: 10)
+                RoundedRectangle(cornerRadius: 10 * recentsScaleFactor)
                     .fill(Color.accentColor)
             } else if isSelected {
-                RoundedRectangle(cornerRadius: 10)
+                RoundedRectangle(cornerRadius: 10 * recentsScaleFactor)
                     .stroke(Color.accentColor, lineWidth: 2)
             }
             #endif
         }
         #if os(visionOS) || os(iOS)
-        .contentShape(RoundedRectangle(cornerRadius: 10))
+        .contentShape(RoundedRectangle(cornerRadius: 10 * recentsScaleFactor))
         #else
         .contentShape(Rectangle())
         #endif
@@ -563,16 +637,19 @@ public struct SFSymbolPicker: View {
         }
         
         let tapAction = {
+            if context == .recents && isScrollingRecents { return }
             #if os(tvOS)
             // Update selection without closing automatically on tvOS
             temporarySelection = name
             selection = name
+            selectedContext = context
             #else
             let now = Date()
             let diff = now.timeIntervalSince(lastTapTime)
             
             // 1. Immediately update selection state
             temporarySelection = name
+            selectedContext = context
             
             // 2. Double-tap detection (same icon within 0.5s)
             if name == lastTapName && diff < 0.5 {
@@ -601,7 +678,7 @@ public struct SFSymbolPicker: View {
         
         #if os(visionOS) || os(iOS)
         return content
-            .contentShape(RoundedRectangle(cornerRadius: 10))
+            .contentShape(RoundedRectangle(cornerRadius: 10 * recentsScaleFactor))
             .hoverEffect(.highlight)
             .onTapGesture(perform: tapAction)
             .adaptiveHelp(name, enabled: showIconName)
@@ -617,10 +694,18 @@ public struct SFSymbolPicker: View {
                 )
             )
         #else
-        return Button(action: tapAction) {
-            content
+        // Use onTapGesture instead of Button for macOS recents to prevent Button from swallowing mouse drag events on ScrollView
+        return Group {
+            if context == .recents {
+                content
+                    .onTapGesture(perform: tapAction)
+            } else {
+                Button(action: tapAction) {
+                    content
+                }
+                .buttonStyle(.plain)
+            }
         }
-        .buttonStyle(.plain)
         .adaptiveHelp(name, enabled: showIconName)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(accessibilityLabelContent)
@@ -633,6 +718,60 @@ public struct SFSymbolPicker: View {
             )
         )
         #endif
+    }
+    
+    private func recentsView(spacing: CGFloat) -> some View {
+        #if os(tvOS)
+        let itemWidth: CGFloat = 130 * scaleMultiplier
+        #else
+        let itemWidth: CGFloat = 55 * scaleMultiplier
+        #endif
+        
+        return VStack(alignment: .leading, spacing: 8) {
+            Label(
+                String(localized: "Recently Used Icons", bundle: .module),
+                systemImage: service.effectiveName(for: "clock.arrow.trianglehead.counterclockwise.rotate.90", limitVersion: sfSymbolsVersion) ?? "clock"
+            )
+                .font(.headline)
+                .padding(.horizontal, spacing)
+            
+            if recentSymbols.isEmpty {
+                ZStack(alignment: .center) {
+                    // 実際の履歴アイコンと同じ高さを確保するためのダミービュー
+                    symbolButton(for: "star", context: .recents)
+                        .frame(width: itemWidth)
+                        .hidden()
+                    
+                    Text(String(localized: "No history available", bundle: .module))
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, spacing)
+                }
+                .padding(.vertical, 4)
+                .frame(maxWidth: .infinity, alignment: .center)
+            } else {
+                if #available(iOS 26.0, macOS 26.0, tvOS 26.0, watchOS 26.0, visionOS 26.0, *) {
+                    ModernRecentsScrollView(
+                        recentSymbols: recentSymbols,
+                        itemWidth: itemWidth,
+                        spacing: spacing,
+                        isScrollingRecents: $isScrollingRecents,
+                        symbolButtonBuilder: { name in
+                            AnyView(symbolButton(for: name, context: .recents))
+                        }
+                    )
+                } else {
+                    LegacyRecentsScrollView(
+                        recentSymbols: recentSymbols,
+                        itemWidth: itemWidth,
+                        spacing: spacing,
+                        symbolButtonBuilder: { name in
+                            AnyView(symbolButton(for: name, context: .recents))
+                        }
+                    )
+                }
+            }
+        }
     }
     
     private var sheetCategoryPicker: some View {
@@ -1010,6 +1149,79 @@ public struct SFSymbolPicker: View {
         #else
         return .secondary
         #endif
+    }
+}
+
+// MARK: - Recents Scroll Views
+
+@available(iOS 26.0, macOS 26.0, tvOS 26.0, watchOS 26.0, visionOS 26.0, *)
+private struct ModernRecentsScrollView: View {
+    let recentSymbols: [String]
+    let itemWidth: CGFloat
+    let spacing: CGFloat
+    @Binding var isScrollingRecents: Bool
+    let symbolButtonBuilder: (String) -> AnyView
+    
+    @State private var tagsScrollPos: ScrollPosition = ScrollPosition()
+    @State private var currentTagsOffset: CGPoint = .zero
+    @State private var dragStartOffset: CGPoint = .zero
+    
+    var body: some View {
+        ScrollView(.horizontal) {
+            LazyHStack(spacing: spacing) {
+                ForEach(recentSymbols, id: \.self) { name in
+                    symbolButtonBuilder(name)
+                        .frame(width: itemWidth)
+                }
+            }
+            .scrollTargetLayout()
+            .padding(.horizontal, spacing)
+            .padding(.vertical, 4)
+        }
+        .scrollPosition($tagsScrollPos)
+        #if os(macOS)
+        .onScrollGeometryChange(for: CGPoint.self) { geo in
+            geo.contentOffset
+        } action: { _, newValue in
+            currentTagsOffset = newValue
+        }
+        .highPriorityGesture(
+            DragGesture(minimumDistance: 5)
+                .onChanged { value in
+                    if !isScrollingRecents {
+                        isScrollingRecents = true
+                        dragStartOffset = currentTagsOffset
+                    }
+                    let deltaX = value.translation.width
+                    // スクロール位置を更新
+                    tagsScrollPos = ScrollPosition(point: CGPoint(x: dragStartOffset.x - deltaX, y: 0))
+                }
+                .onEnded { _ in
+                    isScrollingRecents = false
+                }
+        )
+        #endif
+        .scrollClipDisabled()
+    }
+}
+
+private struct LegacyRecentsScrollView: View {
+    let recentSymbols: [String]
+    let itemWidth: CGFloat
+    let spacing: CGFloat
+    let symbolButtonBuilder: (String) -> AnyView
+    
+    var body: some View {
+        ScrollView(.horizontal) {
+            LazyHStack(spacing: spacing) {
+                ForEach(recentSymbols, id: \.self) { name in
+                    symbolButtonBuilder(name)
+                        .frame(width: itemWidth)
+                }
+            }
+            .padding(.horizontal, spacing)
+            .padding(.vertical, 4)
+        }
     }
 }
 

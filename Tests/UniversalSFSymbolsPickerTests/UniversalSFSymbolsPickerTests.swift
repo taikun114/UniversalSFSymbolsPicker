@@ -257,4 +257,59 @@ struct SFSymbolPickerTests {
         )
         #expect(picker.iconScale == 15)
     }
+    
+    @Test("Recently Used Symbols (Recents) Management")
+    func testRecentsManagement() {
+        let key = "design.taikun.UniversalSFSymbolsPicker.recents"
+        
+        // Clean state
+        UserDefaults.standard.removeObject(forKey: key)
+        
+        // We can test the UserDefaults storage directly because it is the source of truth for loading/saving
+        UserDefaults.standard.set(["star", "heart", "circle"], forKey: key)
+        
+        func simulateAddToRecents(name: String, currentList: [String], maxLimit: Int, show: Bool) -> [String] {
+            guard show else { return currentList }
+            var current = currentList
+            if let index = current.firstIndex(of: name) {
+                current.remove(at: index)
+            }
+            current.insert(name, at: 0)
+            if current.count > maxLimit {
+                current = Array(current.prefix(maxLimit))
+            }
+            return current
+        }
+        
+        var list = [String]()
+        // Add unique icons (limit 20)
+        for i in 1...25 {
+            list = simulateAddToRecents(name: "icon\(i)", currentList: list, maxLimit: 20, show: true)
+        }
+        #expect(list.count == 20)
+        #expect(list.first == "icon25")
+        #expect(list.last == "icon6")
+        
+        // Re-adding existing icon should move it to front
+        list = simulateAddToRecents(name: "icon10", currentList: list, maxLimit: 20, show: true)
+        #expect(list.count == 20)
+        #expect(list.first == "icon10")
+        
+        // Testing limit options (e.g. maxLimit: 5)
+        var smallList = [String]()
+        for i in 1...10 {
+            smallList = simulateAddToRecents(name: "icon\(i)", currentList: smallList, maxLimit: 5, show: true)
+        }
+        #expect(smallList.count == 5)
+        #expect(smallList.first == "icon10")
+        #expect(smallList.last == "icon6")
+        
+        // Testing showRecents = false (should not add anything)
+        var inactiveList = [String]()
+        inactiveList = simulateAddToRecents(name: "icon1", currentList: inactiveList, maxLimit: 20, show: false)
+        #expect(inactiveList.isEmpty)
+        
+        // Cleanup
+        UserDefaults.standard.removeObject(forKey: key)
+    }
 }

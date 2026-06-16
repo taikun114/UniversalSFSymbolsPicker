@@ -67,6 +67,8 @@ struct ContentView: View {
     @State private var useTertiaryColor = false
     @State private var excludeRestricted = false
     @State private var iconScale: Int = 5
+    @State private var showRecents = false
+    @State private var maxRecents = 20
     
     // Custom Categories for Demo
     private let demoCustomCategories = [
@@ -184,6 +186,8 @@ struct ContentView: View {
                     showIconName: showIconName,
                     customCategories: demoCustomCategories,
                     excludeRestricted: excludeRestricted,
+                    showRecents: showRecents,
+                    maxRecents: maxRecents,
                     renderingMode: renderingModeOption.mode,
                     isGradient: isGradient,
                     primaryColor: usePrimaryColor ? primaryColor : .primary,
@@ -282,6 +286,8 @@ struct ContentView: View {
                         showIconName: showIconName,
                         customCategories: demoCustomCategories,
                         excludeRestricted: excludeRestricted,
+                        showRecents: showRecents,
+                        maxRecents: maxRecents,
                         renderingMode: renderingModeOption.mode,
                         isGradient: isGradient,
                         primaryColor: usePrimaryColor ? primaryColor : .primary,
@@ -311,6 +317,8 @@ struct ContentView: View {
                     showIconName: showIconName,
                     customCategories: demoCustomCategories,
                     excludeRestricted: excludeRestricted,
+                    showRecents: showRecents,
+                    maxRecents: maxRecents,
                     renderingMode: renderingModeOption.mode,
                     isGradient: isGradient,
                     primaryColor: usePrimaryColor ? primaryColor : .primary,
@@ -573,9 +581,9 @@ struct ContentView: View {
             #if !os(tvOS)
             Stepper(value: $iconScale, in: 1...10) {
                 HStack {
-                    Text("Icon Scale: \(iconScale)")
+                    Text("Icon Scale: \(formatScaleMultiplier(iconScale))")
                     Spacer()
-                    Text(formatScaleMultiplier(iconScale))
+                    Text("\(iconScale)")
                         .foregroundStyle(.secondary)
                 }
             }
@@ -592,6 +600,47 @@ struct ContentView: View {
                         .foregroundStyle(.secondary)
                 }
             }
+            .padding(.vertical, 8)
+            #endif
+            
+            Toggle("Show Recents", isOn: $showRecents)
+                #if os(tvOS)
+                .padding(.vertical, 8)
+                #endif
+            
+            if showRecents {
+                #if !os(tvOS)
+                Stepper(value: $maxRecents, in: 1...100) {
+                    HStack {
+                        Text("Max Recents")
+                        Spacer()
+                        Text("\(maxRecents)")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                #else
+                Picker(selection: $maxRecents) {
+                    ForEach(Array(stride(from: 1, through: 100, by: 1)), id: \.self) { val in
+                        Text("\(val)").tag(val)
+                    }
+                } label: {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Max Recents")
+                        Text("Change the maximum number of recently used icons.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .padding(.vertical, 8)
+                #endif
+            }
+            
+            Button(role: .destructive) {
+                UserDefaults.standard.removeObject(forKey: "design.taikun.UniversalSFSymbolsPicker.recents")
+            } label: {
+                Text("Reset Recently Used Icons")
+            }
+            #if os(tvOS)
             .padding(.vertical, 8)
             #endif
         } header: {
