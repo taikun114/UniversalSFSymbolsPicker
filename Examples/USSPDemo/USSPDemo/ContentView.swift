@@ -1,7 +1,7 @@
 import SwiftUI
 import UniversalSFSymbolsPicker
 
-// SymbolRenderingMode は Hashable ではないため、デモ用にラップする enum を定義
+// Wrapper enum for SymbolRenderingMode since it is not Hashable
 enum RenderingModeOption: String, CaseIterable, Identifiable {
     case monochrome, hierarchical, palette, multicolor
     var id: String { rawValue }
@@ -39,6 +39,7 @@ enum SearchBarStyle: String, CaseIterable, Identifiable {
 }
 
 struct ContentView: View {
+    @Environment(\.openWindow) private var openWindow
     @State private var selectedIcon: String? = "star.fill"
     @State private var pickerMode: SFSymbolPickerDisplayMode = .sheet
     @State private var controlBarPosition: SFSymbolPickerControlBarPosition = .bottom
@@ -55,7 +56,7 @@ struct ContentView: View {
     @State private var categoryLabelVisibility: SFSymbolPickerCategoryLabelVisibility = .default
     @State private var categoryLabelStyle: SFSymbolPickerCategoryLabelStyle = .both
     
-    // デモ用の設定
+    // Demo settings
     @State private var variableValue: Double? = 1.0
     @State private var renderingModeOption: RenderingModeOption = .monochrome
     @State private var isGradient = false
@@ -113,7 +114,7 @@ struct ContentView: View {
         )
     ]
     
-    // プラットフォームごとのレイアウト調整用プロパティ
+    // Properties for layout adjustment per platform
     private func formatScaleMultiplier(_ scale: Int) -> String {
         let multiplier: Double
         if scale <= 5 {
@@ -701,7 +702,7 @@ struct ContentView: View {
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
-                Picker("", selection: $renderingModeOption) {
+                Picker("Rendering Mode", selection: $renderingModeOption) {
                     ForEach(RenderingModeOption.allCases) { option in
                         Text(option.label).tag(option)
                     }
@@ -773,6 +774,26 @@ struct ContentView: View {
         } header: {
             Text("Dynamic Rendering Demo")
         }
+        
+        #if !os(tvOS) && !os(watchOS)
+        Section {
+            #if os(macOS) || os(visionOS)
+            Button(action: {
+                openWindow(id: "BuildMode")
+            }) {
+                Text("Open Build Mode")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+            }
+            #else
+            NavigationLink(destination: BuildModeView()) {
+                Text("Open Build Mode")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+            }
+            #endif
+        }
+        #endif
     }
 }
 
@@ -787,7 +808,7 @@ struct ContentView: View {
 
 // MARK: - Helper Extension
 
-private extension View {
+extension View {
     @ViewBuilder
     func conditionalSearchable(show: Bool, text: Binding<String>) -> some View {
         if show {
@@ -816,6 +837,15 @@ private extension View {
             }
         } else {
             self
+        }
+    }
+    
+    @ViewBuilder
+    func adaptiveSafeAreaBar<Content: View>(edge: VerticalEdge, @ViewBuilder content: @escaping () -> Content) -> some View {
+        if #available(iOS 26.0, macOS 26.0, tvOS 26.0, watchOS 26.0, visionOS 26.0, *) {
+            self.safeAreaBar(edge: edge, content: content)
+        } else {
+            self.safeAreaInset(edge: edge, content: content)
         }
     }
 }

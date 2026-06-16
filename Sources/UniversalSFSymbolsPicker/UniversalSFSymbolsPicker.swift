@@ -491,7 +491,7 @@ public struct SFSymbolPicker: View {
                 
                 if showRecents {
                     recentsView(spacing: spacing)
-                        .padding(.top, spacing / 2) // 余白を半分に減らすか削除する
+                        .padding(.top, spacing / 2)
                     
                     Divider()
                         .padding(.horizontal, spacing)
@@ -737,7 +737,7 @@ public struct SFSymbolPicker: View {
             
             if recentSymbols.isEmpty {
                 ZStack(alignment: .center) {
-                    // 実際の履歴アイコンと同じ高さを確保するためのダミービュー
+                    // Dummy view to ensure the same height as actual recent icons
                     symbolButton(for: "star", context: .recents)
                         .frame(width: itemWidth)
                         .hidden()
@@ -1193,7 +1193,7 @@ private struct ModernRecentsScrollView: View {
                         dragStartOffset = currentTagsOffset
                     }
                     let deltaX = value.translation.width
-                    // スクロール位置を更新
+                    // Update scroll position
                     tagsScrollPos = ScrollPosition(point: CGPoint(x: dragStartOffset.x - deltaX, y: 0))
                 }
                 .onEnded { _ in
