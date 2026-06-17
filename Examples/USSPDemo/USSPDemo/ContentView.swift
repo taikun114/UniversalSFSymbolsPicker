@@ -39,7 +39,9 @@ enum SearchBarStyle: String, CaseIterable, Identifiable {
 }
 
 struct ContentView: View {
+    #if os(macOS)
     @Environment(\.openWindow) private var openWindow
+    #endif
     @State private var selectedIcon: String? = "star.fill"
     @State private var pickerMode: SFSymbolPickerDisplayMode = .sheet
     @State private var controlBarPosition: SFSymbolPickerControlBarPosition = .bottom

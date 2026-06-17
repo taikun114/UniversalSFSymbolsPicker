@@ -1,6 +1,8 @@
 import SwiftUI
 import UniversalSFSymbolsPicker
 
+#if !os(tvOS) && !os(watchOS)
+
 struct BuildModeView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var showCodeSheet = false
@@ -577,3 +579,5 @@ struct BuildModeView: View {
 #Preview {
     BuildModeView()
 }
+
+#endif
