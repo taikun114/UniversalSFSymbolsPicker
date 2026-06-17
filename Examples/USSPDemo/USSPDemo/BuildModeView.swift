@@ -21,6 +21,14 @@ struct BuildModeView: View {
     @State private var isCopied = false
     @State private var copyTask: Task<Void, Never>? = nil
     
+    private var isCategoryPickerOff: Bool {
+        options.enableShowCategoryPicker && !options.showCategoryPicker
+    }
+    
+    private var isRecentsOff: Bool {
+        !options.enableShowRecents || !options.showRecents
+    }
+    
     var body: some View {
         Group {
             if isCompact {
@@ -169,9 +177,22 @@ struct BuildModeView: View {
                 boolOptionRow(title: "Show Category Picker", description: "Toggle whether to display the category menu.", isEnableOn: $options.enableShowCategoryPicker, isValueOn: $options.showCategoryPicker)
                     .onChange(of: options.enableShowCategoryPicker) { _, newValue in
                         if !newValue { options.showCategoryPicker = true }
+                        if options.enableShowCategoryPicker && !options.showCategoryPicker {
+                            options.enableCategoryLabelVisibility = false
+                            options.enableCategoryLabelStyle = false
+                            options.enableShowCategorySectionLabel = false
+                        }
+                    }
+                    .onChange(of: options.showCategoryPicker) { _, newValue in
+                        if options.enableShowCategoryPicker && !newValue {
+                            options.enableCategoryLabelVisibility = false
+                            options.enableCategoryLabelStyle = false
+                            options.enableShowCategorySectionLabel = false
+                        }
                     }
                 
                 boolOptionRow(title: "Show Category Section Label", description: "Display section headers in the category menu.", isEnableOn: $options.enableShowCategorySectionLabel, isValueOn: $options.showCategorySectionLabel)
+                    .disabled(isCategoryPickerOff)
                     .onChange(of: options.enableShowCategorySectionLabel) { _, newValue in
                         if !newValue { options.showCategorySectionLabel = true }
                     }
@@ -184,6 +205,7 @@ struct BuildModeView: View {
                     }
                     .pickerStyle(.menu)
                 }
+                .disabled(isCategoryPickerOff)
                 .onChange(of: options.enableCategoryLabelVisibility) { _, newValue in
                     if !newValue { options.categoryLabelVisibility = .default }
                 }
@@ -196,6 +218,7 @@ struct BuildModeView: View {
                     }
                     .pickerStyle(.menu)
                 }
+                .disabled(isCategoryPickerOff)
                 .onChange(of: options.enableCategoryLabelStyle) { _, newValue in
                     if !newValue { options.categoryLabelStyle = .both }
                 }
@@ -227,6 +250,10 @@ struct BuildModeView: View {
                 boolOptionRow(title: "Show Recents", description: "Toggle the recently used icons category.", isEnableOn: $options.enableShowRecents, isValueOn: $options.showRecents)
                     .onChange(of: options.enableShowRecents) { _, newValue in
                         if !newValue { options.showRecents = false }
+                        if isRecentsOff { options.enableMaxRecents = false }
+                    }
+                    .onChange(of: options.showRecents) { _, _ in
+                        if isRecentsOff { options.enableMaxRecents = false }
                     }
                 
                 optionRow(title: "Max Recents", description: "Maximum number of recently used icons.", isOn: $options.enableMaxRecents) {
@@ -239,6 +266,7 @@ struct BuildModeView: View {
                         }
                     }
                 }
+                .disabled(isRecentsOff)
                 .onChange(of: options.enableMaxRecents) { _, newValue in
                     if !newValue { options.maxRecents = 20 }
                 }
@@ -263,28 +291,34 @@ struct BuildModeView: View {
                         if !newValue { options.isGradient = false }
                     }
                 
-                optionRow(title: "Primary Color", description: "Set the primary color.", isOn: $options.enablePrimaryColor) {
-                    #if os(macOS) || os(iOS) || os(visionOS)
-                    ColorPicker("Primary Color", selection: .constant(.blue))
-                    #else
-                    Text("Not available")
-                    #endif
+                Toggle(isOn: $options.enablePrimaryColor) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Primary Color")
+                            .foregroundStyle(.primary)
+                        Text("Set the primary color.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
                 
-                optionRow(title: "Secondary Color", description: "Set the secondary color.", isOn: $options.enableSecondaryColor) {
-                    #if os(macOS) || os(iOS) || os(visionOS)
-                    ColorPicker("Secondary Color", selection: .constant(.red))
-                    #else
-                    Text("Not available")
-                    #endif
+                Toggle(isOn: $options.enableSecondaryColor) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Secondary Color")
+                            .foregroundStyle(.primary)
+                        Text("Set the secondary color.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
                 
-                optionRow(title: "Tertiary Color", description: "Set the tertiary color.", isOn: $options.enableTertiaryColor) {
-                    #if os(macOS) || os(iOS) || os(visionOS)
-                    ColorPicker("Tertiary Color", selection: .constant(.green))
-                    #else
-                    Text("Not available")
-                    #endif
+                Toggle(isOn: $options.enableTertiaryColor) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Tertiary Color")
+                            .foregroundStyle(.primary)
+                        Text("Set the tertiary color.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
                 
                 Toggle(isOn: $options.enableVariableValue) {
@@ -448,8 +482,13 @@ struct BuildModeView: View {
                         }
                     }
                 } label: {
-                    Label("Copy Code", systemImage: isCopied ? "checkmark" : "doc.on.doc")
-                        .contentTransition(.symbolEffect(.replace))
+                    if #available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *) {
+                        Label("Copy Code", systemImage: isCopied ? "checkmark" : "document.on.document")
+                            .contentTransition(.symbolEffect(.replace))
+                    } else {
+                        Label("Copy Code", systemImage: isCopied ? "checkmark" : "doc.on.doc")
+                            .contentTransition(.symbolEffect(.replace))
+                    }
                 }
                 .buttonStyle(.bordered)
             }

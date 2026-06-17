@@ -119,18 +119,20 @@ struct CodeGenerator {
         }
         
         // Colors formatting
+        let colorComment = String(localized: "Your color here")
         if options.enablePrimaryColor {
-            args.append("primaryColor: .blue /* Your color here */")
+            args.append("primaryColor: .blue /* \(colorComment) */")
         }
         if options.enableSecondaryColor {
-            args.append("secondaryColor: .red /* Your color here */")
+            args.append("secondaryColor: .red /* \(colorComment) */")
         }
         if options.enableTertiaryColor {
-            args.append("tertiaryColor: .green /* Your color here */")
+            args.append("tertiaryColor: .green /* \(colorComment) */")
         }
         
         if options.enableVariableValue {
-            args.append("variableValue: $myValue")
+            let bindComment = String(localized: "Bind your value here")
+            args.append("variableValue: $myValue /* \(bindComment) */")
         }
         
         // Search text binding
