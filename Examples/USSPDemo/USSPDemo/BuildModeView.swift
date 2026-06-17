@@ -40,15 +40,20 @@ struct BuildModeView: View {
                         .navigationBarTitleDisplayMode(.inline)
                         #endif
                         .adaptiveSafeAreaBar(edge: .bottom) {
-                            Button(action: { showCodeSheet = true }) {
+                            let generateBtn = Button(action: { showCodeSheet = true }) {
                                 Text("Generate Code")
                                     .font(.headline)
                                     .frame(maxWidth: .infinity)
-                                    .padding()
                             }
+                            .controlSize(.large)
                             .buttonStyle(.borderedProminent)
                             .padding()
-                            .background(.ultraThinMaterial)
+                            
+                            if #available(iOS 26.0, macOS 26.0, tvOS 26.0, watchOS 26.0, visionOS 26.0, *) {
+                                generateBtn
+                            } else {
+                                generateBtn.background(.ultraThinMaterial)
+                            }
                         }
                 }
                 .sheet(isPresented: $showCodeSheet) {
@@ -58,13 +63,6 @@ struct BuildModeView: View {
                             #if !os(macOS)
                             .navigationBarTitleDisplayMode(.inline)
                             #endif
-                            .toolbar {
-                                ToolbarItem(placement: .cancellationAction) {
-                                    Button("Close") {
-                                        showCodeSheet = false
-                                    }
-                                }
-                            }
                     }
                     .presentationDetents([.medium, .large])
                 }
@@ -353,7 +351,7 @@ struct BuildModeView: View {
             }
         }
         .formStyle(.grouped)
-        .safeAreaInset(edge: .top) {
+        .adaptiveSafeAreaBar(edge: .top) {
             testPickerButton
         }
     }
@@ -521,7 +519,9 @@ struct BuildModeView: View {
         HStack(alignment: .top, spacing: 8) {
             if !isMandatory {
                 Toggle(title, isOn: isOn)
+                    #if os(macOS)
                     .toggleStyle(.checkbox)
+                    #endif
                     .labelsHidden()
             }
             
@@ -551,7 +551,9 @@ struct BuildModeView: View {
     ) -> some View {
         HStack(alignment: .top, spacing: 8) {
             Toggle(title, isOn: isEnableOn)
+                #if os(macOS)
                 .toggleStyle(.checkbox)
+                #endif
                 .labelsHidden()
             
             VStack(alignment: .leading, spacing: 4) {
