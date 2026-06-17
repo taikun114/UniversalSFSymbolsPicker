@@ -77,7 +77,7 @@ struct BuildModeView: View {
                             .opacity(0)
                             .overlay(
                                 Rectangle()
-                                    .fill(Color.clear)
+                                    .fill(Color.white.opacity(0.001))
                                     .frame(width: 20)
                                     .contentShape(Rectangle())
                                     .gesture(
@@ -96,6 +96,8 @@ struct BuildModeView: View {
                                             NSCursor.pop()
                                         }
                                     }
+                                    #elseif os(visionOS)
+                                    .hoverEffect(.highlight)
                                     #endif
                             )
                             .zIndex(1)

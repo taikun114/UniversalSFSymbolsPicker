@@ -21,22 +21,13 @@ struct USSPDemoApp: App {
         .defaultSize(width: 600, height: 800)
         #endif
         
-        #if os(macOS) || os(visionOS)
+        #if os(macOS)
         Window("Build Mode", id: "BuildMode") {
-            #if os(macOS)
             BuildModeView()
                 .frame(minWidth: 500, minHeight: 300)
-            #elseif os(visionOS)
-            BuildModeView()
-                .frame(minWidth: 500, maxWidth: 1500, minHeight: 300, maxHeight: 1200)
-            #endif
         }
         .windowResizability(.contentMinSize)
-        #if os(macOS)
         .defaultSize(width: 900, height: 600)
-        #elseif os(visionOS)
-        .defaultSize(width: 1000, height: 700)
-        #endif
         #endif
     }
 }

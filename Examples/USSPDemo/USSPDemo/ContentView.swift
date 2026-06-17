@@ -56,6 +56,8 @@ struct ContentView: View {
     @State private var categoryLabelVisibility: SFSymbolPickerCategoryLabelVisibility = .default
     @State private var categoryLabelStyle: SFSymbolPickerCategoryLabelStyle = .both
     
+    @State private var isVisionOSBuildModePresented = false
+    
     // Demo settings
     @State private var variableValue: Double? = 1.0
     @State private var renderingModeOption: RenderingModeOption = .monochrome
@@ -777,13 +779,34 @@ struct ContentView: View {
         
         #if !os(tvOS) && !os(watchOS)
         Section {
-            #if os(macOS) || os(visionOS)
+            #if os(macOS)
             Button(action: {
                 openWindow(id: "BuildMode")
             }) {
                 Text("Open Build Mode")
                     .font(.headline)
                     .frame(maxWidth: .infinity)
+            }
+            #elseif os(visionOS)
+            Button(action: {
+                isVisionOSBuildModePresented = true
+            }) {
+                Text("Open Build Mode")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+            }
+            .sheet(isPresented: $isVisionOSBuildModePresented) {
+                NavigationStack {
+                    BuildModeView()
+                        .toolbar {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button("Close") {
+                                    isVisionOSBuildModePresented = false
+                                }
+                            }
+                        }
+                }
+                .frame(width: 1200, height: 800)
             }
             #else
             NavigationLink(destination: BuildModeView()) {
