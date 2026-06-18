@@ -515,7 +515,9 @@ public struct SFSymbolPicker: View {
                         }
                     }
                     .frame(maxWidth: .infinity)
-                    .containerRelativeFrame(.vertical)
+                    .containerRelativeFrame(.vertical) { length, _ in
+                        showRecents ? length * 0.6 : length
+                    }
                 } else {
                     LazyVGrid(columns: columns, spacing: spacing) {
                         ForEach(displayedSymbols, id: \.self) { name in
