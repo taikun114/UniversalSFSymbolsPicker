@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "USSP_Bubble_tvOS_AppStore.png",
+      "idiom" : "tv"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

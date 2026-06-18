@@ -38,7 +38,7 @@
         }
       ],
       "position" : {
-        "scale" : 0.5,
+        "scale" : 1,
         "translation-in-points" : [
           0,
           0
@@ -78,13 +78,13 @@
               }
             }
           ],
-          "image-name" : "USSB_Bubble.png",
+          "image-name" : "USSP_Bubble.png",
           "name" : "USSP_Bubble"
         }
       ],
       "opacity" : 1,
       "position" : {
-        "scale" : 0.5,
+        "scale" : 1,
         "translation-in-points" : [
           0,
           0
