@@ -165,6 +165,11 @@ struct ContentView: View {
             }
             .navigationTitle("Picker Demo")
             .formStyle(.grouped)
+            #if !os(tvOS) && !os(watchOS)
+            .adaptiveSafeAreaBar(edge: .bottom) {
+                testPickerButton
+            }
+            #endif
         }
         #if os(macOS)
         .frame(width: 400, height: 500)
@@ -174,12 +179,123 @@ struct ContentView: View {
     }
     
     @ViewBuilder
-    private var settingsContent: some View {
-        Section {
-            #if os(tvOS)
-            NavigationLink {
+    private var testPickerButton: some View {
+        #if os(tvOS)
+        NavigationLink {
+            SFSymbolPicker(
+                isPresented: .constant(true),
+                selection: $selectedIcon,
+                showAs: .sheet,
+                controlBarPosition: controlBarPosition,
+                showSearchBar: showSearchBar && searchBarStyle == .custom,
+                showCategoryPicker: showCategoryPicker,
+                showCategorySectionLabel: showCategorySectionLabel,
+                categoryLabelVisibility: categoryLabelVisibility,
+                categoryLabelStyle: categoryLabelStyle,
+                showIconName: showIconName,
+                customCategories: demoCustomCategories,
+                excludeRestricted: excludeRestricted,
+                showRecents: showRecents,
+                maxRecents: maxRecents,
+                renderingMode: renderingModeOption.mode,
+                isGradient: isGradient,
+                primaryColor: usePrimaryColor ? primaryColor : .primary,
+                secondaryColor: useSecondaryColor ? secondaryColor : nil,
+                tertiaryColor: useTertiaryColor ? tertiaryColor : nil,
+                variableValue: $variableValue,
+                searchText: $searchTextSheet,
+                iconScale: iconScale
+            )
+            .conditionalSearchable(show: showSearchBar && searchBarStyle == .searchable, text: $searchTextSheet)
+        } label: {
+            HStack(spacing: selectedIconSpacing) {
+                if let icon = selectedIcon {
+                    Image(systemName: icon, variableValue: variableValue)
+                        .font(.headline)
+                        .symbolRenderingMode(renderingModeOption.mode)
+                        .adaptiveSymbolColorRenderingMode(isGradient)
+                        .foregroundStyle(
+                            usePrimaryColor ? primaryColor : .primary,
+                            useSecondaryColor ? secondaryColor : (usePrimaryColor ? primaryColor : .primary),
+                            useTertiaryColor ? tertiaryColor : (usePrimaryColor ? primaryColor : .primary)
+                        )
+                        .frame(width: 44, height: 44)
+                        .padding(.leading, 20)
+                    
+                    VStack(alignment: .leading, spacing: selectedIconTextSpacing) {
+                        Text("Selected Icon")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Text(icon)
+                            .font(.body.monospaced())
+                    }
+                } else {
+                    Label("Select an Icon", systemImage: "plus.circle")
+                }
+                
+                Spacer()
+            }
+            .padding(.vertical, 12)
+            .padding(.horizontal, 20)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .contentShape(Rectangle())
+        }
+        #else
+        Button {
+            if pickerMode == .sheet {
+                isSheetPresented = true
+            } else {
+                isPopoverPresented = true
+            }
+        } label: {
+            HStack(spacing: 8) {
+                if let icon = selectedIcon {
+                    Image(systemName: icon, variableValue: variableValue)
+                        .font(.title2)
+                        .symbolRenderingMode(renderingModeOption.mode)
+                        .adaptiveSymbolColorRenderingMode(isGradient)
+                        .foregroundStyle(
+                            usePrimaryColor ? primaryColor : .primary,
+                            useSecondaryColor ? secondaryColor : (usePrimaryColor ? primaryColor : .primary),
+                            useTertiaryColor ? tertiaryColor : (usePrimaryColor ? primaryColor : .primary)
+                        )
+                        .frame(width: 36, height: 36)
+                    
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text("Selected Icon")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        Text(icon)
+                            .font(.callout.monospaced())
+                    }
+                } else {
+                    Label("Select an Icon", systemImage: "plus.circle")
+                }
+                
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(.vertical, 8)
+            .padding(.horizontal, 16)
+            #if os(macOS)
+            .background(Color(nsColor: .controlBackgroundColor))
+            #elseif os(visionOS)
+            .background(.regularMaterial)
+            #else
+            .background(Color(uiColor: .systemBackground))
+            #endif
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
+            .padding(16)
+        }
+        .buttonStyle(.plain)
+        .sheet(isPresented: $isSheetPresented) {
+            NavigationStack {
                 SFSymbolPicker(
-                    isPresented: .constant(true),
+                    isPresented: $isSheetPresented,
                     selection: $selectedIcon,
                     showAs: .sheet,
                     controlBarPosition: controlBarPosition,
@@ -202,147 +318,55 @@ struct ContentView: View {
                     searchText: $searchTextSheet,
                     iconScale: iconScale
                 )
-                .conditionalSearchable(show: showSearchBar && searchBarStyle == .searchable, text: $searchTextSheet)
-            } label: {
-                HStack(spacing: selectedIconSpacing) {
-                    if let icon = selectedIcon {
-                        Image(systemName: icon, variableValue: variableValue)
-                            .font(.headline)
-                            .symbolRenderingMode(renderingModeOption.mode)
-                            .adaptiveSymbolColorRenderingMode(isGradient)
-                            .foregroundStyle(
-                                usePrimaryColor ? primaryColor : .primary,
-                                useSecondaryColor ? secondaryColor : (usePrimaryColor ? primaryColor : .primary),
-                                useTertiaryColor ? tertiaryColor : (usePrimaryColor ? primaryColor : .primary)
-                            )
-                            .frame(width: 44, height: 44)
-                            .padding(.leading, 20)
-                        
-                        VStack(alignment: .leading, spacing: selectedIconTextSpacing) {
-                            Text("Selected Icon")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            Text(icon)
-                                .font(.body.monospaced())
-                        }
-                    } else {
-                        Label("Select an Icon", systemImage: "plus.circle")
-                    }
-                    
-                    Spacer()
-                }
-                .padding(.vertical, selectedIconVerticalPadding)
-                .contentShape(Rectangle())
             }
-            #else
-            Button {
-                if pickerMode == .sheet {
-                    isSheetPresented = true
-                } else {
-                    isPopoverPresented = true
-                }
-            } label: {
-                HStack(spacing: selectedIconSpacing) {
-                    if let icon = selectedIcon {
-                        Image(systemName: icon, variableValue: variableValue)
-                            .font(.title)
-                            .symbolRenderingMode(renderingModeOption.mode)
-                            .adaptiveSymbolColorRenderingMode(isGradient)
-                            .foregroundStyle(
-                                usePrimaryColor ? primaryColor : .primary,
-                                useSecondaryColor ? secondaryColor : (usePrimaryColor ? primaryColor : .primary),
-                                useTertiaryColor ? tertiaryColor : (usePrimaryColor ? primaryColor : .primary)
-                            )
-                            .frame(width: 44, height: 44)
-                        
-                        VStack(alignment: .leading, spacing: selectedIconTextSpacing) {
-                            Text("Selected Icon")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            Text(icon)
-                                .font(.body.monospaced())
-                        }
-                    } else {
-                        Label("Select an Icon", systemImage: "plus.circle")
-                    }
-                    
-                    Spacer()
-                    
-                    Image(systemName: "chevron.right")
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(.tertiary)
-                }
-                .padding(.vertical, selectedIconVerticalPadding)
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .sheet(isPresented: $isSheetPresented) {
-                NavigationStack {
-                    SFSymbolPicker(
-                        isPresented: $isSheetPresented,
-                        selection: $selectedIcon,
-                        showAs: .sheet,
-                        controlBarPosition: controlBarPosition,
-                        showSearchBar: showSearchBar && searchBarStyle == .custom,
-                        showCategoryPicker: showCategoryPicker,
-                        showCategorySectionLabel: showCategorySectionLabel,
-                        categoryLabelVisibility: categoryLabelVisibility,
-                        categoryLabelStyle: categoryLabelStyle,
-                        showIconName: showIconName,
-                        customCategories: demoCustomCategories,
-                        excludeRestricted: excludeRestricted,
-                        showRecents: showRecents,
-                        maxRecents: maxRecents,
-                        renderingMode: renderingModeOption.mode,
-                        isGradient: isGradient,
-                        primaryColor: usePrimaryColor ? primaryColor : .primary,
-                        secondaryColor: useSecondaryColor ? secondaryColor : nil,
-                        tertiaryColor: useTertiaryColor ? tertiaryColor : nil,
-                        variableValue: $variableValue,
-                        searchText: $searchTextSheet,
-                        iconScale: iconScale
-                    )
-                }
-                .conditionalSearchable(show: showSearchBar && searchBarStyle == .searchable, text: $searchTextSheet)
-                #if os(macOS)
-                .frame(width: 600, height: 500)
-                #endif
-            }
-            .popover(isPresented: $isPopoverPresented, attachmentAnchor: .rect(.bounds), arrowEdge: .top) {
-                SFSymbolPicker(
-                    isPresented: $isPopoverPresented,
-                    selection: $selectedIcon,
-                    showAs: .popover,
-                    controlBarPosition: controlBarPosition,
-                    showSearchBar: showSearchBar && searchBarStyle == .custom,
-                    showCategoryPicker: showCategoryPicker,
-                    showCategorySectionLabel: showCategorySectionLabel,
-                    categoryLabelVisibility: categoryLabelVisibility,
-                    categoryLabelStyle: categoryLabelStyle,
-                    showIconName: showIconName,
-                    customCategories: demoCustomCategories,
-                    excludeRestricted: excludeRestricted,
-                    showRecents: showRecents,
-                    maxRecents: maxRecents,
-                    renderingMode: renderingModeOption.mode,
-                    isGradient: isGradient,
-                    primaryColor: usePrimaryColor ? primaryColor : .primary,
-                    secondaryColor: useSecondaryColor ? secondaryColor : nil,
-                    tertiaryColor: useTertiaryColor ? tertiaryColor : nil,
-                    variableValue: $variableValue,
-                    searchText: $searchTextPopover,
-                    iconScale: iconScale
-                )
-                #if os(macOS)
-                .frame(width: 360, height: 500)
-                #elseif os(visionOS)
-                .frame(width: 440, height: 540)
-                #endif
-            }
+            .conditionalSearchable(show: showSearchBar && searchBarStyle == .searchable, text: $searchTextSheet)
+            #if os(macOS)
+            .frame(width: 600, height: 500)
             #endif
+        }
+        .popover(isPresented: $isPopoverPresented, attachmentAnchor: .rect(.bounds), arrowEdge: .top) {
+            SFSymbolPicker(
+                isPresented: $isPopoverPresented,
+                selection: $selectedIcon,
+                showAs: .popover,
+                controlBarPosition: controlBarPosition,
+                showSearchBar: showSearchBar && searchBarStyle == .custom,
+                showCategoryPicker: showCategoryPicker,
+                showCategorySectionLabel: showCategorySectionLabel,
+                categoryLabelVisibility: categoryLabelVisibility,
+                categoryLabelStyle: categoryLabelStyle,
+                showIconName: showIconName,
+                customCategories: demoCustomCategories,
+                excludeRestricted: excludeRestricted,
+                showRecents: showRecents,
+                maxRecents: maxRecents,
+                renderingMode: renderingModeOption.mode,
+                isGradient: isGradient,
+                primaryColor: usePrimaryColor ? primaryColor : .primary,
+                secondaryColor: useSecondaryColor ? secondaryColor : nil,
+                tertiaryColor: useTertiaryColor ? tertiaryColor : nil,
+                variableValue: $variableValue,
+                searchText: $searchTextPopover,
+                iconScale: iconScale
+            )
+            #if os(macOS)
+            .frame(width: 360, height: 500)
+            #elseif os(visionOS)
+            .frame(width: 440, height: 540)
+            #endif
+        }
+        #endif
+    }
+    
+    @ViewBuilder
+    private var settingsContent: some View {
+        #if os(tvOS) || os(watchOS)
+        Section {
+            testPickerButton
         } header: {
             Text("Picker Instance")
         }
+        #endif
         
         Section {
             #if !os(tvOS)

@@ -8,6 +8,9 @@
     "%lld" : {
       "shouldTranslate" : false
     },
+    "%lld (%@)" : {
+      "shouldTranslate" : false
+    },
     "Adds a category picker to filter symbols by category." : {
       "comment" : "Caption explaining the purpose of the category picker toggle.",
       "localizations" : {
@@ -2083,6 +2086,154 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "更改網格中圖示的顯示大小。"
+          }
+        }
+      }
+    },
+    "Change the maximum number of recently used icons." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تغيير الحد الأقصى لعدد الأيقونات المستخدمة مؤخرًا."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ändern Sie die maximale Anzahl der zuletzt verwendeten Symbole."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change the maximum number of recently used icons."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cambia el número máximo de iconos usados recientemente."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modifier le nombre maximum d'icônes récemment utilisées."
+          }
+        },
+        "fr-CA" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modifier le nombre maximum d'icônes récemment utilisées."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "हाल ही में उपयोग किए गए प्रतीकों की अधिकतम संख्या बदलें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ubah jumlah maksimum ikon yang baru-baru ini digunakan."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modifica il numero massimo di icone utilizzate di recente."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最近使用したアイコンの最大数を変更します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "최근 사용한 아이콘의 최대 개수를 변경합니다."
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tukar bilangan maksimum ikon yang baru-baru ini digunakan."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wijzig het maximale aantal recent gebruikte pictogrammen."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zmień maksymalną liczbę ostatnio używanych ikon."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altere o número máximo de ícones usados recentemente."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altere o número máximo de ícones usados recentemente."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Изменить максимальное количество недавно использованных значков."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เปลี่ยนจำนวนไอคอนที่ใช้ล่าสุดสูงสุด"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Son kullanılan simgelerin maksimum sayısını değiştir."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Змінити максимальну кількість нещодавно використаних значків."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thay đổi số lượng tối đa các biểu tượng được sử dụng gần đây."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更改最近使用图标的最大数量。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更改最近使用圖示的最大數量。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更改最近使用圖示的最大數量。"
           }
         }
       }

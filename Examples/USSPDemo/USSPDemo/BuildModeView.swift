@@ -355,7 +355,7 @@ struct BuildModeView: View {
             }
         }
         .formStyle(.grouped)
-        .adaptiveSafeAreaBar(edge: .top) {
+        .adaptiveSafeAreaBar(edge: .bottom) {
             testPickerButton
         }
     }
@@ -394,12 +394,16 @@ struct BuildModeView: View {
             }
             .padding(.vertical, 8)
             .padding(.horizontal, 16)
+            #if os(macOS)
+            .background(Color(nsColor: .controlBackgroundColor))
+            #elseif os(visionOS)
             .background(.regularMaterial)
+            #else
+            .background(Color(uiColor: .systemBackground))
+            #endif
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
-            .padding(.horizontal)
-            .padding(.top, 8)
-            .padding(.bottom, 8)
+            .padding(16)
         }
         .buttonStyle(.plain)
         .sheet(isPresented: $isSheetPresented) {
