@@ -418,18 +418,32 @@ struct BuildModeView: View {
                 }
             }
         }
-        .popover(isPresented: $isPopoverPresented) {
+        .popover(isPresented: $isPopoverPresented, attachmentAnchor: .rect(.bounds), arrowEdge: .bottom) {
             if options.useSearchable {
                 NavigationStack {
                     buildPicker(isPresented: $isPopoverPresented)
                         .searchable(text: $searchText)
                 }
-                .frame(minWidth: 400, minHeight: 500)
+                #if os(macOS)
+                .frame(width: 400, height: 500)
+                #elseif os(visionOS)
+                .frame(width: 440, height: 540)
+                #elseif os(iOS)
+                .frame(width: horizontalSizeClass == .regular ? 400 : nil)
+                .frame(maxHeight: horizontalSizeClass == .regular ? 500 : nil)
+                #endif
             } else {
                 NavigationStack {
                     buildPicker(isPresented: $isPopoverPresented)
                 }
-                .frame(minWidth: 400, minHeight: 500)
+                #if os(macOS)
+                .frame(width: 400, height: 500)
+                #elseif os(visionOS)
+                .frame(width: 440, height: 540)
+                #elseif os(iOS)
+                .frame(width: horizontalSizeClass == .regular ? 400 : nil)
+                .frame(maxHeight: horizontalSizeClass == .regular ? 500 : nil)
+                #endif
             }
         }
     }

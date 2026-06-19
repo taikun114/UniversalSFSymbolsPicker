@@ -39,6 +39,7 @@ enum SearchBarStyle: String, CaseIterable, Identifiable {
 }
 
 struct ContentView: View {
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     #if os(macOS)
     @Environment(\.openWindow) private var openWindow
     #endif
@@ -324,7 +325,7 @@ struct ContentView: View {
             .frame(width: 600, height: 500)
             #endif
         }
-        .popover(isPresented: $isPopoverPresented, attachmentAnchor: .rect(.bounds), arrowEdge: .top) {
+        .popover(isPresented: $isPopoverPresented, attachmentAnchor: .rect(.bounds), arrowEdge: .bottom) {
             SFSymbolPicker(
                 isPresented: $isPopoverPresented,
                 selection: $selectedIcon,
@@ -353,6 +354,9 @@ struct ContentView: View {
             .frame(width: 360, height: 500)
             #elseif os(visionOS)
             .frame(width: 440, height: 540)
+            #elseif os(iOS)
+            .frame(width: horizontalSizeClass == .regular ? 360 : nil)
+            .frame(maxHeight: horizontalSizeClass == .regular ? 500 : nil)
             #endif
         }
         #endif

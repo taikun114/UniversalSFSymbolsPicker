@@ -104,9 +104,12 @@ public struct SFSymbolPicker: View {
     // Pagination State
     @State private var allFilteredSymbols: [String] = []
     @State private var displayedSymbols: [String] = [] // Flattened list of displayed symbols
+    @State private var isLoading: Bool = true
+    @State private var searchTask: Task<Void, Never>? = nil
+    @State private var isServiceReady: Bool = false
     private let pageSize = 100
     
-    private let service = SFSymbolService.shared
+    private var service: SFSymbolService { SFSymbolService.shared }
     
     /// Key used for storing recently used symbols in UserDefaults
     private let recentsKey = "design.taikun.UniversalSFSymbolsPicker.recents"
@@ -156,29 +159,55 @@ public struct SFSymbolPicker: View {
     
     /// Updates the list of symbols based on current filters and resets pagination
     private func updateFilteredSymbols() {
-        let rawSymbols = service.symbols(
-            for: selectedCategoryID,
-            customCategories: customCategories,
-            includedIDs: includedCategories,
-            excludedIDs: excludedCategories,
-            excludeRestricted: excludeRestricted,
-            limitVersion: sfSymbolsVersion
-        )
-        // Execute search
-        let searched = service.search(query: searchText, in: rawSymbols)
-        
-        // Resolve effective names to ensure version compatibility.
-        // This processes all symbols (system-defined, custom, and search results) through the version filter.
-        // It selects the most appropriate alias for the current OS, or falls back to a placeholder.
-        allFilteredSymbols = searched.map { service.effectiveName(for: $0, limitVersion: sfSymbolsVersion) ?? "questionmark.square.dashed" }
-        
-        // Set the first page
-        displayedSymbols = Array(allFilteredSymbols.prefix(pageSize))
-        
-        // Announce results to VoiceOver
-        let count = allFilteredSymbols.count
-        let message = String(localized: "Found \(count) icons", bundle: .module)
-        AccessibilityNotification.Announcement(message).post()
+        searchTask?.cancel()
+        searchTask = Task { @MainActor in
+            isLoading = true
+            
+            // Capture states
+            let currentCategory = selectedCategoryID
+            let currentSearchText = searchText
+            let currentCustomCategories = customCategories
+            let currentIncludedIDs = includedCategories
+            let currentExcludedIDs = excludedCategories
+            let currentExcludeRestricted = excludeRestricted
+            let currentSfVersion = sfSymbolsVersion
+            let currentService = service
+            
+            // Heavy lifting in background
+            let results = await Task.detached(priority: .userInitiated) {
+                let rawSymbols = currentService.symbols(
+                    for: currentCategory,
+                    customCategories: currentCustomCategories,
+                    includedIDs: currentIncludedIDs,
+                    excludedIDs: currentExcludedIDs,
+                    excludeRestricted: currentExcludeRestricted,
+                    limitVersion: currentSfVersion
+                )
+                // Execute search
+                let searched = currentService.search(query: currentSearchText, in: rawSymbols)
+                
+                // Resolve effective names to ensure version compatibility.
+                // This processes all symbols (system-defined, custom, and search results) through the version filter.
+                // It selects the most appropriate alias for the current OS, or falls back to a placeholder.
+                return searched.map { currentService.effectiveName(for: $0, limitVersion: currentSfVersion) ?? "questionmark.square.dashed" }
+            }.value
+            
+            if Task.isCancelled { return }
+            
+            allFilteredSymbols = results
+            
+            // Set the first page
+            let newSymbols = Array(allFilteredSymbols.prefix(pageSize))
+            withAnimation(.easeInOut(duration: 0.3)) {
+                displayedSymbols = newSymbols
+                isLoading = false
+            }
+            
+            // Announce results to VoiceOver
+            let count = allFilteredSymbols.count
+            let message = String(localized: "Found \(count) icons", bundle: .module)
+            AccessibilityNotification.Announcement(message).post()
+        }
     }
     
     /// Loads the next page of symbols
@@ -203,6 +232,7 @@ public struct SFSymbolPicker: View {
     
     /// Returns the icon for the currently selected category
     private var currentCategoryIcon: String {
+        if !isServiceReady { return "square.grid.2x2" }
         if selectedCategoryID == "all" {
             return "square.grid.2x2"
         }
@@ -217,6 +247,7 @@ public struct SFSymbolPicker: View {
     
     /// Returns the label for the currently selected category
     private var currentCategoryLabel: String {
+        if !isServiceReady { return String(localized: "Loading...", bundle: .module) }
         if selectedCategoryID == "all" {
             return String(localized: "All", bundle: .module)
         }
@@ -498,7 +529,19 @@ public struct SFSymbolPicker: View {
                         .padding(.vertical, spacing / 2)
                 }
                 
-                if displayedSymbols.isEmpty {
+                if isLoading {
+                    VStack {
+                        ProgressView()
+                            .controlSize(.large)
+                        Text(String(localized: "Loading Icons...", bundle: .module))
+                            .foregroundStyle(.secondary)
+                            .padding(.top, 8)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .containerRelativeFrame(.vertical) { length, _ in
+                        showRecents ? length * 0.6 : length
+                    }
+                } else if displayedSymbols.isEmpty {
                     VStack {
                         if !searchText.isEmpty {
                             ContentUnavailableView.search(text: searchText)
@@ -553,9 +596,26 @@ public struct SFSymbolPicker: View {
                 #endif
             }
             .onAppear {
-                loadRecents()
-                if displayedSymbols.isEmpty {
-                    updateFilteredSymbols()
+                if !isServiceReady {
+                    Task {
+                        // Pre-warm on background thread
+                        _ = await Task.detached(priority: .userInitiated) {
+                            return SFSymbolService.shared.allSymbols.isEmpty
+                        }.value
+                        
+                        await MainActor.run {
+                            isServiceReady = true
+                            loadRecents()
+                            if displayedSymbols.isEmpty {
+                                updateFilteredSymbols()
+                            }
+                        }
+                    }
+                } else {
+                    loadRecents()
+                    if displayedSymbols.isEmpty {
+                        updateFilteredSymbols()
+                    }
                 }
             }
         }
@@ -732,7 +792,7 @@ public struct SFSymbolPicker: View {
         return VStack(alignment: .leading, spacing: 8) {
             Label(
                 String(localized: "Recently Used Icons", bundle: .module),
-                systemImage: service.effectiveName(for: "clock.arrow.trianglehead.counterclockwise.rotate.90", limitVersion: sfSymbolsVersion) ?? "clock"
+                systemImage: isServiceReady ? (service.effectiveName(for: "clock.arrow.trianglehead.counterclockwise.rotate.90", limitVersion: sfSymbolsVersion) ?? "clock") : "clock"
             )
                 .font(.headline)
                 .padding(.horizontal, spacing)
@@ -959,9 +1019,12 @@ public struct SFSymbolPicker: View {
     
     @ViewBuilder
     private var systemCategoriesContent: some View {
-        let systemCategoriesTitle = String(localized: "System Categories", bundle: .module)
-        let filteredCategories = service.systemCategories.filter { cat in
-            if cat.id == "all" { return false }
+        if !isServiceReady {
+            EmptyView()
+        } else {
+            let systemCategoriesTitle = String(localized: "System Categories", bundle: .module)
+            let filteredCategories = service.systemCategories.filter { cat in
+                if cat.id == "all" { return false }
             if let included = includedCategories, !included.contains(cat.id) {
                 return false
             }
@@ -984,13 +1047,17 @@ public struct SFSymbolPicker: View {
             .pickerStyle(.inline)
             .adaptiveLabelsVisibility(showCategorySectionLabel ? .visible : .hidden)
         }
+        }
     }
     
     @ViewBuilder
     private var customCategoriesContent: some View {
-        let customCategoriesTitle = String(localized: "Custom Categories", bundle: .module)
-        let filteredCustom = customCategories.filter { cat in
-            let idString = cat.id.uuidString
+        if !isServiceReady {
+            EmptyView()
+        } else {
+            let customCategoriesTitle = String(localized: "Custom Categories", bundle: .module)
+            let filteredCustom = customCategories.filter { cat in
+                let idString = cat.id.uuidString
             if let included = includedCategories, !included.contains(idString) {
                 return false
             }
@@ -1009,6 +1076,7 @@ public struct SFSymbolPicker: View {
             }
             .pickerStyle(.inline)
             .adaptiveLabelsVisibility(showCategorySectionLabel ? .visible : .hidden)
+        }
         }
     }
     
