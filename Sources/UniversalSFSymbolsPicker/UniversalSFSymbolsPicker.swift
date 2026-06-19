@@ -38,6 +38,7 @@ public struct SFSymbolPicker: View {
     let controlBarPosition: SFSymbolPickerControlBarPosition
     let showSearchBar: Bool
     let iconScale: Int
+    let iconSpacing: Int
     
     let prompt: String
     let showCategoryPicker: Bool
@@ -80,6 +81,18 @@ public struct SFSymbolPicker: View {
         if s <= 5 {
             // Maps 1...5 to 0.5...1.0
             return 0.5 + CGFloat(s - 1) * 0.125
+        } else {
+            // Maps 5...10 to 1.0...2.0
+            return 1.0 + CGFloat(s - 5) * 0.2
+        }
+    }
+    
+    /// The multiplier used for sizing spacing between and around elements based on the current icon spacing scale.
+    private var spacingMultiplier: CGFloat {
+        let s = max(1, min(10, iconSpacing))
+        if s <= 5 {
+            // Maps 1...5 to 0.2...1.0
+            return 0.2 + CGFloat(s - 1) * 0.2
         } else {
             // Maps 5...10 to 1.0...2.0
             return 1.0 + CGFloat(s - 5) * 0.2
@@ -336,7 +349,8 @@ public struct SFSymbolPicker: View {
         tertiaryColor: Color? = nil,
         variableValue: Binding<Double?> = .constant(nil),
         searchText: Binding<String> = .constant(""),
-        iconScale: Int = 5
+        iconScale: Int = 5,
+        iconSpacing: Int = 5
     ) {
         self._isPresented = isPresented
         self._selection = selection
@@ -365,6 +379,7 @@ public struct SFSymbolPicker: View {
         self._variableValue = variableValue
         self._searchText = searchText
         self.iconScale = iconScale
+        self.iconSpacing = iconSpacing
         self._selectedCategoryID = State(initialValue: defaultCategory)
         self._temporarySelection = State(initialValue: selection.wrappedValue)
     }
@@ -484,14 +499,18 @@ public struct SFSymbolPicker: View {
     
     private var symbolGrid: some View {
         #if os(tvOS)
-        let minWidth: CGFloat = 160 * scaleMultiplier
-        let spacing: CGFloat = 80 * scaleMultiplier
+        let minWidth: CGFloat = (80 * scaleMultiplier) + (80 * spacingMultiplier)
+        let spacing: CGFloat = 80 * spacingMultiplier
+        let outerSpacing: CGFloat = 80 * scaleMultiplier
+        let columnSpacing: CGFloat? = spacingMultiplier == 1.0 ? nil : 80 * spacingMultiplier
         #else
-        let minWidth: CGFloat = 65 * scaleMultiplier
-        let spacing: CGFloat = 20 * scaleMultiplier
+        let minWidth: CGFloat = (45 * scaleMultiplier) + (20 * spacingMultiplier)
+        let spacing: CGFloat = 20 * spacingMultiplier
+        let outerSpacing: CGFloat = 20 * scaleMultiplier
+        let columnSpacing: CGFloat? = spacingMultiplier == 1.0 ? nil : 8 * spacingMultiplier
         #endif
         
-        let columns = [GridItem(.adaptive(minimum: minWidth))]
+        let columns = [GridItem(.adaptive(minimum: minWidth), spacing: columnSpacing)]
         
         return ScrollViewReader { proxy in
             ScrollView {
@@ -502,7 +521,7 @@ public struct SFSymbolPicker: View {
                     searchBox
                         .padding(.top, 80)
                         .padding(.bottom, 40)
-                        .padding(.horizontal, spacing)
+                        .padding(.horizontal, outerSpacing)
                 } else if showCategoryPicker {
                     HStack {
                         Spacer()
@@ -522,12 +541,12 @@ public struct SFSymbolPicker: View {
                     .id("top_anchor")
                 
                 if showRecents {
-                    recentsView(spacing: spacing)
-                        .padding(.top, spacing)
+                    recentsView(spacing: outerSpacing)
+                        .padding(.top, outerSpacing)
                     
                     Divider()
-                        .padding(.horizontal, spacing)
-                        .padding(.vertical, spacing / 2)
+                        .padding(.horizontal, outerSpacing)
+                        .padding(.vertical, outerSpacing / 2)
                 }
                 
                 if isLoading {
@@ -573,12 +592,12 @@ public struct SFSymbolPicker: View {
                                 }
                         }
                     }
-                    .padding(.horizontal, spacing)
+                    .padding(.horizontal, outerSpacing)
                     #if os(tvOS)
                     .padding(.bottom, 200) // Ensure enough bottom padding for tvOS
                     #else
-                    .padding(.top, ((showSearchBar || showCategoryPicker) && effectiveControlBarPosition == .top) ? 0 : spacing)
-                    .padding(.bottom, (showAs == .sheet && effectiveControlBarPosition == .bottom) || showAs == .sheet ? 0 : spacing)
+                    .padding(.top, ((showSearchBar || showCategoryPicker) && effectiveControlBarPosition == .top) ? 0 : outerSpacing)
+                    .padding(.bottom, (showAs == .sheet && effectiveControlBarPosition == .bottom) || showAs == .sheet ? 0 : outerSpacing)
                     #endif
                 }
                 }
@@ -639,7 +658,7 @@ public struct SFSymbolPicker: View {
         let fontSize: CGFloat = 10 * scaleMultiplier
         #endif
         
-        let vstackSpacing: CGFloat = (context == .recents) ? 2 : 8
+        let vstackSpacing: CGFloat = ((context == .recents) ? 2 : 8) * spacingMultiplier
         
         let content = VStack(spacing: vstackSpacing) {
             Image(systemName: name, variableValue: variableValue)
@@ -654,22 +673,26 @@ public struct SFSymbolPicker: View {
 
             if showIconName {
                 let displayLabel = name.replacingOccurrences(of: ".", with: ".\u{200B}")
-                Text(displayLabel)
-                    .font(.system(size: fontSize))
-                    .lineLimit(2)
-                    .multilineTextAlignment(.center)
-                    .minimumScaleFactor(0.8)
-                    #if os(tvOS)
-                    .foregroundStyle(AnyShapeStyle(Color.secondary))
-                    #else
-                    .foregroundStyle(isProvisionallySelected ? AnyShapeStyle(Color.white) : AnyShapeStyle(Color.secondary))
-                    #endif
-                    .frame(height: nameHeight, alignment: .center)
+                GeometryReader { geo in
+                    Text(displayLabel)
+                        .font(.system(size: fontSize))
+                        .lineLimit(2)
+                        .multilineTextAlignment(.center)
+                        .minimumScaleFactor(0.8)
+                        .truncationMode(.tail)
+                        .frame(width: geo.size.width, height: geo.size.height, alignment: .center)
+                        #if os(tvOS)
+                        .foregroundStyle(AnyShapeStyle(Color.secondary))
+                        #else
+                        .foregroundStyle(isProvisionallySelected ? AnyShapeStyle(Color.white) : AnyShapeStyle(Color.secondary))
+                        #endif
+                }
+                .frame(height: nameHeight, alignment: .center)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: showIconName ? nil : .infinity)
         .aspectRatio(showIconName ? nil : 1.0, contentMode: .fill)
-        .padding(8 * recentsScaleFactor)
+        .padding(8 * recentsScaleFactor * spacingMultiplier)
         .background {
             #if os(tvOS)
             if isSelected {

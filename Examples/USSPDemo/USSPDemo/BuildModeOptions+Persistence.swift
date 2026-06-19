@@ -13,6 +13,7 @@ extension BuildModeOptions: Codable, RawRepresentable {
         case enableShowIconName, showIconName
         case enableExcludeRestricted, excludeRestricted
         case enableIconScale, iconScale
+        case enableIconSpacing, iconSpacing
         case enableShowRecents, showRecents
         case enableMaxRecents, maxRecents
         case enableRenderingMode, renderingModeOption
@@ -66,6 +67,9 @@ extension BuildModeOptions: Codable, RawRepresentable {
         
         self.enableIconScale = try container.decode(Bool.self, forKey: .enableIconScale)
         self.iconScale = try container.decode(Int.self, forKey: .iconScale)
+        
+        self.enableIconSpacing = try container.decodeIfPresent(Bool.self, forKey: .enableIconSpacing) ?? false
+        self.iconSpacing = try container.decodeIfPresent(Int.self, forKey: .iconSpacing) ?? 5
         
         self.enableShowRecents = try container.decode(Bool.self, forKey: .enableShowRecents)
         self.showRecents = try container.decode(Bool.self, forKey: .showRecents)
@@ -130,6 +134,9 @@ extension BuildModeOptions: Codable, RawRepresentable {
         
         try container.encode(enableIconScale, forKey: .enableIconScale)
         try container.encode(iconScale, forKey: .iconScale)
+        
+        try container.encode(enableIconSpacing, forKey: .enableIconSpacing)
+        try container.encode(iconSpacing, forKey: .iconSpacing)
         
         try container.encode(enableShowRecents, forKey: .enableShowRecents)
         try container.encode(showRecents, forKey: .showRecents)

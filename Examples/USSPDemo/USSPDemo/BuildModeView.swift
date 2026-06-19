@@ -249,6 +249,20 @@ struct BuildModeView: View {
                     if !newValue { options.iconScale = 5 }
                 }
                 
+                optionRow(title: "Icon Spacing", description: "Change the spacing around icons.", isOn: $options.enableIconSpacing) {
+                    Stepper(value: $options.iconSpacing, in: 1...10) {
+                        HStack {
+                            Text("Spacing")
+                            Spacer()
+                            Text("\(options.iconSpacing)")
+                                .foregroundStyle(options.enableIconSpacing ? .secondary : .tertiary)
+                        }
+                    }
+                }
+                .onChange(of: options.enableIconSpacing) { _, newValue in
+                    if !newValue { options.iconSpacing = 5 }
+                }
+                
                 boolOptionRow(title: "Show Recents", description: "Toggle the recently used icons category.", isEnableOn: $options.enableShowRecents, isValueOn: $options.showRecents)
                     .onChange(of: options.enableShowRecents) { _, newValue in
                         if !newValue { options.showRecents = false }
@@ -471,7 +485,8 @@ struct BuildModeView: View {
             tertiaryColor: options.enableTertiaryColor ? .green : nil,
             variableValue: .constant(options.enableVariableValue ? 0.7 : nil),
             searchText: $searchText,
-            iconScale: options.enableIconScale ? options.iconScale : 5
+            iconScale: options.enableIconScale ? options.iconScale : 5,
+            iconSpacing: options.enableIconSpacing ? options.iconSpacing : 5
         )
     }
     

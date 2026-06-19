@@ -38,6 +38,9 @@ struct BuildModeOptions {
     var enableIconScale: Bool = false
     var iconScale: Int = 5
     
+    var enableIconSpacing: Bool = false
+    var iconSpacing: Int = 5
+    
     var enableShowRecents: Bool = false
     var showRecents: Bool = false
     
@@ -110,6 +113,9 @@ struct CodeGenerator {
         }
         if options.enableIconScale {
             args.append("iconScale: \(options.iconScale)")
+        }
+        if options.enableIconSpacing {
+            args.append("iconSpacing: \(options.iconSpacing)")
         }
         if options.enableMaxRecents {
             args.append("maxRecents: \(options.maxRecents)")

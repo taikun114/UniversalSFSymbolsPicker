@@ -73,6 +73,7 @@ struct ContentView: View {
     @State private var useTertiaryColor = false
     @State private var excludeRestricted = false
     @State private var iconScale: Int = 5
+    @State private var iconSpacing: Int = 5
     @State private var showRecents = false
     @State private var maxRecents = 20
     
@@ -205,7 +206,8 @@ struct ContentView: View {
                 tertiaryColor: useTertiaryColor ? tertiaryColor : nil,
                 variableValue: $variableValue,
                 searchText: $searchTextSheet,
-                iconScale: iconScale
+                iconScale: iconScale,
+                iconSpacing: iconSpacing
             )
             .conditionalSearchable(show: showSearchBar && searchBarStyle == .searchable, text: $searchTextSheet)
         } label: {
@@ -317,7 +319,8 @@ struct ContentView: View {
                     tertiaryColor: useTertiaryColor ? tertiaryColor : nil,
                     variableValue: $variableValue,
                     searchText: $searchTextSheet,
-                    iconScale: iconScale
+                    iconScale: iconScale,
+                    iconSpacing: iconSpacing
                 )
             }
             .conditionalSearchable(show: showSearchBar && searchBarStyle == .searchable, text: $searchTextSheet)
@@ -348,7 +351,8 @@ struct ContentView: View {
                 tertiaryColor: useTertiaryColor ? tertiaryColor : nil,
                 variableValue: $variableValue,
                 searchText: $searchTextPopover,
-                iconScale: iconScale
+                iconScale: iconScale,
+                iconSpacing: iconSpacing
             )
             #if os(macOS)
             .frame(width: 360, height: 500)
@@ -620,6 +624,14 @@ struct ContentView: View {
                         .foregroundStyle(.secondary)
                 }
             }
+            Stepper(value: $iconSpacing, in: 1...10) {
+                HStack {
+                    Text("Icon Spacing: \(formatScaleMultiplier(iconSpacing))")
+                    Spacer()
+                    Text("\(iconSpacing)")
+                        .foregroundStyle(.secondary)
+                }
+            }
             #else
             Picker(selection: $iconScale) {
                 ForEach(1...10, id: \.self) { val in
@@ -629,6 +641,20 @@ struct ContentView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Icon Scale")
                     Text("Change the display size of icons in the grid.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(.vertical, 8)
+            
+            Picker(selection: $iconSpacing) {
+                ForEach(1...10, id: \.self) { val in
+                    Text("\(val) (\(formatScaleMultiplier(val)))").tag(val)
+                }
+            } label: {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Icon Spacing")
+                    Text("Change the spacing around icons.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
