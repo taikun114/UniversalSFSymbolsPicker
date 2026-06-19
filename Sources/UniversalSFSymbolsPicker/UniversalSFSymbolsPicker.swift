@@ -743,6 +743,9 @@ public struct SFSymbolPicker: View {
             .contentShape(RoundedRectangle(cornerRadius: 10 * recentsScaleFactor))
             .hoverEffect(.highlight)
             .onTapGesture(perform: tapAction)
+            .focusable(true)
+            .onKeyPress(.space) { tapAction(); return .handled }
+            .accessibilityAction { tapAction() }
             .adaptiveHelp(name, enabled: showIconName)
             .accessibilityElement(children: .combine)
             .accessibilityAddTraits(.isButton)
@@ -758,15 +761,26 @@ public struct SFSymbolPicker: View {
         #else
         // Use onTapGesture instead of Button for macOS recents to prevent Button from swallowing mouse drag events on ScrollView
         return Group {
+            #if os(macOS)
             if context == .recents {
                 content
                     .onTapGesture(perform: tapAction)
+                    .focusable(true)
+                    .onKeyPress(.space) { tapAction(); return .handled }
+                    .accessibilityAddTraits(.isButton)
+                    .accessibilityAction { tapAction() }
             } else {
                 Button(action: tapAction) {
                     content
                 }
                 .buttonStyle(.plain)
             }
+            #else
+            Button(action: tapAction) {
+                content
+            }
+            .buttonStyle(.plain)
+            #endif
         }
         .adaptiveHelp(name, enabled: showIconName)
         .accessibilityElement(children: .combine)
@@ -785,11 +799,13 @@ public struct SFSymbolPicker: View {
     private func recentsView(spacing: CGFloat) -> some View {
         #if os(tvOS)
         let itemWidth: CGFloat = 130 * scaleMultiplier
+        let titleSpacing: CGFloat = 48
         #else
         let itemWidth: CGFloat = 55 * scaleMultiplier
+        let titleSpacing: CGFloat = 8
         #endif
         
-        return VStack(alignment: .leading, spacing: 8) {
+        return VStack(alignment: .leading, spacing: titleSpacing) {
             Label(
                 String(localized: "Recently Used Icons", bundle: .module),
                 systemImage: isServiceReady ? (service.effectiveName(for: "clock.arrow.trianglehead.counterclockwise.rotate.90", limitVersion: sfSymbolsVersion) ?? "clock") : "clock"
