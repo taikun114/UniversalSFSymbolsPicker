@@ -665,7 +665,8 @@ public struct SFSymbolPicker: View {
                     .frame(height: nameHeight, alignment: .center)
             }
         }
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: showIconName ? nil : .infinity)
+        .aspectRatio(showIconName ? nil : 1.0, contentMode: .fill)
         .padding(8 * recentsScaleFactor)
         .background {
             #if os(tvOS)
