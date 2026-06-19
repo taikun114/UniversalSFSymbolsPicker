@@ -495,7 +495,8 @@ public struct SFSymbolPicker: View {
         
         return ScrollViewReader { proxy in
             ScrollView {
-                #if os(tvOS)
+                VStack(spacing: 0) {
+                    #if os(tvOS)
                 // tvOS specific: Always displayed at top
                 if showSearchBar {
                     searchBox
@@ -522,7 +523,7 @@ public struct SFSymbolPicker: View {
                 
                 if showRecents {
                     recentsView(spacing: spacing)
-                        .padding(.top, spacing / 2)
+                        .padding(.top, spacing)
                     
                     Divider()
                         .padding(.horizontal, spacing)
@@ -579,6 +580,7 @@ public struct SFSymbolPicker: View {
                     .padding(.top, ((showSearchBar || showCategoryPicker) && effectiveControlBarPosition == .top) ? 0 : spacing)
                     .padding(.bottom, (showAs == .sheet && effectiveControlBarPosition == .bottom) || showAs == .sheet ? 0 : spacing)
                     #endif
+                }
                 }
             }
             .onChange(of: selectedCategoryID) { _, _ in
