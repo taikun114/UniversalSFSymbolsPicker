@@ -644,10 +644,10 @@ public struct SFSymbolPicker: View {
                 .font(.system(size: iconSize))
                 .symbolRenderingMode(renderingMode)
                 .adaptiveSymbolColorRenderingMode(isGradient)
-                #if !os(tvOS)
-                .foregroundStyle(
-                    isProvisionallySelected ? AnyShapeStyle(Color.white) : AnyShapeStyle(primaryColor)
-                )
+                #if os(tvOS)
+                .applySymbolForegroundStyle(primary: primaryColor, secondary: secondaryColor, tertiary: tertiaryColor, isWhite: false, isGradient: isGradient)
+                #else
+                .applySymbolForegroundStyle(primary: primaryColor, secondary: secondaryColor, tertiary: tertiaryColor, isWhite: isProvisionallySelected, isGradient: isGradient)
                 #endif
 
             if showIconName {
@@ -657,10 +657,10 @@ public struct SFSymbolPicker: View {
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
                     .minimumScaleFactor(0.8)
-                    #if !os(tvOS)
-                    .foregroundStyle(
-                        isProvisionallySelected ? AnyShapeStyle(Color.white) : AnyShapeStyle(Color.secondary)
-                    )
+                    #if os(tvOS)
+                    .foregroundStyle(AnyShapeStyle(Color.secondary))
+                    #else
+                    .foregroundStyle(isProvisionallySelected ? AnyShapeStyle(Color.white) : AnyShapeStyle(Color.secondary))
                     #endif
                     .frame(height: nameHeight, alignment: .center)
             }
@@ -1522,4 +1522,29 @@ private extension View {
     #if os(macOS)
     .frame(width: 400, height: 500)
     #endif
+}
+
+fileprivate extension View {
+    @ViewBuilder
+    func applySymbolForegroundStyle(primary: Color, secondary: Color?, tertiary: Color?, isWhite: Bool, isGradient: Bool) -> some View {
+        if isWhite {
+            self.foregroundStyle(Color.white)
+        } else if isGradient {
+            if let tertiary = tertiary, let secondary = secondary {
+                self.foregroundStyle(primary.gradient, secondary.gradient, tertiary.gradient)
+            } else if let secondary = secondary {
+                self.foregroundStyle(primary.gradient, secondary.gradient)
+            } else {
+                self.foregroundStyle(primary.gradient)
+            }
+        } else {
+            if let tertiary = tertiary, let secondary = secondary {
+                self.foregroundStyle(primary, secondary, tertiary)
+            } else if let secondary = secondary {
+                self.foregroundStyle(primary, secondary)
+            } else {
+                self.foregroundStyle(primary)
+            }
+        }
+    }
 }
