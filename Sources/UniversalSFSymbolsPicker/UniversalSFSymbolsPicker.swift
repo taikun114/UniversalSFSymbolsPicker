@@ -241,6 +241,7 @@ public struct SFSymbolPicker: View {
         }
         
         isPresented = false
+        dismiss()
     }
     
     /// Returns the icon for the currently selected category
@@ -394,8 +395,8 @@ public struct SFSymbolPicker: View {
             }
         }
         .onDisappear {
-            #if os(tvOS)
-            // On tvOS, selection is confirmed when leaving screen as there is no explicit done button
+            #if os(tvOS) || os(watchOS)
+            // On tvOS and watchOS, selection is confirmed when leaving screen as there is no explicit done button
             selection = temporarySelection
             if let temp = temporarySelection {
                 addToRecents(temp)
@@ -416,8 +417,8 @@ public struct SFSymbolPicker: View {
     
     private var sheetView: some View {
         VStack(spacing: 0) {
-            #if os(tvOS)
-            // On tvOS, place everything within ScrollView and let the OS handle focus control
+            #if os(tvOS) || os(watchOS)
+            // On tvOS and watchOS, place everything within ScrollView and let the OS handle focus control
             symbolGrid
             #else
             symbolGrid
@@ -440,6 +441,7 @@ public struct SFSymbolPicker: View {
         }
         #if !os(macOS) && !os(tvOS)
         .navigationTitle(String(localized: "Select an Icon", bundle: .module))
+        #if !os(watchOS)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 if #available(iOS 26.0, macOS 26.0, tvOS 26.0, watchOS 26.0, visionOS 26.0, *) {
@@ -474,6 +476,7 @@ public struct SFSymbolPicker: View {
             }
         }
         #endif
+        #endif
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
@@ -503,6 +506,11 @@ public struct SFSymbolPicker: View {
         let spacing: CGFloat = 80 * spacingMultiplier
         let outerSpacing: CGFloat = 80 * scaleMultiplier
         let columnSpacing: CGFloat? = spacingMultiplier == 1.0 ? nil : 80 * spacingMultiplier
+        #elseif os(watchOS)
+        let minWidth: CGFloat = (45 * scaleMultiplier) + (16 * spacingMultiplier)
+        let spacing: CGFloat = 16 * spacingMultiplier
+        let outerSpacing: CGFloat = 4 * scaleMultiplier
+        let columnSpacing: CGFloat? = spacingMultiplier == 1.0 ? nil : 8 * spacingMultiplier
         #else
         let minWidth: CGFloat = (45 * scaleMultiplier) + (20 * spacingMultiplier)
         let spacing: CGFloat = 20 * spacingMultiplier
@@ -515,23 +523,40 @@ public struct SFSymbolPicker: View {
         return ScrollViewReader { proxy in
             ScrollView {
                 VStack(spacing: 0) {
-                    #if os(tvOS)
-                // tvOS specific: Always displayed at top
+                    #if os(tvOS) || os(watchOS)
+                // tvOS and watchOS specific: Always displayed at top
                 if showSearchBar {
                     searchBox
+                        #if os(tvOS)
                         .padding(.top, 80)
                         .padding(.bottom, 40)
                         .padding(.horizontal, outerSpacing)
-                } else if showCategoryPicker {
+                        #else
+                        .padding(.top, 4)
+                        .padding(.bottom, 12)
+                        #endif
+                }
+                
+                if showCategoryPicker {
                     HStack {
                         Spacer()
                         sheetCategoryPicker
+                            #if os(tvOS)
                             .buttonStyle(.bordered)
                             .controlSize(.large)
+                            #endif
                         Spacer()
                     }
+                    #if os(watchOS)
+                    .padding(.top, showSearchBar ? 12 : 4)
+                    .padding(.bottom, 4)
+                    #elseif os(tvOS)
+                    .padding(.top, showSearchBar ? 0 : 80)
+                    .padding(.bottom, 40)
+                    #else
                     .padding(.top, 80)
                     .padding(.bottom, 40)
+                    #endif
                 }
                 #endif
                 
@@ -652,6 +677,10 @@ public struct SFSymbolPicker: View {
         let iconSize: CGFloat = 60 * scaleMultiplier * recentsScaleFactor
         let nameHeight: CGFloat = 64 * scaleMultiplier
         let fontSize: CGFloat = 20 * scaleMultiplier
+        #elseif os(watchOS)
+        let iconSize: CGFloat = 28 * scaleMultiplier * recentsScaleFactor
+        let nameHeight: CGFloat = 40 * scaleMultiplier
+        let fontSize: CGFloat = 14 * scaleMultiplier
         #else
         let iconSize: CGFloat = 28 * scaleMultiplier * recentsScaleFactor
         let nameHeight: CGFloat = 32 * scaleMultiplier
@@ -665,10 +694,10 @@ public struct SFSymbolPicker: View {
                 .font(.system(size: iconSize))
                 .symbolRenderingMode(renderingMode)
                 .adaptiveSymbolColorRenderingMode(isGradient)
-                #if os(tvOS)
-                .applySymbolForegroundStyle(primary: primaryColor, secondary: secondaryColor, tertiary: tertiaryColor, isWhite: false, isGradient: isGradient)
+                #if os(tvOS) || os(watchOS)
+                .applySymbolForegroundStyle(primary: primaryColor, secondary: secondaryColor, tertiary: tertiaryColor, isWhite: false)
                 #else
-                .applySymbolForegroundStyle(primary: primaryColor, secondary: secondaryColor, tertiary: tertiaryColor, isWhite: isProvisionallySelected, isGradient: isGradient)
+                .applySymbolForegroundStyle(primary: primaryColor, secondary: secondaryColor, tertiary: tertiaryColor, isWhite: isProvisionallySelected)
                 #endif
 
             if showIconName {
@@ -681,7 +710,7 @@ public struct SFSymbolPicker: View {
                         .minimumScaleFactor(0.8)
                         .truncationMode(.tail)
                         .frame(width: geo.size.width, height: geo.size.height, alignment: .center)
-                        #if os(tvOS)
+                        #if os(tvOS) || os(watchOS)
                         .foregroundStyle(AnyShapeStyle(Color.secondary))
                         #else
                         .foregroundStyle(isProvisionallySelected ? AnyShapeStyle(Color.white) : AnyShapeStyle(Color.secondary))
@@ -879,6 +908,18 @@ public struct SFSymbolPicker: View {
     }
     
     private var sheetCategoryPicker: some View {
+        #if os(watchOS)
+        NavigationLink {
+            List {
+                categoryMenuItems
+            }
+            .navigationTitle(String(localized: "Categories", bundle: .module))
+        } label: {
+            Label(categoryDisplayText, systemImage: "line.3.horizontal.decrease.circle")
+                .lineLimit(1)
+                .truncationMode(.tail)
+        }
+        #else
         Menu {
             categoryMenuItems
         } label: {
@@ -894,9 +935,22 @@ public struct SFSymbolPicker: View {
         .accessibilityHint(String(localized: "Changes the icon category. Current category: \(currentCategoryLabel)", bundle: .module))
         .help(String(localized: "Changes the icon category. Current category: \(currentCategoryLabel)", bundle: .module))
         .labelStyle(.titleAndIcon)
+        #endif
     }
     
     private var popoverCategoryPicker: some View {
+        #if os(watchOS)
+        NavigationLink {
+            List {
+                categoryMenuItems
+            }
+            .navigationTitle(String(localized: "Categories", bundle: .module))
+        } label: {
+            Label(categoryDisplayText, systemImage: "line.3.horizontal.decrease.circle")
+                .lineLimit(1)
+                .truncationMode(.tail)
+        }
+        #else
         Menu {
             categoryMenuItems
         } label: {
@@ -920,14 +974,17 @@ public struct SFSymbolPicker: View {
                 Capsule().fill(.regularMaterial)
                 #else
                 if colorSchemeContrast == .increased {
-                    #if os(macOS)
-                    Color(NSColor.controlBackgroundColor)
+                    #if os(watchOS)
+                    Color(white: 0.1)
+                        .clipShape(Capsule())
+                    #elseif os(macOS)
+                    Color(nsColor: .controlBackgroundColor)
                         .clipShape(Capsule())
                     #elseif os(tvOS)
                     Color.black.opacity(0.4)
                         .clipShape(Capsule())
                     #else
-                    Color(UIColor.secondarySystemBackground)
+                    Color(uiColor: .secondarySystemBackground)
                         .clipShape(Capsule())
                     #endif
                 } else {
@@ -956,6 +1013,7 @@ public struct SFSymbolPicker: View {
         .accessibilityHint(String(localized: "Changes the icon category. Current category: \(currentCategoryLabel)", bundle: .module))
         .help(String(localized: "Changes the icon category. Current category: \(currentCategoryLabel)", bundle: .module))
         .labelStyle(.titleAndIcon)
+        #endif
     }
     
     #if os(macOS)
@@ -1031,6 +1089,8 @@ public struct SFSymbolPicker: View {
         .background(.regularMaterial)
     }
     #endif
+    
+
     
     @ViewBuilder
     private var categoryMenuItems: some View {
@@ -1168,6 +1228,26 @@ public struct SFSymbolPicker: View {
                     .frame(height: 80)
             }
         }
+        #elseif os(watchOS)
+        // watchOS specific
+        HStack(spacing: 4) {
+            TextField(prompt, text: $searchText)
+            
+            if !searchText.isEmpty {
+                Button {
+                    searchText = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(String(localized: "Clear search", bundle: .module))
+                .help(String(localized: "Clear search", bundle: .module))
+            }
+        }
+        .padding(.horizontal, 4)
+        .padding(.vertical, 4)
+        .frame(height: controlHeight)
         #else
         // Island configuration for iOS/macOS/visionOS
         HStack(spacing: 12) {
@@ -1568,17 +1648,9 @@ private extension View {
 
 fileprivate extension View {
     @ViewBuilder
-    func applySymbolForegroundStyle(primary: Color, secondary: Color?, tertiary: Color?, isWhite: Bool, isGradient: Bool) -> some View {
+    func applySymbolForegroundStyle(primary: Color, secondary: Color?, tertiary: Color?, isWhite: Bool) -> some View {
         if isWhite {
             self.foregroundStyle(Color.white)
-        } else if isGradient {
-            if let tertiary = tertiary, let secondary = secondary {
-                self.foregroundStyle(primary.gradient, secondary.gradient, tertiary.gradient)
-            } else if let secondary = secondary {
-                self.foregroundStyle(primary.gradient, secondary.gradient)
-            } else {
-                self.foregroundStyle(primary.gradient)
-            }
         } else {
             if let tertiary = tertiary, let secondary = secondary {
                 self.foregroundStyle(primary, secondary, tertiary)

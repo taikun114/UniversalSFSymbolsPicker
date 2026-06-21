@@ -19,7 +19,7 @@ struct VisualEffectView: NSViewRepresentable {
         nsView.blendingMode = blendingMode
     }
 }
-#else
+#elseif canImport(UIKit) && !os(watchOS)
 import UIKit
 struct VisualEffectView: UIViewRepresentable {
     var material: UIBlurEffect.Style

@@ -181,6 +181,79 @@ struct ContentView: View {
     }
     
     @ViewBuilder
+    private var testPickerButtonLabel: some View {
+        HStack(spacing: selectedIconSpacing) {
+            if let icon = selectedIcon {
+                Image(systemName: icon, variableValue: variableValue)
+                    .font(.headline)
+                    .symbolRenderingMode(renderingModeOption.mode)
+                    .adaptiveSymbolColorRenderingMode(isGradient)
+                    .foregroundStyle(
+                        usePrimaryColor ? primaryColor : .primary,
+                        useSecondaryColor ? secondaryColor : (usePrimaryColor ? primaryColor : .primary),
+                        useTertiaryColor ? tertiaryColor : (usePrimaryColor ? primaryColor : .primary)
+                    )
+                    #if os(watchOS)
+                    .frame(width: 32, height: 32)
+                    #else
+                    .frame(width: 44, height: 44)
+                    .padding(.leading, 20)
+                    #endif
+                
+                VStack(alignment: .leading, spacing: selectedIconTextSpacing) {
+                    Text("Selected Icon")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text(icon)
+                        .font(.body.monospaced())
+                }
+            } else {
+                Label("Select an Icon", systemImage: "plus.circle")
+            }
+            
+            Spacer()
+        }
+        #if os(watchOS)
+        .padding(.vertical, 0)
+        #else
+        .padding(.vertical, 12)
+        .padding(.horizontal, 20)
+        #endif
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .contentShape(Rectangle())
+    }
+    
+    @ViewBuilder
+    private func watchOSSheetPickerInstance() -> some View {
+        SFSymbolPicker(
+            isPresented: $isSheetPresented,
+            selection: $selectedIcon,
+            showAs: .sheet,
+            controlBarPosition: controlBarPosition,
+            showSearchBar: showSearchBar && searchBarStyle == .custom,
+            showCategoryPicker: showCategoryPicker,
+            showCategorySectionLabel: showCategorySectionLabel,
+            categoryLabelVisibility: categoryLabelVisibility,
+            categoryLabelStyle: categoryLabelStyle,
+            showIconName: showIconName,
+            customCategories: demoCustomCategories,
+            excludeRestricted: excludeRestricted,
+            showRecents: showRecents,
+            maxRecents: maxRecents,
+            renderingMode: renderingModeOption.mode,
+            isGradient: isGradient,
+            primaryColor: usePrimaryColor ? primaryColor : .primary,
+            secondaryColor: useSecondaryColor ? secondaryColor : nil,
+            tertiaryColor: useTertiaryColor ? tertiaryColor : nil,
+            variableValue: $variableValue,
+            searchText: $searchTextSheet,
+            iconScale: iconScale,
+            iconSpacing: iconSpacing
+        )
+        .conditionalSearchable(show: showSearchBar && searchBarStyle == .searchable, text: $searchTextSheet)
+    }
+    
+    @ViewBuilder
     private var testPickerButton: some View {
         #if os(tvOS)
         NavigationLink {
@@ -211,37 +284,29 @@ struct ContentView: View {
             )
             .conditionalSearchable(show: showSearchBar && searchBarStyle == .searchable, text: $searchTextSheet)
         } label: {
-            HStack(spacing: selectedIconSpacing) {
-                if let icon = selectedIcon {
-                    Image(systemName: icon, variableValue: variableValue)
-                        .font(.headline)
-                        .symbolRenderingMode(renderingModeOption.mode)
-                        .adaptiveSymbolColorRenderingMode(isGradient)
-                        .foregroundStyle(
-                            usePrimaryColor ? primaryColor : .primary,
-                            useSecondaryColor ? secondaryColor : (usePrimaryColor ? primaryColor : .primary),
-                            useTertiaryColor ? tertiaryColor : (usePrimaryColor ? primaryColor : .primary)
-                        )
-                        .frame(width: 44, height: 44)
-                        .padding(.leading, 20)
-                    
-                    VStack(alignment: .leading, spacing: selectedIconTextSpacing) {
-                        Text("Selected Icon")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        Text(icon)
-                            .font(.body.monospaced())
-                    }
-                } else {
-                    Label("Select an Icon", systemImage: "plus.circle")
+            testPickerButtonLabel
+        }
+        #elseif os(watchOS)
+        Group {
+            if pickerMode == .sheet {
+                Button {
+                    isSheetPresented = true
+                } label: {
+                    testPickerButtonLabel
                 }
-                
-                Spacer()
+                .buttonStyle(.plain)
+                .sheet(isPresented: $isSheetPresented) {
+                    NavigationStack {
+                        watchOSSheetPickerInstance()
+                    }
+                }
+            } else {
+                NavigationLink {
+                    watchOSSheetPickerInstance()
+                } label: {
+                    testPickerButtonLabel
+                }
             }
-            .padding(.vertical, 12)
-            .padding(.horizontal, 20)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .contentShape(Rectangle())
         }
         #else
         Button {
@@ -387,15 +452,24 @@ struct ContentView: View {
                 }
                 Picker(selection: $pickerMode) {
                     Text("Sheet").tag(SFSymbolPickerDisplayMode.sheet)
+                    #if os(watchOS) || os(tvOS)
+                    Text("Navigation Link").tag(SFSymbolPickerDisplayMode.popover)
+                    #else
                     Text("Popover").tag(SFSymbolPickerDisplayMode.popover)
+                    #endif
                 } label: {
                     Text("Display Mode")
                 }
+                #if os(watchOS)
+                .pickerStyle(.automatic)
+                #else
                 .pickerStyle(.segmented)
+                #endif
                 .labelsHidden()
                 .adaptiveButtonSizingFlexible()
             }
             
+            #if !os(tvOS) && !os(watchOS)
             if pickerMode == .popover || searchBarStyle == .custom {
                 VStack(alignment: .leading, spacing: 8) {
                     VStack(alignment: .leading, spacing: 4) {
@@ -415,6 +489,7 @@ struct ContentView: View {
                     .adaptiveButtonSizingFlexible()
                 }
             }
+            #endif
             #endif
             
             Toggle("Show Search Bar", isOn: $showSearchBar)
@@ -446,7 +521,15 @@ struct ContentView: View {
                         Text("Search Bar Style")
                     }
                     .labelsHidden()
-                    .pickerStyle(.segmented)
+                    #if os(watchOS)
+                    .pickerStyle(.automatic)
+                    #else
+                    #if os(watchOS)
+                .pickerStyle(.automatic)
+                #else
+                .pickerStyle(.segmented)
+                #endif
+                    #endif
                     .frame(width: 900)
                 }
                 .padding(.vertical, 8)
@@ -472,7 +555,15 @@ struct ContentView: View {
                     } label: {
                         Text("Search Bar Style")
                     }
-                    .pickerStyle(.segmented)
+                    #if os(watchOS)
+                    .pickerStyle(.automatic)
+                    #else
+                    #if os(watchOS)
+                .pickerStyle(.automatic)
+                #else
+                .pickerStyle(.segmented)
+                #endif
+                    #endif
                     .labelsHidden()
                     .adaptiveButtonSizingFlexible()
                 }
@@ -521,7 +612,15 @@ struct ContentView: View {
                         Text("Category Label Visibility")
                     }
                     .labelsHidden()
-                    .pickerStyle(.segmented)
+                    #if os(watchOS)
+                    .pickerStyle(.automatic)
+                    #else
+                    #if os(watchOS)
+                .pickerStyle(.automatic)
+                #else
+                .pickerStyle(.segmented)
+                #endif
+                    #endif
                     .frame(width: 900)
                 }
                 .padding(.vertical, 8)
@@ -543,7 +642,15 @@ struct ContentView: View {
                             Text("Category Label Style")
                         }
                         .labelsHidden()
-                        .pickerStyle(.segmented)
+                        #if os(watchOS)
+                    .pickerStyle(.automatic)
+                    #else
+                    #if os(watchOS)
+                .pickerStyle(.automatic)
+                #else
+                .pickerStyle(.segmented)
+                #endif
+                    #endif
                         .frame(width: 900)
                     }
                     .padding(.vertical, 8)
@@ -563,7 +670,15 @@ struct ContentView: View {
                     } label: {
                         Text("Category Label Visibility")
                     }
-                    .pickerStyle(.segmented)
+                    #if os(watchOS)
+                    .pickerStyle(.automatic)
+                    #else
+                    #if os(watchOS)
+                .pickerStyle(.automatic)
+                #else
+                .pickerStyle(.segmented)
+                #endif
+                    #endif
                     .labelsHidden()
                     .adaptiveButtonSizingFlexible()
                 }
@@ -583,7 +698,15 @@ struct ContentView: View {
                         } label: {
                             Text("Category Label Style")
                         }
-                        .pickerStyle(.segmented)
+                        #if os(watchOS)
+                    .pickerStyle(.automatic)
+                    #else
+                    #if os(watchOS)
+                .pickerStyle(.automatic)
+                #else
+                .pickerStyle(.segmented)
+                #endif
+                    #endif
                         .labelsHidden()
                         .adaptiveButtonSizingFlexible()
                     }
@@ -615,7 +738,7 @@ struct ContentView: View {
             .padding(.vertical, 8)
             #endif
             
-            #if !os(tvOS)
+            #if !os(tvOS) && !os(watchOS)
             Stepper(value: $iconScale, in: 1...10) {
                 HStack {
                     Text("Icon Scale: \(formatScaleMultiplier(iconScale))")
@@ -632,6 +755,26 @@ struct ContentView: View {
                         .foregroundStyle(.secondary)
                 }
             }
+            #elseif os(watchOS)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Icon Scale")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Stepper(value: $iconScale, in: 1...10) {
+                    Text("\(iconScale)")
+                }
+            }
+            .padding(.vertical, 4)
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Icon Spacing")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Stepper(value: $iconSpacing, in: 1...10) {
+                    Text("\(iconSpacing)")
+                }
+            }
+            .padding(.vertical, 4)
             #else
             Picker(selection: $iconScale) {
                 ForEach(1...10, id: \.self) { val in
@@ -668,7 +811,7 @@ struct ContentView: View {
                 #endif
             
             if showRecents {
-                #if !os(tvOS)
+                #if !os(tvOS) && !os(watchOS)
                 Stepper(value: $maxRecents, in: 1...100) {
                     HStack {
                         Text("Max Recents")
@@ -677,6 +820,16 @@ struct ContentView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
+                #elseif os(watchOS)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Max Recents")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Stepper(value: $maxRecents, in: 1...100) {
+                        Text("\(maxRecents)")
+                    }
+                }
+                .padding(.vertical, 4)
                 #else
                 Picker(selection: $maxRecents) {
                     ForEach(Array(stride(from: 1, through: 100, by: 1)), id: \.self) { val in
@@ -766,7 +919,11 @@ struct ContentView: View {
                     }
                 }
                 .labelsHidden()
+                #if os(watchOS)
+                .pickerStyle(.automatic)
+                #else
                 .pickerStyle(.segmented)
+                #endif
                 .frame(width: 1000)
             }
             .padding(.vertical, 8)
@@ -785,7 +942,11 @@ struct ContentView: View {
                 } label: {
                     Text("Rendering Mode")
                 }
+                #if os(watchOS)
+                .pickerStyle(.automatic)
+                #else
                 .pickerStyle(.segmented)
+                #endif
                 .labelsHidden()
                 .adaptiveButtonSizingFlexible()
             }
@@ -807,7 +968,7 @@ struct ContentView: View {
                 Text("Primary Color")
             }
             if usePrimaryColor {
-                #if !os(tvOS)
+                #if !os(tvOS) && !os(watchOS)
                 ColorPicker("Select Primary Color", selection: $primaryColor)
                 #endif
             }
@@ -816,7 +977,7 @@ struct ContentView: View {
                 Text("Secondary Color")
             }
             if useSecondaryColor {
-                #if !os(tvOS)
+                #if !os(tvOS) && !os(watchOS)
                 ColorPicker("Select Secondary Color", selection: $secondaryColor)
                 #endif
             }
@@ -825,7 +986,7 @@ struct ContentView: View {
                 Text("Tertiary Color")
             }
             if useTertiaryColor {
-                #if !os(tvOS)
+                #if !os(tvOS) && !os(watchOS)
                 ColorPicker("Select Tertiary Color", selection: $tertiaryColor)
                 #endif
             }
@@ -891,7 +1052,11 @@ extension View {
     @ViewBuilder
     func conditionalSearchable(show: Bool, text: Binding<String>) -> some View {
         if show {
+            #if os(watchOS)
+            self.searchable(text: text, placement: .toolbar, prompt: "Search icons in sheet...")
+            #else
             self.searchable(text: text, prompt: "Search icons in sheet...")
+            #endif
         } else {
             self
         }
