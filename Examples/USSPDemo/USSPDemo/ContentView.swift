@@ -583,17 +583,19 @@ struct ContentView: View {
             #endif
             
             if showCategoryPicker {
-                Toggle(isOn: $showCategorySectionLabel) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Show Category Section Label")
-                        Text("Toggle whether to display section headers in the category menu (iOS 18.0+, macOS 15.0+, tvOS 18.0+, watchOS 11.0+, visionOS 2.0+).")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                if #available(iOS 18.0, macOS 15.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *) {
+                    Toggle(isOn: $showCategorySectionLabel) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Show Category Section Label")
+                            Text("Toggle whether to display section headers in the category menu (iOS 18.0+, macOS 15.0+, tvOS 18.0+, watchOS 11.0+, visionOS 2.0+).")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                     }
+                    #if os(tvOS)
+                    .padding(.vertical, 8)
+                    #endif
                 }
-                #if os(tvOS)
-                .padding(.vertical, 8)
-                #endif
                 
                 #if os(tvOS)
                 HStack {
@@ -952,17 +954,19 @@ struct ContentView: View {
             }
             #endif
             
-            Toggle(isOn: $isGradient) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Gradient")
-                    Text("Enable gradient rendering for symbols (iOS 26.0+, macOS 26.0+, tvOS 26.0+, watchOS 26.0+, visionOS 26.0+).")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+            if #available(iOS 26.0, macOS 26.0, tvOS 26.0, watchOS 26.0, visionOS 26.0, *) {
+                Toggle(isOn: $isGradient) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Gradient")
+                        Text("Enable gradient rendering for symbols (iOS 26.0+, macOS 26.0+, tvOS 26.0+, watchOS 26.0+, visionOS 26.0+).")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
+                #if os(tvOS)
+                .padding(.vertical, 8)
+                #endif
             }
-            #if os(tvOS)
-            .padding(.vertical, 8)
-            #endif
             
             Toggle(isOn: $usePrimaryColor) {
                 Text("Primary Color")
