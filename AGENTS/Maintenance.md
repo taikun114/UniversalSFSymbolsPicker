@@ -72,7 +72,7 @@ grep -oE "\.[a-z]{2}[\.\"]" Sources/UniversalSFSymbolsPicker/Resources/SFSymbolD
 
 ## パッケージローカライズのメンテナンス
 
-`Localizable.xcstrings` に新しい言語を追加したり、既存の翻訳を更新したりする場合は、可能な限り Apple の **SF Symbols アプリ** に含まれる公式の翻訳に合わせるため、スクリプトを作成する前に公式の翻訳データを参照する必要があります。
+`Localizable.xcstrings` に新しい言語を追加したり、既存の翻訳を更新したりする場合は、カテゴリ名は可能な限り Apple の **SF Symbols アプリ** に含まれる公式の翻訳に合わせるため、スクリプトを作成する前に公式の翻訳データを参照する必要があります。
 
 ### 1. 公式翻訳データの検証と抽出
 
@@ -154,8 +154,11 @@ for key, value in translations.items():
         }
 
 # 3. 書き出し
-with open(file_path, 'w') as f:
-    json.dump(data, f, indent=2, ensure_ascii=False)
+with open(file_path, 'w', encoding='utf-8') as f:
+    # Xcodeの.xcstringsフォーマット（コロンの前にスペース）に合わせるため separators を指定
+    # 既存の言語コードの順序などを崩さないよう、ソートは行わずそのまま上書きし、最終的なソートはXcodeに任せます
+    json.dump(data, f, indent=2, ensure_ascii=False, separators=(',', ' : '))
+    f.write('\n')
 ```
 
 

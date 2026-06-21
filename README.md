@@ -7,14 +7,14 @@ This is a Swift package that allows you to implement a highly customizable SF Sy
 >
 > This package is a beta version currently under development.\
 Since it has not yet been thoroughly tested, it may not function properly on some platforms or may contain bugs.\
-> However, I have confirmed that it generally works on platforms other than watchOS.
+> However, I have confirmed that it generally works on all supported platforms.
 
 ## Supported Platforms
 
 - macOS 14.0 or later
 - iOS / iPadOS 17.0 or later
 - tvOS 17.0 or later
-- watchOS 10.0 or later (currently not working but planned for future support)
+- watchOS 10.0 or later (not yet available in the latest release)
 - visionOS 1.0 or later
 
 ## How to Use
