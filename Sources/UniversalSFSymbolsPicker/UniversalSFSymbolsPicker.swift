@@ -537,7 +537,13 @@ public struct SFSymbolPicker: View {
                         #endif
                 }
                 
-                if showCategoryPicker {
+                #if os(tvOS)
+                let shouldShowCategoryPickerHere = showCategoryPicker && !showSearchBar
+                #else
+                let shouldShowCategoryPickerHere = showCategoryPicker
+                #endif
+                
+                if shouldShowCategoryPickerHere {
                     HStack {
                         Spacer()
                         sheetCategoryPicker
