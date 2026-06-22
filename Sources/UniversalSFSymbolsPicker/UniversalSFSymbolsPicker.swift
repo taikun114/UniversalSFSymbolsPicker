@@ -75,6 +75,16 @@ public struct SFSymbolPicker: View {
         #endif
     }
     
+    private var hasTopControlBar: Bool {
+        guard effectiveControlBarPosition == .top else { return false }
+        if showAs == .popover {
+            return showSearchBar || showCategoryPicker
+        } else {
+            // In sheet mode, category picker is never in the top control bar
+            return showSearchBar
+        }
+    }
+    
     /// The multiplier used for sizing elements based on the current icon scale.
     private var scaleMultiplier: CGFloat {
         let s = max(1, min(10, iconScale))
@@ -424,7 +434,7 @@ public struct SFSymbolPicker: View {
             symbolGrid
                 .adaptiveSoftEdge()
                 .adaptiveSafeAreaBar(edge: .top) {
-                    if (showSearchBar || showCategoryPicker) && effectiveControlBarPosition == .top {
+                    if showSearchBar && effectiveControlBarPosition == .top {
                         searchBox
                     }
                 }
@@ -432,7 +442,7 @@ public struct SFSymbolPicker: View {
                     #if os(macOS)
                     macOSBottomBar
                     #else
-                    if (showSearchBar || showCategoryPicker) && effectiveControlBarPosition == .bottom {
+                    if showSearchBar && effectiveControlBarPosition == .bottom {
                         searchBox
                     }
                     #endif
@@ -573,7 +583,11 @@ public struct SFSymbolPicker: View {
                 
                 if showRecents {
                     recentsView(spacing: outerSpacing)
+                        #if os(watchOS) || os(tvOS)
                         .padding(.top, outerSpacing)
+                        #else
+                        .padding(.top, hasTopControlBar ? 0 : outerSpacing)
+                        #endif
                     
                     Divider()
                         .padding(.horizontal, outerSpacing)
@@ -627,7 +641,7 @@ public struct SFSymbolPicker: View {
                     #if os(tvOS)
                     .padding(.bottom, 200) // Ensure enough bottom padding for tvOS
                     #else
-                    .padding(.top, ((showSearchBar || showCategoryPicker) && effectiveControlBarPosition == .top) ? 0 : outerSpacing)
+                    .padding(.top, hasTopControlBar ? 0 : outerSpacing)
                     .padding(.bottom, (showAs == .sheet && effectiveControlBarPosition == .bottom) || showAs == .sheet ? 0 : outerSpacing)
                     #endif
                 }
@@ -827,6 +841,7 @@ public struct SFSymbolPicker: View {
                 content
                     .onTapGesture(perform: tapAction)
                     .focusable(true)
+                    .focusEffectDisabled()
                     .onKeyPress(.space) { tapAction(); return .handled }
                     .accessibilityAddTraits(.isButton)
                     .accessibilityAction { tapAction() }
@@ -861,9 +876,11 @@ public struct SFSymbolPicker: View {
         #if os(tvOS)
         let itemWidth: CGFloat = 130 * scaleMultiplier
         let titleSpacing: CGFloat = 48
+        let itemSpacing: CGFloat = 20 * scaleMultiplier
         #else
         let itemWidth: CGFloat = 55 * scaleMultiplier
         let titleSpacing: CGFloat = 8
+        let itemSpacing: CGFloat = 4 * scaleMultiplier
         #endif
         
         return VStack(alignment: .leading, spacing: titleSpacing) {
@@ -892,7 +909,8 @@ public struct SFSymbolPicker: View {
                 RecentsScrollView(
                     recentSymbols: recentSymbols,
                     itemWidth: itemWidth,
-                    spacing: spacing,
+                    itemSpacing: itemSpacing,
+                    horizontalPadding: spacing,
                     isScrollingRecents: $isScrollingRecents,
                     symbolButtonBuilder: { name in
                         AnyView(symbolButton(for: name, context: .recents))
@@ -1014,7 +1032,7 @@ public struct SFSymbolPicker: View {
     #if os(macOS)
     private var macOSBottomBar: some View {
         VStack(spacing: 0) {
-            if (showSearchBar || showCategoryPicker) && effectiveControlBarPosition == .bottom {
+            if showSearchBar && effectiveControlBarPosition == .bottom {
                 searchBox
             }
             
@@ -1334,20 +1352,21 @@ public struct SFSymbolPicker: View {
 private struct RecentsScrollView: View {
     let recentSymbols: [String]
     let itemWidth: CGFloat
-    let spacing: CGFloat
+    let itemSpacing: CGFloat
+    let horizontalPadding: CGFloat
     @Binding var isScrollingRecents: Bool
     let symbolButtonBuilder: (String) -> AnyView
     
     var body: some View {
         ScrollView(.horizontal) {
-            LazyHStack(spacing: spacing) {
+            LazyHStack(spacing: itemSpacing) {
                 ForEach(recentSymbols, id: \.self) { name in
                     symbolButtonBuilder(name)
                         .frame(width: itemWidth)
                 }
             }
             .scrollTargetLayout()
-            .padding(.horizontal, spacing)
+            .padding(.horizontal, horizontalPadding)
             .padding(.vertical, 4)
         }
         .applyMacOSDragGesture(isScrollingRecents: $isScrollingRecents)
