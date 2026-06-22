@@ -1346,10 +1346,11 @@ private struct RecentsScrollView: View {
                         .frame(width: itemWidth)
                 }
             }
-            .applyMacOSDragGesture(isScrollingRecents: $isScrollingRecents)
+            .scrollTargetLayout()
             .padding(.horizontal, spacing)
             .padding(.vertical, 4)
         }
+        .applyMacOSDragGesture(isScrollingRecents: $isScrollingRecents)
         .scrollClipDisabled()
     }
 }
@@ -1364,7 +1365,6 @@ private struct MacOSDragScrollModifier: ViewModifier {
     
     func body(content: Content) -> some View {
         content
-            .scrollTargetLayout()
             .scrollPosition($tagsScrollPos)
             #if os(macOS)
             .onScrollGeometryChange(for: CGPoint.self) { geo in
