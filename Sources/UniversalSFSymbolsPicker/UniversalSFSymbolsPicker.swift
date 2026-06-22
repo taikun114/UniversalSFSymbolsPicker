@@ -889,26 +889,15 @@ public struct SFSymbolPicker: View {
                 .padding(.vertical, 4)
                 .frame(maxWidth: .infinity, alignment: .center)
             } else {
-                if #available(iOS 26.0, macOS 26.0, tvOS 26.0, watchOS 26.0, visionOS 26.0, *) {
-                    ModernRecentsScrollView(
-                        recentSymbols: recentSymbols,
-                        itemWidth: itemWidth,
-                        spacing: spacing,
-                        isScrollingRecents: $isScrollingRecents,
-                        symbolButtonBuilder: { name in
-                            AnyView(symbolButton(for: name, context: .recents))
-                        }
-                    )
-                } else {
-                    LegacyRecentsScrollView(
-                        recentSymbols: recentSymbols,
-                        itemWidth: itemWidth,
-                        spacing: spacing,
-                        symbolButtonBuilder: { name in
-                            AnyView(symbolButton(for: name, context: .recents))
-                        }
-                    )
-                }
+                RecentsScrollView(
+                    recentSymbols: recentSymbols,
+                    itemWidth: itemWidth,
+                    spacing: spacing,
+                    isScrollingRecents: $isScrollingRecents,
+                    symbolButtonBuilder: { name in
+                        AnyView(symbolButton(for: name, context: .recents))
+                    }
+                )
             }
         }
     }
@@ -1035,13 +1024,9 @@ public struct SFSymbolPicker: View {
                 } label: {
                     Label(String(localized: "Cancel", bundle: .module), systemImage: "xmark")
                 }
-                #if !os(tvOS)
                 .keyboardShortcut(.cancelAction)
-                #endif
                 .controlSize(.large)
-                #if os(macOS)
                 .adaptiveGlassButtonStyle()
-                #endif
                 .accessibilityLabel(String(localized: "Cancel", bundle: .module))
                 .help(String(localized: "Cancel selection", bundle: .module))
                 
@@ -1050,9 +1035,7 @@ public struct SFSymbolPicker: View {
                 if showCategoryPicker {
                     sheetCategoryPicker
                         .controlSize(.large)
-                        #if os(macOS)
                         .adaptiveGlassEffectStyle(colorSchemeContrast == .increased ? .regular : .clearInteractive)
-                        #endif
                 }
                 
                 Button {
@@ -1060,13 +1043,9 @@ public struct SFSymbolPicker: View {
                 } label: {
                     Label(String(localized: "Done", bundle: .module), systemImage: "checkmark")
                 }
-                #if !os(tvOS)
                 .keyboardShortcut(.defaultAction)
-                #endif
                 .controlSize(.large)
-                #if os(macOS)
                 .adaptiveGlassProminentButtonStyle()
-                #endif
                 .accessibilityLabel(String(localized: "Done", bundle: .module))
                 .help(String(localized: "Confirm selection", bundle: .module))
             }
@@ -1352,18 +1331,13 @@ public struct SFSymbolPicker: View {
 
 // MARK: - Recents Scroll Views
 
-@available(iOS 26.0, macOS 26.0, tvOS 26.0, watchOS 26.0, visionOS 26.0, *)
-private struct ModernRecentsScrollView: View {
+private struct RecentsScrollView: View {
     let recentSymbols: [String]
     let itemWidth: CGFloat
     let spacing: CGFloat
     @Binding var isScrollingRecents: Bool
     let symbolButtonBuilder: (String) -> AnyView
     
-    @State private var tagsScrollPos: ScrollPosition = ScrollPosition()
-    @State private var currentTagsOffset: CGPoint = .zero
-    @State private var dragStartOffset: CGPoint = .zero
-    
     var body: some View {
         ScrollView(.horizontal) {
             LazyHStack(spacing: spacing) {
@@ -1372,53 +1346,57 @@ private struct ModernRecentsScrollView: View {
                         .frame(width: itemWidth)
                 }
             }
-            .scrollTargetLayout()
+            .applyMacOSDragGesture(isScrollingRecents: $isScrollingRecents)
             .padding(.horizontal, spacing)
             .padding(.vertical, 4)
         }
-        .scrollPosition($tagsScrollPos)
-        #if os(macOS)
-        .onScrollGeometryChange(for: CGPoint.self) { geo in
-            geo.contentOffset
-        } action: { _, newValue in
-            currentTagsOffset = newValue
-        }
-        .highPriorityGesture(
-            DragGesture(minimumDistance: 5)
-                .onChanged { value in
-                    if !isScrollingRecents {
-                        isScrollingRecents = true
-                        dragStartOffset = currentTagsOffset
-                    }
-                    let deltaX = value.translation.width
-                    // Update scroll position
-                    tagsScrollPos = ScrollPosition(point: CGPoint(x: dragStartOffset.x - deltaX, y: 0))
-                }
-                .onEnded { _ in
-                    isScrollingRecents = false
-                }
-        )
-        #endif
         .scrollClipDisabled()
     }
 }
 
-private struct LegacyRecentsScrollView: View {
-    let recentSymbols: [String]
-    let itemWidth: CGFloat
-    let spacing: CGFloat
-    let symbolButtonBuilder: (String) -> AnyView
+@available(iOS 18.0, macOS 15.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
+private struct MacOSDragScrollModifier: ViewModifier {
+    @Binding var isScrollingRecents: Bool
     
-    var body: some View {
-        ScrollView(.horizontal) {
-            LazyHStack(spacing: spacing) {
-                ForEach(recentSymbols, id: \.self) { name in
-                    symbolButtonBuilder(name)
-                        .frame(width: itemWidth)
-                }
+    @State private var tagsScrollPos: ScrollPosition = ScrollPosition()
+    @State private var currentTagsOffset: CGPoint = .zero
+    @State private var dragStartOffset: CGPoint = .zero
+    
+    func body(content: Content) -> some View {
+        content
+            .scrollTargetLayout()
+            .scrollPosition($tagsScrollPos)
+            #if os(macOS)
+            .onScrollGeometryChange(for: CGPoint.self) { geo in
+                geo.contentOffset
+            } action: { _, newValue in
+                currentTagsOffset = newValue
             }
-            .padding(.horizontal, spacing)
-            .padding(.vertical, 4)
+            .highPriorityGesture(
+                DragGesture(minimumDistance: 5)
+                    .onChanged { value in
+                        if !isScrollingRecents {
+                            isScrollingRecents = true
+                            dragStartOffset = currentTagsOffset
+                        }
+                        let deltaX = value.translation.width
+                        tagsScrollPos = ScrollPosition(point: CGPoint(x: dragStartOffset.x - deltaX, y: 0))
+                    }
+                    .onEnded { _ in
+                        isScrollingRecents = false
+                    }
+            )
+            #endif
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func applyMacOSDragGesture(isScrollingRecents: Binding<Bool>) -> some View {
+        if #available(iOS 18.0, macOS 15.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *) {
+            self.modifier(MacOSDragScrollModifier(isScrollingRecents: isScrollingRecents))
+        } else {
+            self
         }
     }
 }
