@@ -123,6 +123,7 @@ public struct SFSymbolPicker: View {
     @State private var recentSymbols: [String] = []
     @State private var selectedContext: SelectionContext = .grid
     @State private var isScrollingRecents = false
+    @AccessibilityFocusState private var accessibilityFocusedSymbol: String?
     
     // Pagination State
     @State private var allFilteredSymbols: [String] = []
@@ -744,19 +745,16 @@ public struct SFSymbolPicker: View {
         .padding(8 * recentsScaleFactor * spacingMultiplier)
         .background {
             #if os(tvOS)
-            if isSelected {
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(primaryColor, lineWidth: 6)
-                    .padding(-12)
-            }
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(isSelected ? primaryColor : Color.clear, lineWidth: 6)
+                .padding(-12)
             #else
-            if isProvisionallySelected {
-                RoundedRectangle(cornerRadius: 10 * recentsScaleFactor)
-                    .fill(Color.accentColor)
-            } else if isSelected {
-                RoundedRectangle(cornerRadius: 10 * recentsScaleFactor)
-                    .stroke(Color.accentColor, lineWidth: 2)
-            }
+            RoundedRectangle(cornerRadius: 10 * recentsScaleFactor)
+                .fill(isProvisionallySelected ? Color.accentColor : Color.clear)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10 * recentsScaleFactor)
+                        .stroke(isSelected && !isProvisionallySelected ? Color.accentColor : Color.clear, lineWidth: 2)
+                )
             #endif
         }
         #if os(visionOS) || os(iOS)
@@ -787,6 +785,7 @@ public struct SFSymbolPicker: View {
             // 1. Immediately update selection state
             temporarySelection = name
             selectedContext = context
+            accessibilityFocusedSymbol = name + (context == .recents ? "_recents" : "_grid")
             
             // 2. Double-tap detection (same icon within 0.5s)
             if name == lastTapName && diff < 0.5 {
@@ -833,6 +832,7 @@ public struct SFSymbolPicker: View {
                     : String(localized: "Single-tap or single-click to provisionally select, double-tap or double-click to confirm selection", bundle: .module)
                 )
             )
+            .accessibilityFocused($accessibilityFocusedSymbol, equals: name + (context == .recents ? "_recents" : "_grid"))
         #else
         // Use onTapGesture instead of Button for macOS recents to prevent Button from swallowing mouse drag events on ScrollView
         return Group {
@@ -869,6 +869,7 @@ public struct SFSymbolPicker: View {
                 : String(localized: "Single-tap or single-click to provisionally select, double-tap or double-click to confirm selection", bundle: .module)
             )
         )
+        .accessibilityFocused($accessibilityFocusedSymbol, equals: name + (context == .recents ? "_recents" : "_grid"))
         #endif
     }
     
@@ -913,7 +914,7 @@ public struct SFSymbolPicker: View {
                     horizontalPadding: spacing,
                     isScrollingRecents: $isScrollingRecents,
                     symbolButtonBuilder: { name in
-                        AnyView(symbolButton(for: name, context: .recents))
+                        symbolButton(for: name, context: .recents)
                     }
                 )
             }
@@ -1349,13 +1350,13 @@ public struct SFSymbolPicker: View {
 
 // MARK: - Recents Scroll Views
 
-private struct RecentsScrollView: View {
+private struct RecentsScrollView<ButtonContent: View>: View {
     let recentSymbols: [String]
     let itemWidth: CGFloat
     let itemSpacing: CGFloat
     let horizontalPadding: CGFloat
     @Binding var isScrollingRecents: Bool
-    let symbolButtonBuilder: (String) -> AnyView
+    @ViewBuilder let symbolButtonBuilder: (String) -> ButtonContent
     
     var body: some View {
         ScrollView(.horizontal) {
@@ -1652,16 +1653,12 @@ private extension View {
 fileprivate extension View {
     @ViewBuilder
     func applySymbolForegroundStyle(primary: Color, secondary: Color?, tertiary: Color?, isWhite: Bool) -> some View {
-        if isWhite {
-            self.foregroundStyle(Color.white)
+        if let tertiary = tertiary, let secondary = secondary {
+            self.foregroundStyle(isWhite ? Color.white : primary, isWhite ? Color.white : secondary, isWhite ? Color.white : tertiary)
+        } else if let secondary = secondary {
+            self.foregroundStyle(isWhite ? Color.white : primary, isWhite ? Color.white : secondary)
         } else {
-            if let tertiary = tertiary, let secondary = secondary {
-                self.foregroundStyle(primary, secondary, tertiary)
-            } else if let secondary = secondary {
-                self.foregroundStyle(primary, secondary)
-            } else {
-                self.foregroundStyle(primary)
-            }
+            self.foregroundStyle(isWhite ? Color.white : primary)
         }
     }
 }
