@@ -710,52 +710,54 @@ public struct SFSymbolPicker: View {
         
         let vstackSpacing: CGFloat = ((context == .recents) ? 2 : 8) * spacingMultiplier
         
-        let content = VStack(spacing: vstackSpacing) {
-            Image(systemName: name, variableValue: variableValue)
-                .font(.system(size: iconSize))
-                .symbolRenderingMode(renderingMode)
-                .adaptiveSymbolColorRenderingMode(isGradient)
-                #if os(tvOS) || os(watchOS)
-                .applySymbolForegroundStyle(primary: primaryColor, secondary: secondaryColor, tertiary: tertiaryColor, isWhite: false)
-                #else
-                .applySymbolForegroundStyle(primary: primaryColor, secondary: secondaryColor, tertiary: tertiaryColor, isWhite: isProvisionallySelected)
-                #endif
-
-            if showIconName {
-                let displayLabel = name.replacingOccurrences(of: ".", with: ".\u{200B}")
-                GeometryReader { geo in
-                    Text(displayLabel)
-                        .font(.system(size: fontSize))
-                        .lineLimit(2)
-                        .multilineTextAlignment(.center)
-                        .minimumScaleFactor(0.8)
-                        .truncationMode(.tail)
-                        .frame(width: geo.size.width, height: geo.size.height, alignment: .center)
-                        #if os(tvOS) || os(watchOS)
-                        .foregroundStyle(AnyShapeStyle(Color.secondary))
-                        #else
-                        .foregroundStyle(isProvisionallySelected ? AnyShapeStyle(Color.white) : AnyShapeStyle(Color.secondary))
-                        #endif
+        let content = FocusAwareContentView { isFocused in
+            VStack(spacing: vstackSpacing) {
+                Image(systemName: name, variableValue: variableValue)
+                    .font(.system(size: iconSize))
+                    .symbolRenderingMode(renderingMode)
+                    .adaptiveSymbolColorRenderingMode(isGradient)
+                    #if os(tvOS)
+                    .applySymbolForegroundStyle(primary: primaryColor, secondary: secondaryColor, tertiary: tertiaryColor, isWhite: isFocused, isFocusedDark: isFocused)
+                    #else
+                    .applySymbolForegroundStyle(primary: primaryColor, secondary: secondaryColor, tertiary: tertiaryColor, isWhite: isProvisionallySelected)
+                    #endif
+    
+                if showIconName {
+                    let displayLabel = name.replacingOccurrences(of: ".", with: ".\u{200B}")
+                    GeometryReader { geo in
+                        Text(displayLabel)
+                            .font(.system(size: fontSize))
+                            .lineLimit(2)
+                            .multilineTextAlignment(.center)
+                            .minimumScaleFactor(0.8)
+                            .truncationMode(.tail)
+                            .frame(width: geo.size.width, height: geo.size.height, alignment: .center)
+                            #if os(tvOS)
+                            .foregroundStyle(isFocused ? AnyShapeStyle(Color.black) : AnyShapeStyle(Color.secondary))
+                            #else
+                            .foregroundStyle(isProvisionallySelected ? AnyShapeStyle(Color.white) : AnyShapeStyle(Color.secondary))
+                            #endif
+                    }
+                    .frame(height: nameHeight, alignment: .center)
                 }
-                .frame(height: nameHeight, alignment: .center)
             }
-        }
-        .frame(maxWidth: .infinity, maxHeight: showIconName ? nil : .infinity)
-        .aspectRatio(showIconName ? nil : 1.0, contentMode: .fill)
-        .padding(8 * recentsScaleFactor * spacingMultiplier)
-        .background {
-            #if os(tvOS)
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(isSelected ? primaryColor : Color.clear, lineWidth: 6)
-                .padding(-12)
-            #else
-            RoundedRectangle(cornerRadius: 10 * recentsScaleFactor)
-                .fill(isProvisionallySelected ? Color.accentColor : Color.clear)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10 * recentsScaleFactor)
-                        .stroke(isSelected && !isProvisionallySelected ? Color.accentColor : Color.clear, lineWidth: 2)
-                )
-            #endif
+            .frame(maxWidth: .infinity, maxHeight: showIconName ? nil : .infinity)
+            .aspectRatio(showIconName ? nil : 1.0, contentMode: .fill)
+            .padding(8 * recentsScaleFactor * spacingMultiplier)
+            .background {
+                #if os(tvOS)
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(isSelected ? primaryColor : Color.clear, lineWidth: 6)
+                    .padding(-12)
+                #else
+                RoundedRectangle(cornerRadius: 10 * recentsScaleFactor)
+                    .fill(isProvisionallySelected ? Color.accentColor : Color.clear)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10 * recentsScaleFactor)
+                            .stroke(isSelected && !isProvisionallySelected ? Color.accentColor : Color.clear, lineWidth: 2)
+                    )
+                #endif
+            }
         }
         #if os(visionOS) || os(iOS)
         .contentShape(RoundedRectangle(cornerRadius: 10 * recentsScaleFactor))
@@ -1652,13 +1654,24 @@ private extension View {
 
 fileprivate extension View {
     @ViewBuilder
-    func applySymbolForegroundStyle(primary: Color, secondary: Color?, tertiary: Color?, isWhite: Bool) -> some View {
+    func applySymbolForegroundStyle(primary: Color, secondary: Color?, tertiary: Color?, isWhite: Bool, isFocusedDark: Bool = false) -> some View {
+        let baseColor = isFocusedDark ? Color.black : Color.white
         if let tertiary = tertiary, let secondary = secondary {
-            self.foregroundStyle(isWhite ? Color.white : primary, isWhite ? Color.white : secondary, isWhite ? Color.white : tertiary)
+            self.foregroundStyle(isWhite ? baseColor : primary, isWhite ? baseColor.opacity(0.5) : secondary, isWhite ? baseColor.opacity(0.25) : tertiary)
         } else if let secondary = secondary {
-            self.foregroundStyle(isWhite ? Color.white : primary, isWhite ? Color.white : secondary)
+            self.foregroundStyle(isWhite ? baseColor : primary, isWhite ? baseColor.opacity(0.5) : secondary)
         } else {
-            self.foregroundStyle(isWhite ? Color.white : primary)
+            self.foregroundStyle(isWhite ? baseColor : primary)
         }
     }
 }
+
+fileprivate struct FocusAwareContentView<Content: View>: View {
+    @ViewBuilder var content: (Bool) -> Content
+    @Environment(\.isFocused) private var isFocused
+    
+    var body: some View {
+        content(isFocused)
+    }
+}
+
