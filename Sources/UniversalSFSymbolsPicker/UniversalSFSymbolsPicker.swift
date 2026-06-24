@@ -109,7 +109,7 @@ public struct SFSymbolPicker: View {
         }
     }
     
-    private enum SelectionContext: Sendable {
+    fileprivate enum SelectionContext: Sendable {
         case grid
         case recents
     }
@@ -241,6 +241,7 @@ public struct SFSymbolPicker: View {
         
         let nextCount = min(currentCount + pageSize, allFilteredSymbols.count)
         let nextPage = allFilteredSymbols[currentCount..<nextCount]
+        
         displayedSymbols.append(contentsOf: nextPage)
     }
     
@@ -631,20 +632,37 @@ public struct SFSymbolPicker: View {
                     LazyVGrid(columns: columns, spacing: spacing) {
                         ForEach(displayedSymbols, id: \.self) { name in
                             symbolButton(for: name)
-                                .onAppear {
-                                    if name == displayedSymbols.last {
-                                        loadNextPage()
+                        }
+                    }
+                    .padding(.horizontal, outerSpacing)
+                    #if !os(tvOS)
+                    .padding(.top, hasTopControlBar ? 0 : outerSpacing)
+                    #endif
+                    
+                    LazyVStack(spacing: 0) {
+                        if displayedSymbols.count < allFilteredSymbols.count {
+                            ProgressView()
+                                .padding()
+                                .id("pagination_trigger_\(displayedSymbols.count)")
+                                .task {
+                                    await MainActor.run { loadNextPage() }
+                                    while !Task.isCancelled {
+                                        try? await Task.sleep(nanoseconds: 200_000_000)
+                                        if !Task.isCancelled {
+                                            await MainActor.run { loadNextPage() }
+                                        }
                                     }
                                 }
                         }
                     }
-                    .padding(.horizontal, outerSpacing)
-                    #if os(tvOS)
-                    .padding(.bottom, 200) // Ensure enough bottom padding for tvOS
-                    #else
-                    .padding(.top, hasTopControlBar ? 0 : outerSpacing)
-                    .padding(.bottom, (showAs == .sheet && effectiveControlBarPosition == .bottom) || showAs == .sheet ? 0 : outerSpacing)
-                    #endif
+                    
+                    Color.clear
+                        .frame(height: 1)
+                        #if os(tvOS)
+                        .padding(.bottom, 200) // Ensure enough bottom padding for tvOS
+                        #else
+                        .padding(.bottom, (showAs == .sheet && effectiveControlBarPosition == .bottom) || showAs == .sheet ? 0 : outerSpacing)
+                        #endif
                 }
                 }
             }
@@ -692,87 +710,6 @@ public struct SFSymbolPicker: View {
         let isSelected = (selection == name)
         let isProvisionallySelected = (temporarySelection == name && selectedContext == context)
         
-        let recentsScaleFactor: CGFloat = (context == .recents) ? 0.65 : 1.0
-        
-        #if os(tvOS)
-        let iconSize: CGFloat = 60 * scaleMultiplier * recentsScaleFactor
-        let nameHeight: CGFloat = 64 * scaleMultiplier
-        let fontSize: CGFloat = 20 * scaleMultiplier
-        #elseif os(watchOS)
-        let iconSize: CGFloat = 28 * scaleMultiplier * recentsScaleFactor
-        let nameHeight: CGFloat = 40 * scaleMultiplier
-        let fontSize: CGFloat = 14 * scaleMultiplier
-        #else
-        let iconSize: CGFloat = 28 * scaleMultiplier * recentsScaleFactor
-        let nameHeight: CGFloat = 32 * scaleMultiplier
-        let fontSize: CGFloat = 10 * scaleMultiplier
-        #endif
-        
-        let vstackSpacing: CGFloat = ((context == .recents) ? 2 : 8) * spacingMultiplier
-        
-        let content = FocusAwareContentView { isFocused in
-            VStack(spacing: vstackSpacing) {
-                Image(systemName: name, variableValue: variableValue)
-                    .font(.system(size: iconSize))
-                    .symbolRenderingMode(renderingMode)
-                    .adaptiveSymbolColorRenderingMode(isGradient)
-                    #if os(tvOS)
-                    .applySymbolForegroundStyle(primary: primaryColor, secondary: secondaryColor, tertiary: tertiaryColor, isWhite: isFocused, isFocusedDark: isFocused)
-                    #else
-                    .applySymbolForegroundStyle(primary: primaryColor, secondary: secondaryColor, tertiary: tertiaryColor, isWhite: isProvisionallySelected)
-                    #endif
-    
-                if showIconName {
-                    let displayLabel = name.replacingOccurrences(of: ".", with: ".\u{200B}")
-                    GeometryReader { geo in
-                        Text(displayLabel)
-                            .font(.system(size: fontSize))
-                            .lineLimit(2)
-                            .multilineTextAlignment(.center)
-                            .minimumScaleFactor(0.8)
-                            .truncationMode(.tail)
-                            .frame(width: geo.size.width, height: geo.size.height, alignment: .center)
-                            #if os(tvOS)
-                            .foregroundStyle(isFocused ? AnyShapeStyle(Color.black) : AnyShapeStyle(Color.secondary))
-                            #else
-                            .foregroundStyle(isProvisionallySelected ? AnyShapeStyle(Color.white) : AnyShapeStyle(Color.secondary))
-                            #endif
-                    }
-                    .frame(height: nameHeight, alignment: .center)
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: showIconName ? nil : .infinity)
-            .aspectRatio(showIconName ? nil : 1.0, contentMode: .fill)
-            .padding(8 * recentsScaleFactor * spacingMultiplier)
-            .background {
-                #if os(tvOS)
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(isSelected ? primaryColor : Color.clear, lineWidth: 6)
-                    .padding(-12)
-                #else
-                RoundedRectangle(cornerRadius: 10 * recentsScaleFactor)
-                    .fill(isProvisionallySelected ? Color.accentColor : Color.clear)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10 * recentsScaleFactor)
-                            .stroke(isSelected && !isProvisionallySelected ? Color.accentColor : Color.clear, lineWidth: 2)
-                    )
-                #endif
-            }
-        }
-        #if os(visionOS) || os(iOS)
-        .contentShape(RoundedRectangle(cornerRadius: 10 * recentsScaleFactor))
-        #else
-        .contentShape(Rectangle())
-        #endif
-        
-        // Construct accessibility label based on status
-        var accessibilityLabelContent = name
-        if isSelected {
-            accessibilityLabelContent += ", " + String(localized: "This icon is currently selected", bundle: .module)
-        } else if isProvisionallySelected {
-            accessibilityLabelContent += ", " + String(localized: "Provisionally selected", bundle: .module)
-        }
-        
         let tapAction = {
             if context == .recents && isScrollingRecents { return }
             #if os(tvOS)
@@ -813,9 +750,39 @@ public struct SFSymbolPicker: View {
             lastTapName = name
             #endif
         }
+
+        let buttonContent = SymbolButtonView(
+            name: name,
+            context: context,
+            isSelected: isSelected,
+            isProvisionallySelected: isProvisionallySelected,
+            scaleMultiplier: scaleMultiplier,
+            spacingMultiplier: spacingMultiplier,
+            variableValue: variableValue,
+            renderingMode: renderingMode,
+            isGradient: isGradient,
+            primaryColor: primaryColor,
+            secondaryColor: secondaryColor,
+            tertiaryColor: tertiaryColor,
+            showIconName: showIconName
+        )
         
+        let recentsScaleFactor: CGFloat = (context == .recents) ? 0.65 : 1.0
+        var accessibilityLabelContent = name
+        if isSelected {
+            accessibilityLabelContent += ", " + String(localized: "This icon is currently selected", bundle: .module)
+        } else if isProvisionallySelected {
+            accessibilityLabelContent += ", " + String(localized: "Provisionally selected", bundle: .module)
+        }
+        let accessibilityHintContent = isSelected ? "" : (
+            isProvisionallySelected
+            ? String(localized: "To confirm selection with this icon, double-tap or double-click", bundle: .module)
+            : String(localized: "Single-tap or single-click to provisionally select, double-tap or double-click to confirm selection", bundle: .module)
+        )
+        let accessibilityEquals = name + (context == .recents ? "_recents" : "_grid")
+
         #if os(visionOS) || os(iOS)
-        return content
+        return buttonContent
             .contentShape(RoundedRectangle(cornerRadius: 10 * recentsScaleFactor))
             .hoverEffect(.highlight)
             .onTapGesture(perform: tapAction)
@@ -827,20 +794,14 @@ public struct SFSymbolPicker: View {
             .accessibilityAddTraits(.isButton)
             .accessibilityLabel(accessibilityLabelContent)
             .accessibilityValue(Text(verbatim: ""))
-            .accessibilityHint(
-                isSelected ? "" : (
-                    isProvisionallySelected
-                    ? String(localized: "To confirm selection with this icon, double-tap or double-click", bundle: .module)
-                    : String(localized: "Single-tap or single-click to provisionally select, double-tap or double-click to confirm selection", bundle: .module)
-                )
-            )
-            .accessibilityFocused($accessibilityFocusedSymbol, equals: name + (context == .recents ? "_recents" : "_grid"))
+            .accessibilityHint(accessibilityHintContent)
+            .accessibilityFocused($accessibilityFocusedSymbol, equals: accessibilityEquals)
         #else
         // Use onTapGesture instead of Button for macOS recents to prevent Button from swallowing mouse drag events on ScrollView
         return Group {
             #if os(macOS)
             if context == .recents {
-                content
+                buttonContent
                     .onTapGesture(perform: tapAction)
                     .focusable(true)
                     .focusEffectDisabled()
@@ -849,13 +810,13 @@ public struct SFSymbolPicker: View {
                     .accessibilityAction { tapAction() }
             } else {
                 Button(action: tapAction) {
-                    content
+                    buttonContent
                 }
                 .buttonStyle(.plain)
             }
             #else
             Button(action: tapAction) {
-                content
+                buttonContent
             }
             .buttonStyle(.plain)
             #endif
@@ -864,14 +825,8 @@ public struct SFSymbolPicker: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel(accessibilityLabelContent)
         .accessibilityValue(Text(verbatim: ""))
-        .accessibilityHint(
-            isSelected ? "" : (
-                isProvisionallySelected
-                ? String(localized: "To confirm selection with this icon, double-tap or double-click", bundle: .module)
-                : String(localized: "Single-tap or single-click to provisionally select, double-tap or double-click to confirm selection", bundle: .module)
-            )
-        )
-        .accessibilityFocused($accessibilityFocusedSymbol, equals: name + (context == .recents ? "_recents" : "_grid"))
+        .accessibilityHint(accessibilityHintContent)
+        .accessibilityFocused($accessibilityFocusedSymbol, equals: accessibilityEquals)
         #endif
     }
     
@@ -1675,3 +1630,114 @@ fileprivate struct FocusAwareContentView<Content: View>: View {
     }
 }
 
+fileprivate struct SymbolButtonView: View {
+    let name: String
+    let context: SFSymbolPicker.SelectionContext
+    let isSelected: Bool
+    let isProvisionallySelected: Bool
+    let scaleMultiplier: CGFloat
+    let spacingMultiplier: CGFloat
+    let variableValue: Double?
+    let renderingMode: SymbolRenderingMode
+    let isGradient: Bool
+    let primaryColor: Color
+    let secondaryColor: Color?
+    let tertiaryColor: Color?
+    let showIconName: Bool
+    
+    @ViewBuilder
+    private func innerContent(isFocused: Bool) -> some View {
+        let recentsScaleFactor: CGFloat = (context == .recents) ? 0.65 : 1.0
+        
+        #if os(tvOS)
+        let iconSize: CGFloat = 60 * scaleMultiplier * recentsScaleFactor
+        let nameHeight: CGFloat = 64 * scaleMultiplier
+        let fontSize: CGFloat = 20 * scaleMultiplier
+        #elseif os(watchOS)
+        let iconSize: CGFloat = 28 * scaleMultiplier * recentsScaleFactor
+        let nameHeight: CGFloat = 40 * scaleMultiplier
+        let fontSize: CGFloat = 14 * scaleMultiplier
+        #else
+        let iconSize: CGFloat = 28 * scaleMultiplier * recentsScaleFactor
+        let nameHeight: CGFloat = 32 * scaleMultiplier
+        let fontSize: CGFloat = 10 * scaleMultiplier
+        #endif
+        
+        let vstackSpacing: CGFloat = ((context == .recents) ? 2 : 8) * spacingMultiplier
+        
+        VStack(spacing: vstackSpacing) {
+            Group {
+                if let val = variableValue {
+                    Image(systemName: name, variableValue: val)
+                } else {
+                    Image(systemName: name)
+                }
+            }
+            .font(.system(size: iconSize))
+            .frame(height: iconSize) // Force exact height for LazyVGrid optimization
+            .symbolRenderingMode(renderingMode)
+            .adaptiveSymbolColorRenderingMode(isGradient)
+            #if os(tvOS)
+            .applySymbolForegroundStyle(primary: primaryColor, secondary: secondaryColor, tertiary: tertiaryColor, isWhite: isFocused, isFocusedDark: isFocused)
+            #else
+            .applySymbolForegroundStyle(primary: primaryColor, secondary: secondaryColor, tertiary: tertiaryColor, isWhite: isProvisionallySelected)
+            #endif
+
+            if showIconName {
+                let displayLabel = name.replacingOccurrences(of: ".", with: ".\u{200B}")
+                Color.clear
+                    .frame(height: nameHeight)
+                    .overlay(
+                        Text(displayLabel)
+                            .font(.system(size: fontSize))
+                            .lineLimit(2)
+                            .multilineTextAlignment(.center)
+                            .truncationMode(.tail)
+                            #if os(tvOS)
+                            .foregroundStyle(isFocused ? Color.black : Color.secondary)
+                            #else
+                            .foregroundStyle(isProvisionallySelected ? Color.white : Color.secondary)
+                            #endif
+                            .padding(.horizontal, 2)
+                    )
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: showIconName ? nil : .infinity)
+        .aspectRatio(showIconName ? nil : 1.0, contentMode: .fill)
+        .padding(8 * recentsScaleFactor * spacingMultiplier)
+        .background {
+            #if os(tvOS)
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(isSelected ? primaryColor : Color.clear, lineWidth: 6)
+                .padding(-12)
+            #else
+            RoundedRectangle(cornerRadius: 10 * recentsScaleFactor)
+                .fill(isProvisionallySelected ? Color.accentColor : Color.clear)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10 * recentsScaleFactor)
+                        .stroke(isSelected && !isProvisionallySelected ? Color.accentColor : Color.clear, lineWidth: 2)
+                )
+            #endif
+        }
+    }
+    
+    var body: some View {
+        let recentsScaleFactor: CGFloat = (context == .recents) ? 0.65 : 1.0
+        
+        #if os(tvOS)
+        let content = FocusAwareContentView { isFocused in
+            innerContent(isFocused: isFocused)
+        }
+        #else
+        let content = innerContent(isFocused: false)
+        #endif
+        
+        #if os(visionOS) || os(iOS)
+        return content
+            .contentShape(RoundedRectangle(cornerRadius: 10 * recentsScaleFactor))
+        #else
+        return content
+            .contentShape(Rectangle())
+        #endif
+    }
+}
