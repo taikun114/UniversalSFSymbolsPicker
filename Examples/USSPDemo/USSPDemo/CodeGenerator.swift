@@ -143,28 +143,38 @@ struct CodeGenerator {
         
         // Search text binding
         let isCustomSearchBarVisible = isUseSearchableActive ? false : (!options.enableShowSearchBar || options.showSearchBar)
-        if isCustomSearchBarVisible {
+        let needsSearchText = isCustomSearchBarVisible || isUseSearchableActive
+        if needsSearchText {
             args.append("searchText: $searchText")
         }
+        
+        let modifierName = (options.enableDisplayMode && options.displayMode == .popover) ? "popover" : "sheet"
+        let needsNavigationStack = isUseSearchableActive || modifierName == "sheet"
         
         let argsString = args.joined(separator: ",\n    ")
         var pickerCode = ""
         
-        if isUseSearchableActive {
+        if needsNavigationStack {
             pickerCode += "NavigationStack {\n"
             pickerCode += "    SFSymbolPicker(\n        \(argsString.replacingOccurrences(of: "\n", with: "\n        "))\n    )\n"
-            pickerCode += "    .searchable(text: $searchText)\n"
+            if isUseSearchableActive {
+                pickerCode += "    .searchable(text: $searchText)\n"
+            }
             pickerCode += "}"
         } else {
             pickerCode += "SFSymbolPicker(\n    \(argsString.replacingOccurrences(of: "\n", with: "\n    "))\n)"
         }
         
-        let modifierName = (options.enableDisplayMode && options.displayMode == .popover) ? "popover" : "sheet"
-        
         var code = ""
-        if options.enableVariableValue {
-            code += "@State private var myValue: Double? = 0.7\n\n"
+        code += "@State private var isPresented = false\n"
+        code += "@State private var selectedIcon: String? = \"star.fill\"\n"
+        if needsSearchText {
+            code += "@State private var searchText = \"\"\n"
         }
+        if options.enableVariableValue {
+            code += "@State private var myValue: Double? = 0.7\n"
+        }
+        code += "\n"
         
         code += "Button(\"Show Icon Picker\") {\n"
         code += "    isPresented = true\n"

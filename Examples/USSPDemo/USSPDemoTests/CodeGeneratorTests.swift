@@ -11,8 +11,8 @@ final class CodeGeneratorTests: XCTestCase {
         
         let code = CodeGenerator.generate(options: options)
         
-        // Not wrapped in NavigationStack by default
-        XCTAssertFalse(code.contains("NavigationStack {"))
+        // Wrapped in NavigationStack by default for sheet mode
+        XCTAssertTrue(code.contains("NavigationStack {"))
         XCTAssertTrue(code.contains("showAs: .sheet"))
         XCTAssertTrue(code.contains("controlBarPosition: .bottom"))
         XCTAssertFalse(code.contains(".searchable(text: $searchText)"))
@@ -24,8 +24,8 @@ final class CodeGeneratorTests: XCTestCase {
         options.showSearchBar = false
         let code = CodeGenerator.generate(options: options)
         
-        // NavigationStack and searchable should be removed
-        XCTAssertFalse(code.contains("NavigationStack {"))
+        // NavigationStack is present for sheet mode, but searchable is removed
+        XCTAssertTrue(code.contains("NavigationStack {"))
         XCTAssertFalse(code.contains(".searchable(text: $searchText)"))
         XCTAssertTrue(code.contains("showSearchBar: false"))
     }
@@ -39,7 +39,7 @@ final class CodeGeneratorTests: XCTestCase {
         XCTAssertTrue(code.contains("NavigationStack {"))
         XCTAssertTrue(code.contains(".searchable(text: $searchText)"))
         XCTAssertTrue(code.contains("showSearchBar: false"))
-        XCTAssertFalse(code.contains("searchText: $searchText")) // Not passed as an argument
+        XCTAssertTrue(code.contains("searchText: $searchText")) // Now correctly passed as an argument
     }
     
     func testBooleanOverrides() throws {
