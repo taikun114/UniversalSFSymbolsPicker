@@ -151,7 +151,7 @@ struct CodeGenerator {
         let modifierName = (options.enableDisplayMode && options.displayMode == .popover) ? "popover" : "sheet"
         let needsNavigationStack = isUseSearchableActive || modifierName == "sheet"
         
-        let argsString = args.joined(separator: ",\n    ")
+        let argsString = args.joined(separator: ",\n")
         var pickerCode = ""
         
         if needsNavigationStack {

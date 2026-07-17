@@ -338,7 +338,7 @@ public struct SFSymbolPicker: View {
     public init(
         isPresented: Binding<Bool>,
         selection: Binding<String?>,
-        showAs: SFSymbolPickerDisplayMode,
+        showAs: SFSymbolPickerDisplayMode = .sheet,
         controlBarPosition: SFSymbolPickerControlBarPosition = .bottom,
         showSearchBar: Bool = true, // Only effective in Popover mode
         prompt: String? = nil,
