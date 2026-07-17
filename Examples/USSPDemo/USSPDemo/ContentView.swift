@@ -231,13 +231,16 @@ struct ContentView: View {
             showAs: .sheet,
             controlBarPosition: controlBarPosition,
             showSearchBar: showSearchBar && searchBarStyle == .custom,
+            searchText: $searchTextSheet,
             showCategoryPicker: showCategoryPicker,
             showCategorySectionLabel: showCategorySectionLabel,
             categoryLabelVisibility: categoryLabelVisibility,
             categoryLabelStyle: categoryLabelStyle,
-            showIconName: showIconName,
             customCategories: demoCustomCategories,
+            showIconName: showIconName,
             excludeRestricted: excludeRestricted,
+            iconScale: iconScale,
+            iconSpacing: iconSpacing,
             showRecents: showRecents,
             maxRecents: maxRecents,
             renderingMode: renderingModeOption.mode,
@@ -245,10 +248,7 @@ struct ContentView: View {
             primaryColor: usePrimaryColor ? primaryColor : .primary,
             secondaryColor: useSecondaryColor ? secondaryColor : nil,
             tertiaryColor: useTertiaryColor ? tertiaryColor : nil,
-            variableValue: $variableValue,
-            searchText: $searchTextSheet,
-            iconScale: iconScale,
-            iconSpacing: iconSpacing
+            variableValue: $variableValue
         )
         .conditionalSearchable(show: showSearchBar && searchBarStyle == .searchable, text: $searchTextSheet, isSheet: pickerMode == .sheet)
     }
@@ -263,13 +263,16 @@ struct ContentView: View {
                 showAs: .popover,
                 controlBarPosition: controlBarPosition,
                 showSearchBar: showSearchBar && searchBarStyle == .custom,
+                searchText: $searchTextSheet,
                 showCategoryPicker: showCategoryPicker,
                 showCategorySectionLabel: showCategorySectionLabel,
                 categoryLabelVisibility: categoryLabelVisibility,
                 categoryLabelStyle: categoryLabelStyle,
-                showIconName: showIconName,
                 customCategories: demoCustomCategories,
+                showIconName: showIconName,
                 excludeRestricted: excludeRestricted,
+                iconScale: iconScale,
+                iconSpacing: iconSpacing,
                 showRecents: showRecents,
                 maxRecents: maxRecents,
                 renderingMode: renderingModeOption.mode,
@@ -277,10 +280,7 @@ struct ContentView: View {
                 primaryColor: usePrimaryColor ? primaryColor : .primary,
                 secondaryColor: useSecondaryColor ? secondaryColor : nil,
                 tertiaryColor: useTertiaryColor ? tertiaryColor : nil,
-                variableValue: $variableValue,
-                searchText: $searchTextSheet,
-                iconScale: iconScale,
-                iconSpacing: iconSpacing
+                variableValue: $variableValue
             )
             .conditionalSearchable(show: showSearchBar && searchBarStyle == .searchable, text: $searchTextSheet, isSheet: false)
         } label: {
@@ -368,13 +368,16 @@ struct ContentView: View {
                     showAs: .sheet,
                     controlBarPosition: controlBarPosition,
                     showSearchBar: showSearchBar && searchBarStyle == .custom,
+                    searchText: $searchTextSheet,
                     showCategoryPicker: showCategoryPicker,
                     showCategorySectionLabel: showCategorySectionLabel,
                     categoryLabelVisibility: categoryLabelVisibility,
                     categoryLabelStyle: categoryLabelStyle,
-                    showIconName: showIconName,
                     customCategories: demoCustomCategories,
+                    showIconName: showIconName,
                     excludeRestricted: excludeRestricted,
+                    iconScale: iconScale,
+                    iconSpacing: iconSpacing,
                     showRecents: showRecents,
                     maxRecents: maxRecents,
                     renderingMode: renderingModeOption.mode,
@@ -382,10 +385,7 @@ struct ContentView: View {
                     primaryColor: usePrimaryColor ? primaryColor : .primary,
                     secondaryColor: useSecondaryColor ? secondaryColor : nil,
                     tertiaryColor: useTertiaryColor ? tertiaryColor : nil,
-                    variableValue: $variableValue,
-                    searchText: $searchTextSheet,
-                    iconScale: iconScale,
-                    iconSpacing: iconSpacing
+                    variableValue: $variableValue
                 )
             }
             .conditionalSearchable(show: showSearchBar && searchBarStyle == .searchable, text: $searchTextSheet, isSheet: true)
@@ -400,13 +400,16 @@ struct ContentView: View {
                 showAs: .popover,
                 controlBarPosition: controlBarPosition,
                 showSearchBar: showSearchBar && searchBarStyle == .custom,
+                searchText: $searchTextPopover,
                 showCategoryPicker: showCategoryPicker,
                 showCategorySectionLabel: showCategorySectionLabel,
                 categoryLabelVisibility: categoryLabelVisibility,
                 categoryLabelStyle: categoryLabelStyle,
-                showIconName: showIconName,
                 customCategories: demoCustomCategories,
+                showIconName: showIconName,
                 excludeRestricted: excludeRestricted,
+                iconScale: iconScale,
+                iconSpacing: iconSpacing,
                 showRecents: showRecents,
                 maxRecents: maxRecents,
                 renderingMode: renderingModeOption.mode,
@@ -414,10 +417,7 @@ struct ContentView: View {
                 primaryColor: usePrimaryColor ? primaryColor : .primary,
                 secondaryColor: useSecondaryColor ? secondaryColor : nil,
                 tertiaryColor: useTertiaryColor ? tertiaryColor : nil,
-                variableValue: $variableValue,
-                searchText: $searchTextPopover,
-                iconScale: iconScale,
-                iconSpacing: iconSpacing
+                variableValue: $variableValue
             )
             #if os(macOS)
             .frame(width: 360, height: 500)

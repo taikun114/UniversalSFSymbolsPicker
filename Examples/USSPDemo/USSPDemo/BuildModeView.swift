@@ -470,12 +470,15 @@ struct BuildModeView: View {
             showAs: options.enableDisplayMode ? options.displayMode : .sheet,
             controlBarPosition: options.enableControlBarPosition ? options.controlBarPosition : .bottom,
             showSearchBar: options.useSearchable ? false : (options.enableShowSearchBar ? options.showSearchBar : true),
+            searchText: $searchText,
             showCategoryPicker: options.enableShowCategoryPicker ? options.showCategoryPicker : true,
             showCategorySectionLabel: options.enableShowCategorySectionLabel ? options.showCategorySectionLabel : true,
             categoryLabelVisibility: options.enableCategoryLabelVisibility ? options.categoryLabelVisibility : .default,
             categoryLabelStyle: options.enableCategoryLabelStyle ? options.categoryLabelStyle : .both,
             showIconName: options.enableShowIconName ? options.showIconName : true,
             excludeRestricted: options.enableExcludeRestricted ? options.excludeRestricted : false,
+            iconScale: options.enableIconScale ? options.iconScale : 5,
+            iconSpacing: options.enableIconSpacing ? options.iconSpacing : 5,
             showRecents: options.enableShowRecents ? options.showRecents : false,
             maxRecents: options.enableMaxRecents ? options.maxRecents : 20,
             renderingMode: options.enableRenderingMode ? options.renderingModeOption.mode : .monochrome,
@@ -483,10 +486,7 @@ struct BuildModeView: View {
             primaryColor: options.enablePrimaryColor ? .blue : .primary,
             secondaryColor: options.enableSecondaryColor ? .red : nil,
             tertiaryColor: options.enableTertiaryColor ? .green : nil,
-            variableValue: .constant(options.enableVariableValue ? 0.7 : nil),
-            searchText: $searchText,
-            iconScale: options.enableIconScale ? options.iconScale : 5,
-            iconSpacing: options.enableIconSpacing ? options.iconSpacing : 5
+            variableValue: .constant(options.enableVariableValue ? 0.7 : nil)
         )
     }
     

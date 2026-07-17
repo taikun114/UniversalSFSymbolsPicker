@@ -342,17 +342,19 @@ public struct SFSymbolPicker: View {
         controlBarPosition: SFSymbolPickerControlBarPosition = .bottom,
         showSearchBar: Bool = true, // Only effective in Popover mode
         prompt: String? = nil,
+        searchText: Binding<String> = .constant(""),
         showCategoryPicker: Bool = true,
         showCategorySectionLabel: Bool = true,
         categoryLabelVisibility: SFSymbolPickerCategoryLabelVisibility = .default,
         categoryLabelStyle: SFSymbolPickerCategoryLabelStyle = .both,
-        showIconName: Bool = true,
         defaultCategory: String = "all",
         includedCategories: [String]? = nil,
         excludedCategories: [String]? = nil,
         customCategories: [CustomCategory] = [],
+        showIconName: Bool = true,
         excludeRestricted: Bool = false,
-        sfSymbolsVersion: Double? = nil,
+        iconScale: Int = 5,
+        iconSpacing: Int = 5,
         showRecents: Bool = false,
         maxRecents: Int = 20,
         renderingMode: SymbolRenderingMode = .monochrome,
@@ -361,9 +363,7 @@ public struct SFSymbolPicker: View {
         secondaryColor: Color? = nil,
         tertiaryColor: Color? = nil,
         variableValue: Binding<Double?> = .constant(nil),
-        searchText: Binding<String> = .constant(""),
-        iconScale: Int = 5,
-        iconSpacing: Int = 5
+        sfSymbolsVersion: Double? = nil
     ) {
         self._isPresented = isPresented
         self._selection = selection
@@ -371,17 +371,19 @@ public struct SFSymbolPicker: View {
         self.controlBarPosition = controlBarPosition
         self.showSearchBar = showSearchBar
         self.prompt = prompt ?? String(localized: "Search Icons…", bundle: .module)
+        self._searchText = searchText
         self.showCategoryPicker = showCategoryPicker
         self.showCategorySectionLabel = showCategorySectionLabel
         self.categoryLabelVisibility = categoryLabelVisibility
         self.categoryLabelStyle = categoryLabelStyle
-        self.showIconName = showIconName
         self.defaultCategory = defaultCategory
         self.includedCategories = includedCategories
         self.excludedCategories = excludedCategories
         self.customCategories = customCategories
+        self.showIconName = showIconName
         self.excludeRestricted = excludeRestricted
-        self.sfSymbolsVersion = sfSymbolsVersion
+        self.iconScale = iconScale
+        self.iconSpacing = iconSpacing
         self.showRecents = showRecents
         self.maxRecents = maxRecents > 0 ? maxRecents : 20
         self.renderingMode = renderingMode
@@ -390,9 +392,7 @@ public struct SFSymbolPicker: View {
         self.secondaryColor = secondaryColor
         self.tertiaryColor = tertiaryColor
         self._variableValue = variableValue
-        self._searchText = searchText
-        self.iconScale = iconScale
-        self.iconSpacing = iconSpacing
+        self.sfSymbolsVersion = sfSymbolsVersion
         self._selectedCategoryID = State(initialValue: defaultCategory)
         self._temporarySelection = State(initialValue: selection.wrappedValue)
     }
@@ -1568,7 +1568,7 @@ private extension View {
 
 #Preview("Sheet (No Search)") {
     NavigationStack {
-        SFSymbolPicker(isPresented: .constant(true), selection: .constant("star.fill"), showAs: .sheet, showSearchBar: false, showIconName: true, searchText: .constant(""))
+        SFSymbolPicker(isPresented: .constant(true), selection: .constant("star.fill"), showAs: .sheet, showSearchBar: false, searchText: .constant(""), showIconName: true)
     }
     #if os(macOS)
     .frame(width: 600, height: 500)
@@ -1577,7 +1577,7 @@ private extension View {
 
 #Preview("Sheet (Search Top)") {
     NavigationStack {
-        SFSymbolPicker(isPresented: .constant(true), selection: .constant("star.fill"), showAs: .sheet, controlBarPosition: .top, showSearchBar: true, showIconName: true, searchText: .constant(""))
+        SFSymbolPicker(isPresented: .constant(true), selection: .constant("star.fill"), showAs: .sheet, controlBarPosition: .top, showSearchBar: true, searchText: .constant(""), showIconName: true)
     }
     #if os(macOS)
     .frame(width: 600, height: 500)
@@ -1586,7 +1586,7 @@ private extension View {
 
 #Preview("Sheet (Search Bottom)") {
     NavigationStack {
-        SFSymbolPicker(isPresented: .constant(true), selection: .constant("star.fill"), showAs: .sheet, controlBarPosition: .bottom, showSearchBar: true, showIconName: true, searchText: .constant(""))
+        SFSymbolPicker(isPresented: .constant(true), selection: .constant("star.fill"), showAs: .sheet, controlBarPosition: .bottom, showSearchBar: true, searchText: .constant(""), showIconName: true)
     }
     #if os(macOS)
     .frame(width: 600, height: 500)
@@ -1594,14 +1594,14 @@ private extension View {
 }
 
 #Preview("Popover Mode (Bottom)") {
-    SFSymbolPicker(isPresented: .constant(true), selection: .constant("heart.fill"), showAs: .popover, controlBarPosition: .bottom, showIconName: true, searchText: .constant(""))
+    SFSymbolPicker(isPresented: .constant(true), selection: .constant("heart.fill"), showAs: .popover, controlBarPosition: .bottom, searchText: .constant(""), showIconName: true)
     #if os(macOS)
     .frame(width: 400, height: 500)
     #endif
 }
 
 #Preview("Popover Mode (Top)") {
-    SFSymbolPicker(isPresented: .constant(true), selection: .constant("gearshape.fill"), showAs: .popover, controlBarPosition: .top, showIconName: true, searchText: .constant(""))
+    SFSymbolPicker(isPresented: .constant(true), selection: .constant("gearshape.fill"), showAs: .popover, controlBarPosition: .top, searchText: .constant(""), showIconName: true)
     #if os(macOS)
     .frame(width: 400, height: 500)
     #endif

@@ -64,10 +64,10 @@ struct BuildModeOptions {
 struct CodeGenerator {
     static func generate(options: BuildModeOptions) -> String {
         var args: [String] = []
+        // Core options overrides
         args.append("isPresented: $isPresented")
         args.append("selection: $selectedIcon")
         
-        // Core options overrides
         if options.enableDisplayMode {
             args.append("showAs: .\(String(describing: options.displayMode))")
         }
@@ -84,12 +84,25 @@ struct CodeGenerator {
             args.append("showSearchBar: \(options.showSearchBar)")
         }
         
-        // Boolean overrides
+        // Search text binding
+        let isCustomSearchBarVisible = isUseSearchableActive ? false : (!options.enableShowSearchBar || options.showSearchBar)
+        let needsSearchText = isCustomSearchBarVisible || isUseSearchableActive
+        if needsSearchText {
+            args.append("searchText: $searchText")
+        }
+        
+        // Categories & UI
         if options.enableShowCategoryPicker {
             args.append("showCategoryPicker: \(options.showCategoryPicker)")
         }
         if options.enableShowCategorySectionLabel {
             args.append("showCategorySectionLabel: \(options.showCategorySectionLabel)")
+        }
+        if options.enableCategoryLabelVisibility {
+            args.append("categoryLabelVisibility: .\(String(describing: options.categoryLabelVisibility))")
+        }
+        if options.enableCategoryLabelStyle {
+            args.append("categoryLabelStyle: .\(String(describing: options.categoryLabelStyle))")
         }
         if options.enableShowIconName {
             args.append("showIconName: \(options.showIconName)")
@@ -97,31 +110,25 @@ struct CodeGenerator {
         if options.enableExcludeRestricted {
             args.append("excludeRestricted: \(options.excludeRestricted)")
         }
-        if options.enableShowRecents {
-            args.append("showRecents: \(options.showRecents)")
-        }
-        if options.enableIsGradient {
-            args.append("isGradient: \(options.isGradient)")
-        }
-        
-        // Other overrides
-        if options.enableCategoryLabelVisibility {
-            args.append("categoryLabelVisibility: .\(String(describing: options.categoryLabelVisibility))")
-        }
-        if options.enableCategoryLabelStyle {
-            args.append("categoryLabelStyle: .\(String(describing: options.categoryLabelStyle))")
-        }
         if options.enableIconScale {
             args.append("iconScale: \(options.iconScale)")
         }
         if options.enableIconSpacing {
             args.append("iconSpacing: \(options.iconSpacing)")
         }
+        if options.enableShowRecents {
+            args.append("showRecents: \(options.showRecents)")
+        }
         if options.enableMaxRecents {
             args.append("maxRecents: \(options.maxRecents)")
         }
+        
+        // Styling
         if options.enableRenderingMode {
             args.append("renderingMode: .\(options.renderingModeOption.rawValue)")
+        }
+        if options.enableIsGradient {
+            args.append("isGradient: \(options.isGradient)")
         }
         
         // Colors formatting
@@ -139,13 +146,6 @@ struct CodeGenerator {
         if options.enableVariableValue {
             let bindComment = String(localized: "Bind your value here")
             args.append("variableValue: $myValue /* \(bindComment) */")
-        }
-        
-        // Search text binding
-        let isCustomSearchBarVisible = isUseSearchableActive ? false : (!options.enableShowSearchBar || options.showSearchBar)
-        let needsSearchText = isCustomSearchBarVisible || isUseSearchableActive
-        if needsSearchText {
-            args.append("searchText: $searchText")
         }
         
         let modifierName = (options.enableDisplayMode && options.displayMode == .popover) ? "popover" : "sheet"
