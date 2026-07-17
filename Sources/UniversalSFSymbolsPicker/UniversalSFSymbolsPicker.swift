@@ -273,7 +273,7 @@ public struct SFSymbolPicker: View {
     
     /// Returns the label for the currently selected category
     private var currentCategoryLabel: String {
-        if !isServiceReady { return String(localized: "Loading...", bundle: .module) }
+        if !isServiceReady { return String(localized: "Loading…", bundle: .module) }
         if selectedCategoryID == "all" {
             return String(localized: "All", bundle: .module)
         }
@@ -370,7 +370,7 @@ public struct SFSymbolPicker: View {
         self.showAs = showAs
         self.controlBarPosition = controlBarPosition
         self.showSearchBar = showSearchBar
-        self.prompt = prompt ?? String(localized: "Search Icons...", bundle: .module)
+        self.prompt = prompt ?? String(localized: "Search Icons…", bundle: .module)
         self.showCategoryPicker = showCategoryPicker
         self.showCategorySectionLabel = showCategorySectionLabel
         self.categoryLabelVisibility = categoryLabelVisibility
@@ -600,7 +600,7 @@ public struct SFSymbolPicker: View {
                     VStack {
                         ProgressView()
                             .controlSize(.large)
-                        Text(String(localized: "Loading Icons...", bundle: .module))
+                        Text(String(localized: "Loading Icons…", bundle: .module))
                             .foregroundStyle(.secondary)
                             .padding(.top, 8)
                     }

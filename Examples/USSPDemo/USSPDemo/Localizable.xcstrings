@@ -9795,151 +9795,300 @@
         }
       }
     },
-    "Search icons in sheet..." : {
+    "Search icons in sheet…" : {
       "comment" : "Prompt text shown in the search bar.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "البحث عن أيقونات في الورقة..."
+            "value" : "البحث عن أيقونات في الورقة…"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Symbole im Blatt suchen..."
+            "value" : "Symbole im Blatt suchen…"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Search icons in sheet..."
+            "value" : "Search icons in sheet…"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Buscar iconos en la hoja..."
+            "value" : "Buscar iconos en la hoja…"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rechercher des icônes dans la feuille..."
+            "value" : "Rechercher des icônes dans la feuille…"
           }
         },
         "fr-CA" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rechercher des icônes dans la feuille..."
+            "value" : "Rechercher des icônes dans la feuille…"
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "शीट में आइकन खोजें..."
+            "value" : "शीट में आइकन खोजें…"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cari ikon di lembar..."
+            "value" : "Cari ikon di lembar…"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cerca icone nel foglio..."
+            "value" : "Cerca icone nel foglio…"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "シート内のアイコンを検索..."
+            "value" : "シート内のアイコンを検索…"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "시트에서 아이콘 검색..."
+            "value" : "시트에서 아이콘 검색…"
           }
         },
         "ms" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cari ikon dalam helaian..."
+            "value" : "Cari ikon dalam helaian…"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Symbolen zoeken in blad..."
+            "value" : "Symbolen zoeken in blad…"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Szukaj ikon w arkuszu..."
+            "value" : "Szukaj ikon w arkuszu…"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Buscar ícones na folha..."
+            "value" : "Buscar ícones na folha…"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pesquisar ícones na folha..."
+            "value" : "Pesquisar ícones na folha…"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Поиск значков в листе..."
+            "value" : "Поиск значков в листе…"
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ค้นหาไอคอนในแผ่นงาน..."
+            "value" : "ค้นหาไอคอนในแผ่นงาน…"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sayfada simge ara..."
+            "value" : "Sayfada simge ara…"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Пошук піктограм в аркуші..."
+            "value" : "Пошук піктограм в аркуші…"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tìm kiếm biểu tượng trong trang tính..."
+            "value" : "Tìm kiếm biểu tượng trong trang tính…"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在表单中搜索图标..."
+            "value" : "在表单中搜索图标…"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在工作表中搜尋圖示..."
+            "value" : "在工作表中搜尋圖示…"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在工作表搜尋圖示..."
+            "value" : "在工作表搜尋圖示…"
+          }
+        }
+      }
+    },
+    "Search Icons…" : {
+      "comment" : "Placeholder text shown in the search bar.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "بحث في الرموز…"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Symbole suchen…"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search Icons…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buscar iconos…"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rechercher des icônes…"
+          }
+        },
+        "fr-CA" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rechercher des icônes…"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "प्रतीकों को खोजें…"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cari ikon…"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cerca icone…"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アイコンを検索…"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "기호 검색…"
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cari ikon…"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Symbolen zoeken…"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Szukaj symboli…"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buscar ícones…"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Procurar ícones…"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поиск символов…"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ค้นหาไอคอน…"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Simgeleri ara…"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пошук символів…"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tìm kiếm biểu tượng…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索图标…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋圖示…"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋圖示…"
           }
         }
       }

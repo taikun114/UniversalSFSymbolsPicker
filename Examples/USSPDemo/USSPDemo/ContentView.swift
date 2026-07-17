@@ -250,7 +250,7 @@ struct ContentView: View {
             iconScale: iconScale,
             iconSpacing: iconSpacing
         )
-        .conditionalSearchable(show: showSearchBar && searchBarStyle == .searchable, text: $searchTextSheet)
+        .conditionalSearchable(show: showSearchBar && searchBarStyle == .searchable, text: $searchTextSheet, isSheet: pickerMode == .sheet)
     }
     
     @ViewBuilder
@@ -260,7 +260,7 @@ struct ContentView: View {
             SFSymbolPicker(
                 isPresented: .constant(true),
                 selection: $selectedIcon,
-                showAs: .sheet,
+                showAs: .popover,
                 controlBarPosition: controlBarPosition,
                 showSearchBar: showSearchBar && searchBarStyle == .custom,
                 showCategoryPicker: showCategoryPicker,
@@ -282,7 +282,7 @@ struct ContentView: View {
                 iconScale: iconScale,
                 iconSpacing: iconSpacing
             )
-            .conditionalSearchable(show: showSearchBar && searchBarStyle == .searchable, text: $searchTextSheet)
+            .conditionalSearchable(show: showSearchBar && searchBarStyle == .searchable, text: $searchTextSheet, isSheet: false)
         } label: {
             testPickerButtonLabel
         }
@@ -388,7 +388,7 @@ struct ContentView: View {
                     iconSpacing: iconSpacing
                 )
             }
-            .conditionalSearchable(show: showSearchBar && searchBarStyle == .searchable, text: $searchTextSheet)
+            .conditionalSearchable(show: showSearchBar && searchBarStyle == .searchable, text: $searchTextSheet, isSheet: true)
             #if os(macOS)
             .frame(width: 600, height: 500)
             #endif
@@ -1054,12 +1054,13 @@ struct ContentView: View {
 
 extension View {
     @ViewBuilder
-    func conditionalSearchable(show: Bool, text: Binding<String>) -> some View {
+    func conditionalSearchable(show: Bool, text: Binding<String>, isSheet: Bool) -> some View {
+        let promptText = isSheet ? String(localized: "Search icons in sheet…") : String(localized: "Search Icons…")
         if show {
             #if os(watchOS)
-            self.searchable(text: text, placement: .toolbar, prompt: "Search icons in sheet...")
+            self.searchable(text: text, placement: .toolbar, prompt: Text(promptText))
             #else
-            self.searchable(text: text, prompt: "Search icons in sheet...")
+            self.searchable(text: text, prompt: Text(promptText))
             #endif
         } else {
             self

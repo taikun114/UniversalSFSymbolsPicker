@@ -4617,298 +4617,298 @@
         }
       }
     },
-    "Loading Icons..." : {
+    "Loading Icons…" : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "جاري تحميل الرموز..."
+            "value" : "جاري تحميل الرموز…"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Symbole laden..."
+            "value" : "Symbole laden…"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Loading Icons..."
+            "value" : "Loading Icons…"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cargando iconos..."
+            "value" : "Cargando iconos…"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chargement des icônes..."
+            "value" : "Chargement des icônes…"
           }
         },
         "fr-CA" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chargement des icônes..."
+            "value" : "Chargement des icônes…"
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "आइकन लोड हो रहे हैं..."
+            "value" : "आइकन लोड हो रहे हैं…"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Memuat Ikon..."
+            "value" : "Memuat Ikon…"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Caricamento icone..."
+            "value" : "Caricamento icone…"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "アイコンを読み込み中..."
+            "value" : "アイコンを読み込み中…"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "아이콘 로드 중..."
+            "value" : "아이콘 로드 중…"
           }
         },
         "ms" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sedang memuatkan Ikon..."
+            "value" : "Sedang memuatkan Ikon…"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Symbolen laden..."
+            "value" : "Symbolen laden…"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ładowanie ikon..."
+            "value" : "Ładowanie ikon…"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Carregando ícones..."
+            "value" : "Carregando ícones…"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A carregar ícones..."
+            "value" : "A carregar ícones…"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Загрузка иконок..."
+            "value" : "Загрузка иконок…"
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "กำลังโหลดไอคอน..."
+            "value" : "กำลังโหลดไอคอน…"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Simgeler Yükleniyor..."
+            "value" : "Simgeler Yükleniyor…"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Завантаження значків..."
+            "value" : "Завантаження значків…"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Đang tải biểu tượng..."
+            "value" : "Đang tải biểu tượng…"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在加载图标..."
+            "value" : "正在加载图标…"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在載入圖示..."
+            "value" : "正在載入圖示…"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在載入圖示..."
+            "value" : "正在載入圖示…"
           }
         }
       }
     },
-    "Loading..." : {
+    "Loading…" : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "جاري التحميل..."
+            "value" : "جاري التحميل…"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Laden..."
+            "value" : "Laden…"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Loading..."
+            "value" : "Loading…"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cargando..."
+            "value" : "Cargando…"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chargement..."
+            "value" : "Chargement…"
           }
         },
         "fr-CA" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chargement..."
+            "value" : "Chargement…"
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "लोड हो रहा है..."
+            "value" : "लोड हो रहा है…"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Memuat..."
+            "value" : "Memuat…"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Caricamento..."
+            "value" : "Caricamento…"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "読み込み中..."
+            "value" : "読み込み中…"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "로드 중..."
+            "value" : "로드 중…"
           }
         },
         "ms" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sedang memuat..."
+            "value" : "Sedang memuat…"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Laden..."
+            "value" : "Laden…"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ładowanie..."
+            "value" : "Ładowanie…"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Carregando..."
+            "value" : "Carregando…"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A carregar..."
+            "value" : "A carregar…"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Загрузка..."
+            "value" : "Загрузка…"
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "กำลังโหลด..."
+            "value" : "กำลังโหลด…"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Yükleniyor..."
+            "value" : "Yükleniyor…"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Завантаження..."
+            "value" : "Завантаження…"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Đang tải..."
+            "value" : "Đang tải…"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "加载中..."
+            "value" : "加载中…"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "載入中..."
+            "value" : "載入中…"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "載入中..."
+            "value" : "載入中…"
           }
         }
       }
@@ -6405,13 +6405,13 @@
         }
       }
     },
-    "Search Icons..." : {
+    "Search Icons…" : {
       "comment" : "Placeholder text shown in the search bar.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "بحث في الرموز..."
+            "value" : "بحث في الرموز…"
           }
         },
         "de" : {
@@ -6423,7 +6423,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Search Icons..."
+            "value" : "Search Icons…"
           }
         },
         "es" : {
