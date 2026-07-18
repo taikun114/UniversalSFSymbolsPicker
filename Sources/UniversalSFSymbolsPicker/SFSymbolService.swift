@@ -181,7 +181,7 @@ public final class SFSymbolService: Sendable {
         
         if categoryID == "all" {
             baseSymbols = Set(allSymbols)
-        } else if let custom = customCategories.first(where: { $0.id.uuidString == categoryID }) {
+        } else if let custom = customCategories.first(where: { $0.id == categoryID }) {
             explicitCustomSymbols = Set(custom.symbols)
             customExcludedSymbols = Set(custom.excludedSymbols)
             baseSymbols = explicitCustomSymbols
@@ -200,7 +200,7 @@ public final class SFSymbolService: Sendable {
                 // Check system categories
                 result.formUnion(symbolsInSystemCategory(id))
                 // Check custom categories
-                if let custom = customCategories.first(where: { $0.id.uuidString == id }) {
+                if let custom = customCategories.first(where: { $0.id == id }) {
                     result.formUnion(Set(custom.symbols).subtracting(custom.excludedSymbols))
                     for sysID in custom.systemCategories {
                         result.formUnion(symbolsInSystemCategory(sysID).subtracting(custom.excludedSymbols))

@@ -3,7 +3,7 @@ import Foundation
 /// Represents a user-defined category for SF Symbols.
 /// It can contain an explicit list of symbol names and/or include entire system categories.
 public struct CustomCategory: Identifiable, Hashable, Sendable {
-    public let id: UUID
+    public let id: String
     public let label: String
     public let icon: String
 
@@ -18,7 +18,7 @@ public struct CustomCategory: Identifiable, Hashable, Sendable {
     public let excludedSymbols: [String]
 
     public init(
-        id: UUID = UUID(),
+        id: String = UUID().uuidString,
         label: String,
         icon: String,
         symbols: [String] = [],

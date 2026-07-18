@@ -263,7 +263,7 @@ public struct SFSymbolPicker: View {
             return "square.grid.2x2"
         }
         let rawIcon: String
-        if let custom = customCategories.first(where: { $0.id.uuidString == selectedCategoryID }) {
+        if let custom = customCategories.first(where: { $0.id == selectedCategoryID }) {
             rawIcon = custom.icon
         } else {
             rawIcon = service.systemCategories.first(where: { $0.id == selectedCategoryID })?.icon ?? "square.grid.2x2"
@@ -277,7 +277,7 @@ public struct SFSymbolPicker: View {
         if selectedCategoryID == "all" {
             return String(localized: "All", bundle: .module)
         }
-        if let custom = customCategories.first(where: { $0.id.uuidString == selectedCategoryID }) {
+        if let custom = customCategories.first(where: { $0.id == selectedCategoryID }) {
             return custom.label
         }
         if let system = service.systemCategories.first(where: { $0.id == selectedCategoryID }) {
@@ -1120,7 +1120,7 @@ public struct SFSymbolPicker: View {
         } else {
             let customCategoriesTitle = String(localized: "Custom Categories", bundle: .module)
             let filteredCustom = customCategories.filter { cat in
-                let idString = cat.id.uuidString
+                let idString = cat.id
             if let included = includedCategories, !included.contains(idString) {
                 return false
             }
@@ -1134,7 +1134,7 @@ public struct SFSymbolPicker: View {
             Picker(customCategoriesTitle, selection: $selectedCategoryID) {
                 ForEach(filteredCustom) { cat in
                     let iconName = service.effectiveName(for: cat.icon, limitVersion: sfSymbolsVersion) ?? "square.grid.2x2"
-                    Label(cat.label, systemImage: iconName).tag(cat.id.uuidString)
+                    Label(cat.label, systemImage: iconName).tag(cat.id)
                 }
             }
             .pickerStyle(.inline)

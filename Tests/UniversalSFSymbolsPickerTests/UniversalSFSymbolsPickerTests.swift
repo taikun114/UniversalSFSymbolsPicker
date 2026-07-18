@@ -87,7 +87,7 @@ struct SFSymbolServiceTests {
 
     @Test("Custom categories")
     func testCustomCategories() {
-        let customID = UUID()
+        let customID = UUID().uuidString
         let customCat = CustomCategory(
             id: customID,
             label: "Test",
@@ -96,7 +96,7 @@ struct SFSymbolServiceTests {
             systemCategories: ["weather"]
         )
         
-        let symbols = service.symbols(for: customID.uuidString, customCategories: [customCat])
+        let symbols = service.symbols(for: customID, customCategories: [customCat])
         
         #expect(symbols.contains("star.fill"))
         #expect(symbols.contains("heart.fill"))
@@ -156,7 +156,7 @@ struct SFSymbolServiceTests {
     @Test("Exclusion priority between 'all' and custom categories")
     func testExclusionPriority() {
         // 1. Define a "Hidden" category to act as a global exclusion filter
-        let hiddenID = UUID()
+        let hiddenID = UUID().uuidString
         let hiddenCat = CustomCategory(
             id: hiddenID,
             label: "Hidden",
@@ -165,7 +165,7 @@ struct SFSymbolServiceTests {
         )
         
         // 2. Define a "Custom Map" category that explicitly includes the excluded icon
-        let mapID = UUID()
+        let mapID = UUID().uuidString
         let customMap = CustomCategory(
             id: mapID,
             label: "Custom Map",
@@ -175,7 +175,7 @@ struct SFSymbolServiceTests {
         )
         
         let customCategories = [hiddenCat, customMap]
-        let excludedIDs = [hiddenID.uuidString]
+        let excludedIDs = [hiddenID]
         
         // CASE A: 'all' category
         let allSymbols = service.symbols(
@@ -188,7 +188,7 @@ struct SFSymbolServiceTests {
         
         // CASE B: 'Custom Map' category
         let mapSymbols = service.symbols(
-            for: mapID.uuidString,
+            for: mapID,
             customCategories: customCategories,
             excludedIDs: excludedIDs
         )
@@ -198,7 +198,7 @@ struct SFSymbolServiceTests {
 
     @Test("CustomCategory independent excludedSymbols")
     func testCustomCategoryExcludedSymbols() {
-        let customID = UUID()
+        let customID = UUID().uuidString
         let customCat = CustomCategory(
             id: customID,
             label: "Test",
@@ -207,7 +207,7 @@ struct SFSymbolServiceTests {
             excludedSymbols: ["leaf.fill"] // should be removed from the list
         )
         
-        let symbols = service.symbols(for: customID.uuidString, customCategories: [customCat])
+        let symbols = service.symbols(for: customID, customCategories: [customCat])
         
         // 1. Other nature symbols should be present
         #expect(symbols.contains("ant.fill"))
@@ -217,7 +217,7 @@ struct SFSymbolServiceTests {
 
     @Test("Completely empty custom category")
     func testEmptyCategory() {
-        let emptyID = UUID()
+        let emptyID = UUID().uuidString
         let emptyCat = CustomCategory(
             id: emptyID,
             label: "Empty",
@@ -227,7 +227,7 @@ struct SFSymbolServiceTests {
             excludedSymbols: []
         )
         
-        let symbols = service.symbols(for: emptyID.uuidString, customCategories: [emptyCat])
+        let symbols = service.symbols(for: emptyID, customCategories: [emptyCat])
         
         // Should be completely empty
         #expect(symbols.isEmpty)
