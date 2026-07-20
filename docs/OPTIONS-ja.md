@@ -1,5 +1,7 @@
 # UniversalSFSymbolsPickerの利用可能なオプション
 
+[English](OPTIONS.md) | **日本語**
+
 このページでは、UniversalSFSymbolsPickerで利用可能なすべてのオプションについての説明と設定値の違いについて説明します。
 
 UniversalSFSymbolsPickerで利用可能なすべてのオプションとデフォルト値は次の通りです。必須以外のオプションにはデフォルト値が用意されているため、変更する必要のないものは記載せずに実装しても問題ありません。

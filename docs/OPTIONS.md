@@ -1,5 +1,7 @@
 # Available Options for UniversalSFSymbolsPicker
 
+**English** | [日本語](OPTIONS-ja.md)
+
 This page explains all the available options in UniversalSFSymbolsPicker and the differences between the setting values.
 
 All available options and default values in UniversalSFSymbolsPicker are as follows. Default values are provided for non-required options, so there is no problem implementing without writing what you do not need to change.
