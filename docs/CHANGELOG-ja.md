@@ -29,4 +29,6 @@
 ### UniversalSFSymbolsPicker
 #### バグ修正と改善
 - **macOS Golden Gateのカテゴリピッカー内でカテゴリアイコンが表示されなかった問題を修正**
+- **iOS / iPadOS 27およびmacOS Golden Gateでスクロールエッジエフェクトが表示されなかった問題を修正**
+  - `.hard`スタイルを明示的に指定して、システムのデフォルトの見た目が反映されるようにしました。
 

@@ -29,4 +29,6 @@ Notes:
 ### UniversalSFSymbolsPicker
 #### Bug Fixes and Improvements
 - **Fix issue where category icons were not displayed in the category picker on macOS Golden Gate**
+- **Fix issue where scroll edge effects were not displayed on iOS / iPadOS 27 and macOS Golden Gate**
+  - Explicitly specified `.hard` style to ensure the system default appearance is applied.
 

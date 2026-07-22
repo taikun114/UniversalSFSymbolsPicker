@@ -499,6 +499,7 @@ public struct SFSymbolPicker: View {
     private var popoverView: some View {
         VStack(spacing: 0) {
             symbolGrid
+                .adaptiveSoftEdge()
                 #if !os(tvOS)
                 .adaptiveSafeAreaBar(edge: effectiveControlBarPosition == .top ? .top : .bottom) {
                     if showSearchBar || showCategoryPicker {
@@ -1525,7 +1526,9 @@ private extension View {
     @ViewBuilder
     func adaptiveSoftEdge() -> some View {
         #if os(macOS) || os(iOS)
-        if #available(iOS 26.0, macOS 26.0, *) {
+        if #available(iOS 27.0, macOS 27.0, *) {
+            self.scrollEdgeEffectStyle(.hard, for: .all)
+        } else if #available(iOS 26.0, macOS 26.0, *) {
             self.scrollEdgeEffectStyle(.soft, for: .all)
         } else {
             self
