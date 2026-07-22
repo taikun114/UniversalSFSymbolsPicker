@@ -1077,6 +1077,7 @@ public struct SFSymbolPicker: View {
             ).tag("all")
         }
         .pickerStyle(.inline)
+        .labelStyle(.titleAndIcon)
         .adaptiveLabelsVisibility(showCategorySectionLabel ? .visible : .hidden)
     }
     
@@ -1108,6 +1109,7 @@ public struct SFSymbolPicker: View {
                 }
             }
             .pickerStyle(.inline)
+            .labelStyle(.titleAndIcon)
             .adaptiveLabelsVisibility(showCategorySectionLabel ? .visible : .hidden)
         }
         }
@@ -1138,6 +1140,7 @@ public struct SFSymbolPicker: View {
                 }
             }
             .pickerStyle(.inline)
+            .labelStyle(.titleAndIcon)
             .adaptiveLabelsVisibility(showCategorySectionLabel ? .visible : .hidden)
         }
         }
