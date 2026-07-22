@@ -68,6 +68,9 @@ struct BuildModeView: View {
                     }
                     .presentationDetents([.medium, .large])
                 }
+                .popover(isPresented: $isPopoverPresented, attachmentAnchor: .rect(.bounds), arrowEdge: .bottom) {
+                    popoverPicker
+                }
             } else {
                 // For regular width (custom split view)
                 GeometryReader { geometry in
@@ -119,6 +122,17 @@ struct BuildModeView: View {
         #else
         return false
         #endif
+    }
+
+    private var isButtonPopoverPresented: Binding<Bool> {
+        Binding(
+            get: { !isCompact && isPopoverPresented },
+            set: { newValue in
+                if !isCompact {
+                    isPopoverPresented = newValue
+                }
+            }
+        )
     }
     
     // MARK: - Views
@@ -432,36 +446,41 @@ struct BuildModeView: View {
                 }
             }
         }
-        .popover(isPresented: $isPopoverPresented, attachmentAnchor: .rect(.bounds), arrowEdge: .bottom) {
-            if options.useSearchable {
-                NavigationStack {
-                    buildPicker(isPresented: $isPopoverPresented)
-                        .searchable(text: $searchText)
-                }
-                #if os(macOS)
-                .frame(width: 400, height: 500)
-                #elseif os(visionOS)
-                .frame(width: 440, height: 540)
-                #elseif os(iOS)
-                .frame(width: horizontalSizeClass == .regular ? 400 : nil)
-                .frame(maxHeight: horizontalSizeClass == .regular ? 500 : nil)
-                #endif
-            } else {
-                NavigationStack {
-                    buildPicker(isPresented: $isPopoverPresented)
-                }
-                #if os(macOS)
-                .frame(width: 400, height: 500)
-                #elseif os(visionOS)
-                .frame(width: 440, height: 540)
-                #elseif os(iOS)
-                .frame(width: horizontalSizeClass == .regular ? 400 : nil)
-                .frame(maxHeight: horizontalSizeClass == .regular ? 500 : nil)
-                #endif
-            }
+        .popover(isPresented: isButtonPopoverPresented, attachmentAnchor: .rect(.bounds), arrowEdge: .bottom) {
+            popoverPicker
         }
     }
-    
+
+    @ViewBuilder
+    private var popoverPicker: some View {
+        if options.useSearchable {
+            NavigationStack {
+                buildPicker(isPresented: $isPopoverPresented)
+                    .searchable(text: $searchText)
+            }
+            #if os(macOS)
+            .frame(width: 400, height: 500)
+            #elseif os(visionOS)
+            .frame(width: 440, height: 540)
+            #elseif os(iOS)
+            .frame(width: horizontalSizeClass == .regular ? 400 : nil)
+            .frame(maxHeight: horizontalSizeClass == .regular ? 500 : nil)
+            #endif
+        } else {
+            NavigationStack {
+                buildPicker(isPresented: $isPopoverPresented)
+            }
+            #if os(macOS)
+            .frame(width: 400, height: 500)
+            #elseif os(visionOS)
+            .frame(width: 440, height: 540)
+            #elseif os(iOS)
+            .frame(width: horizontalSizeClass == .regular ? 400 : nil)
+            .frame(maxHeight: horizontalSizeClass == .regular ? 500 : nil)
+            #endif
+        }
+    }
+
     @ViewBuilder
     private func buildPicker(isPresented: Binding<Bool>) -> some View {
         SFSymbolPicker(

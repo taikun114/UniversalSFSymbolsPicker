@@ -32,3 +32,6 @@ Notes:
 - **Fix issue where scroll edge effects were not displayed on iOS / iPadOS 27 and macOS Golden Gate**
   - Explicitly specified `.hard` style to ensure the system default appearance is applied.
 
+### UniversalSFSymbolsPicker Demo
+#### Bug Fixes and Improvements
+- **Fix issue where the scroll edge effect was not displayed when opening a popover in compact mode on iOS / iPadOS 26 and later**

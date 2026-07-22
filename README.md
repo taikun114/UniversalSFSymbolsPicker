@@ -135,6 +135,9 @@ Since there is no toolbar in popover mode, there is no need to wrap it in a `Nav
 > [!NOTE]
 > It cannot be displayed as a popover on watchOS and tvOS.
 
+> [!IMPORTANT]
+> On iOS and iPadOS in a compact size class, placing `.popover` deep in the view hierarchy prevents the scroll edge effect from displaying correctly. Therefore, I recommend attaching `.popover` to a root view only in compact size classes, or using `.sheet` instead on these platforms.
+
 ##### Sample Code
 
 ```swift
