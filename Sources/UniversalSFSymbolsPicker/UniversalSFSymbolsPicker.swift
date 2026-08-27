@@ -898,14 +898,15 @@ public struct SFSymbolPicker: View {
         Menu {
             categoryMenuItems
         } label: {
-            HStack(spacing: 8) {
+            if shouldShowCategoryLabel {
+                Label(categoryDisplayText, systemImage: currentCategoryIcon)
+            } else {
                 Image(systemName: currentCategoryIcon)
-                if shouldShowCategoryLabel {
-                    Text(categoryDisplayText)
-                        .lineLimit(1)
-                }
             }
         }
+        #if os(macOS)
+        .menuStyle(.button)
+        #endif
         .accessibilityLabel(String(localized: "Category Button", bundle: .module))
         .accessibilityHint(String(localized: "Changes the icon category. Current category: \(currentCategoryLabel)", bundle: .module))
         .help(String(localized: "Changes the icon category. Current category: \(currentCategoryLabel)", bundle: .module))
