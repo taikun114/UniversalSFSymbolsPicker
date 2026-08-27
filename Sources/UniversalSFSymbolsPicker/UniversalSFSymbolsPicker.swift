@@ -1526,9 +1526,7 @@ private extension View {
     @ViewBuilder
     func adaptiveSoftEdge() -> some View {
         #if os(macOS) || os(iOS)
-        if #available(iOS 27.0, macOS 27.0, *) {
-            self.scrollEdgeEffectStyle(.hard, for: .all)
-        } else if #available(iOS 26.0, macOS 26.0, *) {
+        if #available(iOS 26.0, macOS 26.0, *) {
             self.scrollEdgeEffectStyle(.soft, for: .all)
         } else {
             self

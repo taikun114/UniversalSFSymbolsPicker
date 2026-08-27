@@ -29,6 +29,8 @@
 ### UniversalSFSymbolsPicker
 #### バグ修正と改善
 - **バージョン26以降で検索欄の見た目を改善**
+- **iOS / iPadOS 27およびmacOS Golden Gateのスクロールエッジエフェクトを改善**
+  - OS側の修正により正しく表示されるようになったため、`.soft`スタイルに戻しました。
 
 ### UniversalSFSymbolsPicker Demo
 #### バグ修正と改善

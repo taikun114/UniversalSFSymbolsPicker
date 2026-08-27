@@ -29,6 +29,8 @@ Notes:
 ### UniversalSFSymbolsPicker
 #### Bug Fixes and Improvements
 - **Improve search box appearance on version 26 and later**
+- **Improve scroll edge effect on iOS / iPadOS 27 and macOS Golden Gate**
+  - Reverted to `.soft` style as it is now displayed correctly due to OS-level fixes.
 
 ### UniversalSFSymbolsPicker Demo
 #### Bug Fixes and Improvements
