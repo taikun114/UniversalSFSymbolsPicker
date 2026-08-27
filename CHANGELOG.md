@@ -28,6 +28,7 @@ Notes:
 ## 1.0.2
 ### UniversalSFSymbolsPicker
 #### Bug Fixes and Improvements
+- **Fix issue where the sheet slightly appeared greenish in dark mode on iOS / iPadOS**
 - **Improve search box appearance on version 26 and later**
 - **Improve scroll edge effect on iOS / iPadOS 27 and macOS Golden Gate**
   - Reverted to `.soft` style as it is now displayed correctly due to OS-level fixes.

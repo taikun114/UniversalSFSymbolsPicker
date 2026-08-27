@@ -451,6 +451,9 @@ public struct SFSymbolPicker: View {
                 }
             #endif
         }
+        #if os(iOS)
+        .background(Color(uiColor: .systemBackground))
+        #endif
         #if !os(macOS) && !os(tvOS)
         .navigationTitle(String(localized: "Select an Icon", bundle: .module))
         #if !os(watchOS)
