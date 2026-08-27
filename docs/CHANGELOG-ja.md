@@ -26,6 +26,10 @@
 -->
 
 ## 1.0.2
+### UniversalSFSymbolsPicker
+#### バグ修正と改善
+- **バージョン26以降で検索欄の見た目を改善**
+
 ### UniversalSFSymbolsPicker Demo
 #### バグ修正と改善
 - **macOS Golden Gateでメインウィンドウのコンテンツがはみ出る問題を修正**

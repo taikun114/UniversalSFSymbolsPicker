@@ -26,6 +26,10 @@ Notes:
 -->
 
 ## 1.0.2
+### UniversalSFSymbolsPicker
+#### Bug Fixes and Improvements
+- **Improve search box appearance on version 26 and later**
+
 ### UniversalSFSymbolsPicker Demo
 #### Bug Fixes and Improvements
 - **Fix issue where the main window content overflowed on macOS Golden Gate**

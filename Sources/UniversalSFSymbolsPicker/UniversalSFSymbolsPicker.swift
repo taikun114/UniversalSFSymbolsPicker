@@ -1235,7 +1235,7 @@ public struct SFSymbolPicker: View {
                         #endif
                     } else {
                         Color.clear
-                            .adaptiveGlassEffectStyle(.clear, in: Capsule())
+                            .adaptiveGlassEffectStyle(.regular, in: Capsule())
                     }
                     #endif
                     
