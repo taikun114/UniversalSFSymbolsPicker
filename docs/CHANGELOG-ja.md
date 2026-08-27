@@ -29,6 +29,7 @@
 ### UniversalSFSymbolsPicker Demo
 #### バグ修正と改善
 - **macOS Golden Gateでメインウィンドウのコンテンツがはみ出る問題を修正**
+- **メインウィンドウが閉じられたときにアプリが終了されるように改善**
 
 ## 1.0.1
 ### UniversalSFSymbolsPicker

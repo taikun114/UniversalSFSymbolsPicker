@@ -6,12 +6,30 @@
 //
 
 import SwiftUI
+#if os(macOS)
+import AppKit
+
+final class AppDelegate: NSObject, NSApplicationDelegate {
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        true
+    }
+}
+#endif
 
 @main
 struct USSPDemoApp: App {
+    #if os(macOS)
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+    #endif
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
+                #if os(macOS)
+                .onDisappear {
+                    NSApplication.shared.terminate(nil)
+                }
+                #endif
         }
         #if os(macOS)
         .windowResizability(.contentSize)

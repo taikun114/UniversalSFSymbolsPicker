@@ -29,6 +29,7 @@ Notes:
 ### UniversalSFSymbolsPicker Demo
 #### Bug Fixes and Improvements
 - **Fix issue where the main window content overflowed on macOS Golden Gate**
+- **Improve demo app to terminate when the main window is closed on macOS**
 
 ## 1.0.1
 ### UniversalSFSymbolsPicker
