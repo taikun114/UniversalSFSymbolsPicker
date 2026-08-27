@@ -25,6 +25,11 @@ Notes:
 - Full URLs must be provided for links to Issues, Pull Requests, or Discussions
 -->
 
+## 1.0.2
+### UniversalSFSymbolsPicker Demo
+#### Bug Fixes and Improvements
+- **Fix issue where the main window content overflowed on macOS Golden Gate**
+
 ## 1.0.1
 ### UniversalSFSymbolsPicker
 #### Bug Fixes and Improvements

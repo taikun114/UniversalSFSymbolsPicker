@@ -15,7 +15,7 @@ struct USSPDemoApp: App {
         }
         #if os(macOS)
         .windowResizability(.contentSize)
-        .defaultSize(width: 400, height: 500)
+        .defaultSize(width: 450, height: 500)
         #elseif os(visionOS)
         .windowResizability(.contentSize)
         .defaultSize(width: 600, height: 800)

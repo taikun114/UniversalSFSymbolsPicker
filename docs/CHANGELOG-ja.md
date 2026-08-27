@@ -25,6 +25,11 @@
 - IssueやPull Request、Discussionへのリンクを貼る場合は完全なURLを記載すること
 -->
 
+## 1.0.2
+### UniversalSFSymbolsPicker Demo
+#### バグ修正と改善
+- **macOS Golden Gateでメインウィンドウのコンテンツがはみ出る問題を修正**
+
 ## 1.0.1
 ### UniversalSFSymbolsPicker
 #### バグ修正と改善

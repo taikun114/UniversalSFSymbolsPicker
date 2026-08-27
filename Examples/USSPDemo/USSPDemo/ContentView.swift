@@ -174,7 +174,7 @@ struct ContentView: View {
             #endif
         }
         #if os(macOS)
-        .frame(width: 400, height: 500)
+        .frame(width: 450, height: 500)
         #elseif os(visionOS)
         .frame(width: 600, height: 800)
         #endif
