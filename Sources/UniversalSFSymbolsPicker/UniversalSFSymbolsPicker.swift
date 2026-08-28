@@ -898,10 +898,12 @@ public struct SFSymbolPicker: View {
         Menu {
             categoryMenuItems
         } label: {
-            if shouldShowCategoryLabel {
-                Label(categoryDisplayText, systemImage: currentCategoryIcon)
-            } else {
+            HStack(spacing: 8) {
                 Image(systemName: currentCategoryIcon)
+                if shouldShowCategoryLabel {
+                    Text(categoryDisplayText)
+                        .lineLimit(1)
+                }
             }
         }
         #if os(macOS)
