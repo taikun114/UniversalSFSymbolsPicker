@@ -26,6 +26,11 @@ Notes:
 - Full URLs must be provided for links to Issues, Pull Requests, or Discussions
 -->
 
+## 1.1.1
+### UniversalSFSymbolsPicker
+#### Bug Fixes and Improvements
+- **Fix issue where tapping the cancel button in a sheet-presented picker also dismissed the parent sheet**
+
 ## 1.1.0
 ### UniversalSFSymbolsPicker
 #### New Features

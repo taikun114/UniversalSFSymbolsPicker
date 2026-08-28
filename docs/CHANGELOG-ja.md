@@ -26,6 +26,11 @@
 - IssueやPull Request、Discussionへのリンクを貼る場合は完全なURLを記載すること
 -->
 
+## 1.1.1
+### UniversalSFSymbolsPicker
+#### バグ修正と改善
+- **シート表示のピッカーでキャンセルボタンを押すと親のシートまで閉じてしまっていた問題を修正**
+
 ## 1.1.0
 ### UniversalSFSymbolsPicker
 #### 新機能

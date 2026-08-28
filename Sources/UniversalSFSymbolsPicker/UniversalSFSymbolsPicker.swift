@@ -253,7 +253,6 @@ public struct SFSymbolPicker: View {
         }
         
         isPresented = false
-        dismiss()
     }
     
     /// Returns the icon for the currently selected category
