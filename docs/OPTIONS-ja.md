@@ -161,6 +161,9 @@ UniversalSFSymbolsPickerが提供するカスタム検索バーを表示する�
 - `.hidden`
   - 常にラベルを非表示にします。
 
+> [!NOTE]
+> watchOSではこのオプションにかかわらず常にラベルが表示されます。
+
 ### `categoryLabelStyle`
 
 ![categoryLabelStyle](images/UniversalSFSymbolsPicker_categoryLabelStyle.webp)

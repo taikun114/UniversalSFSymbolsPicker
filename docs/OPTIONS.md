@@ -161,6 +161,9 @@ The available options are:
 - `.hidden`
   - Always hides the label.
 
+> [!NOTE]
+> On watchOS, the label is always displayed regardless of this option.
+
 ### `categoryLabelStyle`
 
 ![categoryLabelStyle](images/UniversalSFSymbolsPicker_categoryLabelStyle.webp)
