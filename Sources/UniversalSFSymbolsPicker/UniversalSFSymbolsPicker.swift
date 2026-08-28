@@ -890,7 +890,7 @@ public struct SFSymbolPicker: View {
             }
             .navigationTitle(String(localized: "Categories", bundle: .module))
         } label: {
-            Label(categoryDisplayText, systemImage: "line.3.horizontal.decrease.circle")
+            Label(categoryDisplayText, systemImage: currentCategoryIcon)
                 .lineLimit(1)
                 .truncationMode(.tail)
         }
@@ -924,7 +924,7 @@ public struct SFSymbolPicker: View {
             }
             .navigationTitle(String(localized: "Categories", bundle: .module))
         } label: {
-            Label(categoryDisplayText, systemImage: "line.3.horizontal.decrease.circle")
+            Label(categoryDisplayText, systemImage: currentCategoryIcon)
                 .lineLimit(1)
                 .truncationMode(.tail)
         }

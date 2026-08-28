@@ -30,6 +30,7 @@ Notes:
 #### Bug Fixes and Improvements
 - **Fix issue where the sheet slightly appeared greenish in dark mode on iOS / iPadOS**
 - **Fix issue where the category picker label was not displayed when presented as a sheet on macOS Golden Gate**
+- **Fix issue where the correct icon was not displayed in the category picker on watchOS**
 - **Improve search box appearance on version 26 and later**
 - **Improve scroll edge effect on iOS / iPadOS 27 and macOS Golden Gate**
   - Reverted to `.soft` style as it is now displayed correctly due to OS-level fixes.
