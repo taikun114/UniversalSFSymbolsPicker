@@ -3,12 +3,468 @@
   "strings" : {
     ".searchable" : {
       "comment" : "Search bar style: system standard.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ".searchable"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ".searchable"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ".searchable"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ".searchable"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ".searchable"
+          }
+        },
+        "fr-CA" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ".searchable"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ".searchable"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ".searchable"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ".searchable"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ".searchable"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ".searchable"
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ".searchable"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ".searchable"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ".searchable"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ".searchable"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ".searchable"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ".searchable"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ".searchable"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ".searchable"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ".searchable"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ".searchable"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ".searchable"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ".searchable"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ".searchable"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ".searchable"
+          }
+        }
+      },
       "shouldTranslate" : false
     },
     "%lld" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
+          }
+        },
+        "fr-CA" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
+          }
+        }
+      },
       "shouldTranslate" : false
     },
     "%lld (%@)" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld (%@)"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld (%@)"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld (%@)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld (%@)"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld (%@)"
+          }
+        },
+        "fr-CA" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld (%@)"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld (%@)"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld (%@)"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld (%@)"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld (%@)"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld (%@)"
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld (%@)"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld (%@)"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld (%@)"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld (%@)"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld (%@)"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld (%@)"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld (%@)"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld (%@)"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld (%@)"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld (%@)"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld (%@)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld (%@)"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld (%@)"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld (%@)"
+          }
+        }
+      },
       "shouldTranslate" : false
     },
     "Adds a category picker to filter symbols by category." : {
@@ -108,6 +564,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Adiciona um seletor de categorias para filtrar símbolos por categoria."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adaugă un selector de categorii pentru a filtra simbolurile după categorie."
           }
         },
         "ru" : {
@@ -259,6 +721,12 @@
             "value" : "Adiciona uma caixa de pesquisa personalizada fornecida pelo UniversalSFSymbolsPicker."
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adaugă o casetă de căutare personalizată furnizată de UniversalSFSymbolsPicker."
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -406,6 +874,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Adiciona uma caixa de pesquisa padrão do sistema usando o modificador .searchable."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adaugă o casetă de căutare standard de sistem utilizând modificatorul .searchable."
           }
         },
         "ru" : {
@@ -556,6 +1030,12 @@
             "value" : "Tem certeza de que deseja redefinir todas as opções para seus valores padrão?"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sigur doriți să resetați toate opțiunile la valorile implicite?"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -704,6 +1184,12 @@
             "value" : "Vincule um valor para atualizar o símbolo correspondente em tempo real."
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Legați o valoare pentru a actualiza simbolul corespunzător în timp real."
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -850,6 +1336,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Vincule o seu valor aqui"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Legați valoarea dvs. aici"
           }
         },
         "ru" : {
@@ -1001,6 +1493,12 @@
             "value" : "Ambos"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ambele"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1148,6 +1646,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Inferior"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jos"
           }
         },
         "ru" : {
@@ -1298,6 +1802,12 @@
             "value" : "Modo de Compilação"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mod de construire"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1446,6 +1956,12 @@
             "value" : "Cancelar"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anulează"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1592,6 +2108,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Categorias e Interface"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Categorii și UI"
           }
         },
         "ru" : {
@@ -1743,6 +2265,12 @@
             "value" : "Estilo do Rótulo de Categoria"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stil etichetă categorie"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1890,6 +2418,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Visibilidade do Rótulo de Categoria"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vizibilitate etichetă categorie"
           }
         },
         "ru" : {
@@ -2040,6 +2574,12 @@
             "value" : "Altere o tamanho de exibição dos ícones na grelha."
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modificați dimensiunea de afișare a pictogramelor din grilă."
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2186,6 +2726,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Altere o número máximo de ícones usados recentemente."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modificați numărul maxim de pictograme utilizate recent."
           }
         },
         "ru" : {
@@ -2336,6 +2882,12 @@
             "value" : "Alterar o espaçamento à volta dos ícones."
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modificați spațierea din jurul pictogramelor."
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2482,6 +3034,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fechar"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Închide"
           }
         },
         "ru" : {
@@ -2633,6 +3191,12 @@
             "value" : "Posição da Barra de Controlo"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poziție bară de control"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2781,6 +3345,12 @@
             "value" : "Copiar Código"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copiază codul"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2927,6 +3497,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Opções Principais"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opțiuni principale"
           }
         },
         "ru" : {
@@ -3078,6 +3654,12 @@
             "value" : "Personalizado"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personalizat"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3225,6 +3807,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Predefinido"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Implicit"
           }
         },
         "ru" : {
@@ -3375,6 +3963,12 @@
             "value" : "Categoria de Demonstração 1 (Aleatória)"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Categorie demo 1 (Aleatoriu)"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3523,6 +4117,12 @@
             "value" : "Categoria de Demonstração 2"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Categorie demo 2"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3669,6 +4269,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Categoria de Demonstração 3 (Mapas + Transporte + star.fill)"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Categorie demo 3 (Hărți + Transport + star.fill)"
           }
         },
         "ru" : {
@@ -3820,6 +4426,12 @@
             "value" : "Modo de Visualização"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mod de afișare"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3966,6 +4578,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Exibir cabeçalhos de secção no menu de categorias."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afișează anteturile de secțiune în meniul de categorii."
           }
         },
         "ru" : {
@@ -4117,6 +4735,12 @@
             "value" : "Demonstração de Renderização Dinâmica"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Demo redare dinamică"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4263,6 +4887,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Categoria vazia (teste)"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Categorie goală (Test)"
           }
         },
         "ru" : {
@@ -4414,6 +5044,12 @@
             "value" : "Ativa a renderização de gradiente para símbolos (iOS 26.0+, macOS 26.0+, tvOS 26.0+, watchOS 26.0+, visionOS 26.0+)."
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activează redarea cu gradient pentru simboluri (iOS 26.0+, macOS 26.0+, tvOS 26.0+, watchOS 26.0+, visionOS 26.0+)."
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4562,6 +5198,12 @@
             "value" : "Ativar renderização de gradiente."
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activează redarea cu gradient."
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4708,6 +5350,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Excluir Restritos"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exclude restricționate"
           }
         },
         "ru" : {
@@ -4859,6 +5507,12 @@
             "value" : "Excluir Símbolos Restritos"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exclude simbolurile restricționate"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -5005,6 +5659,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Filtro de exclusão (Nature - leaf.fill)"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtru de excludere (Natură - leaf.fill)"
           }
         },
         "ru" : {
@@ -5155,6 +5815,12 @@
             "value" : "Gerar Código"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Generează cod"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -5301,6 +5967,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Código Gerado"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cod generat"
           }
         },
         "ru" : {
@@ -5452,6 +6124,12 @@
             "value" : "Gradiente"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gradient"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -5598,6 +6276,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Renderização de Gradiente"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Redare cu gradient"
           }
         },
         "ru" : {
@@ -5749,6 +6433,12 @@
             "value" : "Oculto"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ascuns"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -5898,6 +6588,12 @@
             "value" : "Oculta símbolos com restrições de utilização, como os de serviços ou hardware da Apple."
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ascunde simbolurile cu restricții de utilizare, cum ar fi cele pentru serviciile sau hardware-ul Apple."
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -6044,6 +6740,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ocultar símbolos com restrições de uso."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ascunde simbolurile cu restricții de utilizare."
           }
         },
         "ru" : {
@@ -6195,6 +6897,12 @@
             "value" : "Hierárquico"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ierarhic"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -6341,6 +7049,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Escala do Ícone"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scară pictogramă"
           }
         },
         "ru" : {
@@ -6491,6 +7205,12 @@
             "value" : "Escala do ícone: %@"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scară pictogramă: %@"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -6637,6 +7357,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Espaçamento de Ícones"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spațiere pictograme"
           }
         },
         "ru" : {
@@ -6787,6 +7513,12 @@
             "value" : "Espaçamento de Ícones: %@"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spațiere pictograme: %@"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -6933,6 +7665,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Máx."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Max"
           }
         },
         "ru" : {
@@ -7083,6 +7821,12 @@
             "value" : "Máximo de recentes"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recente maxime"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -7229,6 +7973,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Número máximo de ícones recentemente utilizados."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Numărul maxim de pictograme utilizate recent."
           }
         },
         "ru" : {
@@ -7380,6 +8130,12 @@
             "value" : "Monocromático"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monocrom"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -7524,6 +8280,12 @@
           }
         },
         "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Multicolor"
+          }
+        },
+        "ro" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Multicolor"
@@ -7678,6 +8440,12 @@
             "value" : "Apenas Nome"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Doar nume"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -7796,10 +8564,22 @@
             "value" : "네비게이션 링크"
           }
         },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pautan Navigasi"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Navigatielink"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Łącze nawigacyjne"
           }
         },
         "pt-BR" : {
@@ -7857,6 +8637,12 @@
           }
         },
         "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "導覽連結"
+          }
+        },
+        "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "導覽連結"
@@ -7960,6 +8746,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Abrir Modo de Compilação"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deschide modul de construire"
           }
         },
         "ru" : {
@@ -8111,6 +8903,12 @@
             "value" : "Paleta"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paletă"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -8258,6 +9056,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Demonstração do Seletor"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Demo selector"
           }
         },
         "ru" : {
@@ -8409,6 +9213,12 @@
             "value" : "Instância do Seletor"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instanță selector"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -8553,6 +9363,12 @@
           }
         },
         "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Popover"
+          }
+        },
+        "ro" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Popover"
@@ -8707,6 +9523,12 @@
             "value" : "Cor Primária"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Culoare primară"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -8854,6 +9676,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Modo de Renderização"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mod de redare"
           }
         },
         "ru" : {
@@ -9004,6 +9832,12 @@
             "value" : "Redefinir"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resetează"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -9150,6 +9984,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Redefinir Todas as Opções"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resetează toate opțiunile"
           }
         },
         "ru" : {
@@ -9300,6 +10140,12 @@
             "value" : "Redefinir Opções"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resetează opțiunile"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -9448,6 +10294,12 @@
             "value" : "Repor ícones usados recentemente"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resetează pictogramele recente"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -9594,6 +10446,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Escala"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scară"
           }
         },
         "ru" : {
@@ -9745,6 +10603,12 @@
             "value" : "Estilo da Barra de Pesquisa"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stil bară de căutare"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -9892,6 +10756,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pesquisar ícones na folha…"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Căutați pictograme în foaie…"
           }
         },
         "ru" : {
@@ -10043,6 +10913,12 @@
             "value" : "Procurar ícones…"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Căutați pictograme…"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -10190,6 +11066,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cor Secundária"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Culoare secundară"
           }
         },
         "ru" : {
@@ -10341,6 +11223,12 @@
             "value" : "Selecione um Ícone"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selectați o pictogramă"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -10488,6 +11376,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Escolha como o rótulo da categoria é exibido."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selectați modul în care este afișată eticheta categoriei."
           }
         },
         "ru" : {
@@ -10639,6 +11533,12 @@
             "value" : "Escolha como o seletor de símbolos é apresentado."
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selectați modul de prezentare a selectorului de simboluri."
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -10786,6 +11686,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Selecionar Cor Primária"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selectați culoarea primară"
           }
         },
         "ru" : {
@@ -10937,6 +11843,12 @@
             "value" : "Selecionar Cor Secundária"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selectați culoarea secundară"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -11084,6 +11996,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Selecionar Cor Terciária"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selectați culoarea terțiară"
           }
         },
         "ru" : {
@@ -11235,6 +12153,12 @@
             "value" : "Escolha o modo de renderização para o símbolo."
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selectați modul de redare pentru simbol."
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -11382,6 +12306,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Escolha o estilo do rótulo da categoria."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selectați stilul etichetei de categorie."
           }
         },
         "ru" : {
@@ -11533,6 +12463,12 @@
             "value" : "Escolha onde a barra de pesquisa e o seletor de categorias se localizam."
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selectați unde sunt amplasate bara de căutare și selectorul de categorii."
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -11680,6 +12616,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ícone Selecionado"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pictogramă selectată"
           }
         },
         "ru" : {
@@ -11830,6 +12772,12 @@
             "value" : "Defina a cor principal."
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Setați culoarea primară."
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -11978,6 +12926,12 @@
             "value" : "Defina a cor secundária."
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Setați culoarea secundară."
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -12124,6 +13078,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Defina a cor terciária."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Setați culoarea terțiară."
           }
         },
         "ru" : {
@@ -12275,6 +13235,12 @@
             "value" : "Definições"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configurări"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -12422,6 +13388,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Folha (Sheet)"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Foaie"
           }
         },
         "ru" : {
@@ -12573,6 +13545,12 @@
             "value" : "Mostrar Seletor de Categorias"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afișează selectorul de categorii"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -12720,6 +13698,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mostrar Rótulos de Secção de Categoria"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afișează eticheta secțiunii de categorii"
           }
         },
         "ru" : {
@@ -12871,6 +13855,12 @@
             "value" : "Mostrar Nome do Ícone"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afișează numele pictogramei"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -13017,6 +14007,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mostrar recentes"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afișează recente"
           }
         },
         "ru" : {
@@ -13168,6 +14164,12 @@
             "value" : "Mostrar Barra de Pesquisa"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afișează bara de căutare"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -13314,6 +14316,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Espaçamento"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spațiere"
           }
         },
         "ru" : {
@@ -13465,6 +14473,12 @@
             "value" : "Especifique o valor a aplicar aos símbolos variáveis."
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Specificați valoarea de aplicat simbolurilor variabile."
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -13613,6 +14627,12 @@
             "value" : "Estilo"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stilizare"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -13759,6 +14779,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Código SwiftUI"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cod SwiftUI"
           }
         },
         "ru" : {
@@ -13910,6 +14936,12 @@
             "value" : "Cor Terciária"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Culoare terțiară"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -14057,6 +15089,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Apenas Título"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Doar titlu"
           }
         },
         "ru" : {
@@ -14207,6 +15245,12 @@
             "value" : "Alternar a categoria de ícones recentemente utilizados."
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comutați categoria de pictograme utilizate recent."
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -14353,6 +15397,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Alternar se a barra de pesquisa personalizada é visível."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comutați vizibilitatea barei de căutare personalizate."
           }
         },
         "ru" : {
@@ -14504,6 +15554,12 @@
             "value" : "Alterna a exibição de cabeçalhos de secção no menu de categorias (iOS 18.0+, macOS 15.0+, tvOS 18.0+, watchOS 11.0+, visionOS 2.0+)."
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comutați afișarea anteturilor de secțiune în meniul de categorii (iOS 18.0+, macOS 15.0+, tvOS 18.0+, watchOS 11.0+, visionOS 2.0+)."
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -14650,6 +15706,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Alternar se deseja exibir o menu de categorias."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comutați afișarea meniului de categorii."
           }
         },
         "ru" : {
@@ -14801,6 +15863,12 @@
             "value" : "Alterna a exibição do nome de cada símbolo."
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comutați afișarea numelui fiecărui simbol."
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -14948,6 +16016,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Superior"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sus"
           }
         },
         "ru" : {
@@ -15098,6 +16172,12 @@
             "value" : "Utilizar .searchable"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utilizează .searchable"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -15244,6 +16324,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Utilize o modificador searchable nativo e desative a barra de pesquisa personalizada."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utilizează modificatorul nativ searchable și dezactivează bara de căutare personalizată."
           }
         },
         "ru" : {
@@ -15395,6 +16481,12 @@
             "value" : "Valor Variável"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Valoare variabilă"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -15542,6 +16634,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Valor Variável: "
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Valoare variabilă: "
           }
         },
         "ru" : {
@@ -15693,6 +16791,12 @@
             "value" : "Visível"
           }
         },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vizibil"
+          }
+        },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
@@ -15839,6 +16943,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "A sua cor aqui"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Culoarea dvs. aici"
           }
         },
         "ru" : {

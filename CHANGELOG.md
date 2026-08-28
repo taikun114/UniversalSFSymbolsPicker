@@ -16,6 +16,7 @@ List items within each section in the following order:
 - Additions
 - Fixes
 - Improvements
+- Updates
 - Changes
 - Removals
 
@@ -25,8 +26,12 @@ Notes:
 - Full URLs must be provided for links to Issues, Pull Requests, or Discussions
 -->
 
-## 1.0.2
+## 1.1.0
 ### UniversalSFSymbolsPicker
+#### New Features
+- **Support for SF Symbols 8**
+- **Add Romanian (`ro`) localization by generative AI**
+
 #### Bug Fixes and Improvements
 - **Fix issue where the sheet slightly appeared greenish in dark mode on iOS / iPadOS**
 - **Fix issue where the category picker label was not displayed when presented as a sheet on macOS Golden Gate**
@@ -34,6 +39,7 @@ Notes:
 - **Improve search box appearance on version 26 and later**
 - **Improve scroll edge effect on iOS / iPadOS 27 and macOS Golden Gate**
   - Reverted to `.soft` style as it is now displayed correctly due to OS-level fixes.
+- **Update French (`fr`, `fr-CA`) category name localizations to match official data**
 
 ### UniversalSFSymbolsPicker Demo
 #### Bug Fixes and Improvements
